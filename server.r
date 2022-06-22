@@ -17,6 +17,8 @@ library(ggplot2)
 library(visNetwork)
 library(networkD3)
 library(RColorBrewer)
+library(logging)
+library(shinyjs)
 set.seed(123)
 
 library(ggraph)
@@ -24,53 +26,18 @@ library(igraph)
 library(shinydashboard)
 library(tidyverse)
 library(dplyr)
-df = read.csv("relationshipsmmp.csv")
-maps <- c("All", unique(df$map_name))
-status <- c("All", unique(df$type))
-# Call this function with a list or vector
-# Core wrapping function
 
-#df = subset(df, df$map_name=="Global Al Qaeda" | df$map_name=="Global Islamic State"  | df$map_name=="Global Right-Wing Extremism")
-df=subset(df, df$link_id != 1803) #not sure what this is
-df$status=df$type
-df$label[df$status == "Affiliates"] = "affiliation"
-df$label[df$status == "Mergers"] = "merger"
-df$label[df$status == "Splinters"] = "splinter"
-df$label[df$status == "Rivals"] = "rivalry"
-df$label[df$status == "Allies"] = "alliance"
+library(logging)
 
-#title = ifelse(df$label=="affiliation",
-df$title =  ifelse(df$label=="affiliation" | df$label=="alliance", 
-                   paste0("An ", df$label, " occurred in ", df$year, 
-                          " between ", df$group1_name, " and ", df$group2_name),
-                   paste0("A ", df$label, " occurred in ", df$year, 
-                          " between ",  df$group1_name, " and ", df$group2_name))
+source('handle_data.R')
 
-#   writeLines(strwrap(paste0("A ", df$label, " occurred in ", df$year, " between ", 
-## )
+# Load data
+df <- load_data()
 
+# Pre-process
+df <- preprocess(df)
 
-library(scales)
-#extract hex color codes for a plot with three elements in ggplot2
-hex <- hue_pal()(5)
-#labels = c("#fde725", "#5ec962", "#21918c", "#3b528b", "#440154"))
-#overlay hex color codes on actual colors
-#labels = c("#fde725", "#5ec962", "#21918c", "#3b528b", "#440154"))
-
-df$status_id = as.numeric(as.factor(df$status))
-df$color <- palette()[df$status_id]
-df$from=df$group1_id
-df$to=df$group2_id
-
-
-relations <- data.frame(from=df$group1_name,
-                        to=df$group2_name)
-gg <- relations
-head(relations)
-netstop <- graph_from_data_frame(relations)
-head(netstop)
-require(igraph)
-gg <- graph.edgelist(as.matrix(relations), directed = T)
+gg <- make_graph(df)
 
 
 require(dplyr)
@@ -82,6 +49,7 @@ fmtarrstr <- function(arr){
   # now concactinate them together seperated with ,
   paste(qarr,collapse=",")
 }
+
 require(RColorBrewer)
 clrpal <- brewer.pal(n=11,name="Spectral")
 clrscale <- sprintf('d3.scaleOrdinal() .domain([%s]) .range([%s]);',
@@ -313,8 +281,8 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
 }
 
 filtered_df = df
-relations <- data.frame(from=filtered_df$group1_id,
-                        to=filtered_df$group2_id, 
+relations <- data.frame(from=filtered_df$from,
+                        to=filtered_df$to, 
                         status=filtered_df$status, 
                         map_name=filtered_df$map_name, 
                         year = filtered_df$year,
@@ -343,8 +311,8 @@ edges <- data.frame(from = df$from,
 graph <- graph.data.frame(edges, directed = T)
 degree_value <- degree(graph, mode = "in")
 
-nodes = with(df, data.frame(id = unique(c(as.character(group1_id),
-                                          as.character(group2_id))),
+nodes = with(df, data.frame(id = unique(c(as.character(from),
+                                          as.character(to))),
                             label = unique(c(as.character(group1_name),
                                              as.character(group2_name))),
                             title=unique(c(as.character(group1_name),
@@ -373,96 +341,36 @@ degreePal <- factor(cut(nodes$between, 3),
 nodes$between_color <- degreePal
 
 
-nodes$group1_id = nodes$id
-nodes =with(nodes, data.frame(group1_id, id, value, central_color, between, between_color))
-df = merge(df, nodes, by=c("group1_id"), all.x=T)
+nodes$from = nodes$id
+nodes =with(nodes, data.frame(from, id, value, central_color, between, between_color))
+df = merge(df, nodes, by=c("from"), all.x=T)
 
 head(df)
 
-df_nodes = read.csv("mmpgroupsfull.csv")
+df_nodes = read.csv("data/mmpgroupsfull.csv", header=T,)
 
-df_nodes$id=df_nodes$group_id
-df_nodes$title = df_nodes$description
-df_nodes$level = df_nodes$startyear
-df_nodes = with(df_nodes, data.frame(id, title, level))
-df_nodes = df_nodes[!duplicated(df_nodes),]
-head(df_nodes)
-dim(df_nodes)
-df_nodes = merge(df_nodes, nodes, by=c("id"), all.x=T)
+# df_nodes$id=df_nodes$group_id
+# df_nodes$title = df_nodes$description
+# df_nodes$level = df_nodes$startyear
+# df_nodes = with(df_nodes, data.frame(id, title, level))
+# df_nodes = df_nodes[!duplicated(df_nodes),]
+# head(df_nodes)
+# dim(df_nodes)
+# df_nodes = merge(df_nodes, nodes, by=c("id"), all.x=T)
 
-names(df_nodes)
 
 s <- shinyServer(function(input, output){
   
-  filtered_df_sankey <-reactive({
-    df %>%
-      dplyr::filter(map_name == input$map_name) %>%
-      dplyr::filter(year >= input$range[1] & year <= input$range[2] ) %>%
-      dplyr::filter(status=="Splinters" | status == "Mergers")
-  })
-  
-  nodes_sankey <- reactive({
-    data.frame(
-      name = unique(c(as.character(filtered_df_sankey()$group1_name),
-                      as.character(filtered_df_sankey()$group2_name))))
-  })
-  
-  links_sankey <- reactive({ 
-    data.frame(map_name= filtered_df_sankey()$map_name,
-               source = filtered_df_sankey()$group1_name,
-               target = filtered_df_sankey()$group2_name,
-               value  = rep(1, length(filtered_df_sankey()$group1_name)),
-               IDsource = match(filtered_df_sankey()$group1_name, nodes_sankey()$name) - 1,
-               IDtarget = match(filtered_df_sankey()$group2_name, nodes_sankey()$name) - 1
-    )  
-  })
-  
-  
-  
-  
-  #make sure it's zero-indexed
-  
-  #head(links)
-  #head(nodes)
-  
-  output$diagram <- renderSankeyNetwork({
-    sankeyNetwork(
-      Links = links_sankey(),
-      Nodes = nodes_sankey(),
-      Source = "IDsource",
-      Target = "IDtarget",
-      Value = "value",
-      NodeID = "name",
-      #units = 'TWh', 
-      #iterations=100,
-      #fontSize = 12, 
-      nodeWidth = 30,
-      sinksRight = FALSE
-    )
-  })
-  
-  #filtered_df <- reactive({
-  # df %>% dplyr::filter(map_name == input$map_name) 
-  #})
-  # if(input$group1 == TRUE) {
   filtered_df <- reactive({
     df %>% 
       dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) %>%
-      dplyr::filter(year >= input$range[1] & year <= input$range[2] )
+      dplyr::filter(year >= input$range[1] & year <= input$range[2])
   })
   
   filtered_df_nodes <-reactive({
     df_nodes %>%
       dplyr::filter(map_name == input$map_name) 
   })
-  
-  # else if (input$group1 == FALSE){
-  
-  # filtered_df <- reactive({  df   }) 
-  #}
-  
-  # Match palette to centrality vector.
-  
   
   edges <- reactive({
     data.frame(from = filtered_df()$from, 
@@ -479,45 +387,58 @@ s <- shinyServer(function(input, output){
     )
   })
   
-  
   nodes <- reactive({
     data.frame(id = unique(c(as.character(filtered_df()$group1_id),
                              as.character(filtered_df()$group2_id))),
                label = unique(c(as.character(filtered_df()$group1_name),
                                 as.character(filtered_df()$group2_name))))
   })
+  
+  # browser()
+  
+  
+  # output$networkvisfinal <- renderVisNetwork({ 
+  #   # nodes data.frame for legend
+  #   logging::loginfo('executing line 385')
+  #   browser()
+  #   netout <- visNetwork(list(unique(filtered_df_nodes$group_id)),
+  #                       edges(), 
+  #                       width = "100%")  %>%
+  #     
+  #   visPhysics(solver = "repulsion") %>%
+  #   visNodes()  %>%
+  #   visOptions_custom(highlightNearest = TRUE, selectedBy="label") %>%
+  #   visEdges(
+  #     label=edges()$title,
+  #     font = list(size = 1),
+  #     chosen = list(edge = TRUE,
+  #                   label = htmlwidgets::JS("function(values, id, selected, hovering)
+  #                                                 {values.size = 10;width=10}"))) %>%
+  #     visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
+  #               font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
+  #               -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
+  #                border: 1px solid #808074;white-space: wrap;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  #                max-width:300px',
+  #                    hover = TRUE,
+  #                    keyboard = TRUE,
+  #                    dragNodes = T,
+  #                    dragView = T,
+  #                    zoomView = T) %>%   # explicit edge options
+  #     visOptions(
+  #       highlightNearest = list(enabled=T,
+  #                               algorithm="hierarchical",
+  #                               degree=list(from=0, to=2)),
+  #       nodesIdSelection = TRUE
+  #     )  %>%
+  #     visConfigure(enabled=T) %>%
+  #     visLegend(addEdges = ledges, useGroups = FALSE)
+  #   netout
+  # })
+  # logging::loginfo('executing line 419')
+  browser()
   nodes2 <-reactive({merge(nodes(), 
                            df_nodes, 
                            by=c("id"), all.x=TRUE) })
-  
-  #nodes2 <- reactive({
-  #  nodes() %>%
-  #    left_join(filtered_df_nodes(), by = setNames("id"))
-  #})
-  
-  
-  
-  
-  nodes_complete <- reactive({ 
-    data.frame(nodeID = unique(c(filtered_df()$group1_id, 
-                                 filtered_df()$group2_id))) })
-  
-  edges2 <- reactive({
-    n = data.frame(from = filtered_df()$from, 
-                   to = filtered_df()$to, 
-                   status_id=filtered_df()$status_id)
-    n[!duplicated(n),] #can't have multiple events
-    return(n)         
-    
-  })
-  
-  
-  # edges data.frame for legend
-  ledges <- data.frame(color = hue_pal()(5),
-                       label = c("Affiliation", "Alliance", 
-                                 "Merger","Rivalry", "Splinter")
-  )
-  
   
   output$networkvisfinal <- renderVisNetwork({ 
     # nodes data.frame for legend
@@ -556,121 +477,9 @@ s <- shinyServer(function(input, output){
     netout
   })
   
-  myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
-  
-  observe ({
-    #zero-index?
-    filteredNodes <- edges()[edges()$status_id %in% input$filterEdges, , drop = FALSE]
-    filteredNodes2 <- data.frame(id=unique(c(as.character(filteredNodes$from),
-                                             as.character(filteredNodes$to))),
-                                 label=unique(c(as.character(filteredNodes$source),
-                                                as.character(filteredNodes$target)))
-                                 
-                                 #title=unique(c(as.character(filteredNodes$group1_name),
-                                 #              as.character(filteredNodes$group2_name)))
-    )
-    hiddenNodes <- anti_join(nodes(), filteredNodes2)
-    hiddenEdges <- anti_join(edges(), filteredNodes)
-    
-    visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)
-    visRemoveEdges(myVisNetworkProxy, id=as.character(hiddenEdges$status_id))
-    visUpdateNodes(myVisNetworkProxy, nodes = filteredNodes2)
-    
-  })
-  
-  #myVisNetworkProxy2 <- visNetworkProxy("networkvisfinal")
-  
-  #observe ({
-  # filteredNodes <- edges()[edges()$status_id %in% input$filterEdges, , drop = FALSE]
-  #filteredNodes2 <- data.frame(id=unique(c(as.character(filteredNodes$from),
-  #                                         as.character(filteredNodes$to))))
-  #hiddenNodes <- anti_join(nodes(), filteredNodes2)
-  # visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)
-  #visUpdateNodes(myVisNetworkProxy2, nodes = hiddenNodes$id)
-  #visUpdateEdges(myVisNetworkProxy2, edges = input$filterEdges)
-  #})
-  
-  
-  
-  
-  
-  output$visnetworktimeline <- renderVisNetwork({ 
-    netout <- visNetwork(nodes2(), 
-                         edges(), 
-                         width = "100%")  %>% 
-      visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
-      visNodes() %>% 
-      visEdges(arrows = "from") %>% 
-      visHierarchicalLayout(direction = "UD", levelSeparation = 15, 
-                            nodeSpacing=250, 
-                            treeSpacing=200, 
-                            # sortMethod = "directed",
-                            shakeTowards = "roots")  %>%
-      #visPhysics(solver = "repulsion") %>% 
-      visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
-      visOptions_custom(highlightNearest = TRUE) %>% 
-      visInteraction(hover = TRUE)    %>% 
-      visEdges(color = list(highlight = "red", hover="orange"), 
-               width = 2, 
-               font = list(size = 1),
-               chosen = list(edge = TRUE, 
-                             label = htmlwidgets::JS("function(values, id, selected, hovering) 
-                                                     {values.size = 10;}"))) %>%
-      visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
-                font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
-                -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
-                 border: 1px solid #808074;white-space: wrap;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-                 max-width:300px',
-                     hover = TRUE,
-                     keyboard = TRUE,
-                     dragNodes = T, 
-                     dragView = T, 
-                     zoomView = T) %>%   # explicit edge options
-      visOptions(
-        #  selectedBy = list(variable = "group", highlight = TRUE),
-        highlightNearest = list(enabled=T, 
-                                algorithm="hierarchical", 
-                                degree=list(from=0, to=1)),
-        nodesIdSelection = TRUE
-      )  %>%
-      visLegend(addEdges = ledges, useGroups = FALSE)
-    netout
-  })
-  
-  myVisNetworkProxytimeline <- visNetworkProxy("visnetworktimeline")
-  
-  observe ({
-    #zero-index?
-    filteredNodes <- edges()[edges()$status_id %in% input$filterEdges, , drop = FALSE]
-    filteredNodes2 <- data.frame(id=unique(c(as.character(filteredNodes$from),
-                                             as.character(filteredNodes$to))),
-                                 label=unique(c(as.character(filteredNodes$source),
-                                                as.character(filteredNodes$target)))
-                                 
-                                 #title=unique(c(as.character(filteredNodes$group1_name),
-                                 #              as.character(filteredNodes$group2_name)))
-    )
-    hiddenNodes <- anti_join(nodes(), filteredNodes2)
-    hiddenEdges <- anti_join(edges(), filteredNodes)
-    
-    visRemoveNodes(myVisNetworkProxytimeline, id = hiddenNodes$id)
-    visRemoveEdges(myVisNetworkProxytimeline, id=as.character(hiddenEdges$status_id))
-    visUpdateNodes(myVisNetworkProxytimeline, nodes = filteredNodes2)
-    
-  })
-  
-  output$sankey <- renderVisNetwork({ 
-    netout <- forceNetwork(
-      Links  = edges2(), Nodes   = nodes_complete(),
-      Source = "from", Target  = "to",
-      NodeID  = "nodeID", 
-      Nodesize="status_id",
-      Group="nodeID",
-      opacity=1.0, zoom=T, fontSize = 12,
-      colourScale = JS(clrscale)) 
-    netout
-  })
-  
+  # myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
   
 })
+  
+  
 
