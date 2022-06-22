@@ -280,23 +280,6 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
   graph
 }
 
-filtered_df = df
-relations <- data.frame(from=filtered_df$from,
-                        to=filtered_df$to, 
-                        status=filtered_df$status, 
-                        map_name=filtered_df$map_name, 
-                        year = filtered_df$year,
-                        status_id = filtered_df$status,
-                        title = filtered_df$title)
-
-relations = relations[!duplicated(relations),]
-relations = na.omit(relations)
-relations
-
-maps <- c("All", unique(relations$map_name))
-status <- c("All", unique(relations$status))
-
-
 edges <- data.frame(from = df$from, 
                     to = df$to, 
                     title=df$label,
@@ -324,7 +307,6 @@ hex <- hue_pal()(5)
 df$color <- hex[df$status_id]
 
 
-
 nodes$value <- degree_value[match(nodes$id, names(degree_value))]
 
 degreePal <- factor(cut(nodes$value, 5),
@@ -347,16 +329,11 @@ df = merge(df, nodes, by=c("from"), all.x=T)
 
 head(df)
 
-df_nodes = read.csv("data/mmpgroupsfull.csv", header=T,)
-
-# df_nodes$id=df_nodes$group_id
-# df_nodes$title = df_nodes$description
-# df_nodes$level = df_nodes$startyear
-# df_nodes = with(df_nodes, data.frame(id, title, level))
-# df_nodes = df_nodes[!duplicated(df_nodes),]
-# head(df_nodes)
-# dim(df_nodes)
-# df_nodes = merge(df_nodes, nodes, by=c("id"), all.x=T)
+df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
+df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
+cnames <- c('id', 'title', 'level')
+colnames(df_nodes) <- cnames
+df_nodes <- unique(df_nodes)
 
 
 s <- shinyServer(function(input, output){
@@ -367,17 +344,18 @@ s <- shinyServer(function(input, output){
       dplyr::filter(year >= input$range[1] & year <= input$range[2])
   })
   
-  filtered_df_nodes <-reactive({
-    df_nodes %>%
-      dplyr::filter(map_name == input$map_name) 
-  })
+  # filtered_df_nodes <-reactive({
+  #   df_nodes %>%
+  #     dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) 
+  # })
   
   edges <- reactive({
     data.frame(from = filtered_df()$from, 
                to = filtered_df()$to,
                source = as.character(filtered_df()$group1_name),
                target = as.character(filtered_df()$group2_name),
-               title=as.character(filtered_df()$title),
+               # tooltip
+               title=filtered_df()$title,
                #group=as.character(filtered_df()$status),
                #status=as.character(filtered_df()$status), 
                status_id=filtered_df()$status_id, 
@@ -388,73 +366,40 @@ s <- shinyServer(function(input, output){
   })
   
   nodes <- reactive({
-    data.frame(id = unique(c(as.character(filtered_df()$group1_id),
-                             as.character(filtered_df()$group2_id))),
-               label = unique(c(as.character(filtered_df()$group1_name),
-                                as.character(filtered_df()$group2_name))))
+    data.frame(id = unique(c(filtered_df()$from,
+                             filtered_df()$to)),
+               label = unique(c(filtered_df()$group1_name,
+                                filtered_df()$group2_name)))
   })
-  
-  # browser()
-  
-  
-  # output$networkvisfinal <- renderVisNetwork({ 
-  #   # nodes data.frame for legend
-  #   logging::loginfo('executing line 385')
-  #   browser()
-  #   netout <- visNetwork(list(unique(filtered_df_nodes$group_id)),
-  #                       edges(), 
-  #                       width = "100%")  %>%
-  #     
-  #   visPhysics(solver = "repulsion") %>%
-  #   visNodes()  %>%
-  #   visOptions_custom(highlightNearest = TRUE, selectedBy="label") %>%
-  #   visEdges(
-  #     label=edges()$title,
-  #     font = list(size = 1),
-  #     chosen = list(edge = TRUE,
-  #                   label = htmlwidgets::JS("function(values, id, selected, hovering)
-  #                                                 {values.size = 10;width=10}"))) %>%
-  #     visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
-  #               font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
-  #               -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
-  #                border: 1px solid #808074;white-space: wrap;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-  #                max-width:300px',
-  #                    hover = TRUE,
-  #                    keyboard = TRUE,
-  #                    dragNodes = T,
-  #                    dragView = T,
-  #                    zoomView = T) %>%   # explicit edge options
-  #     visOptions(
-  #       highlightNearest = list(enabled=T,
-  #                               algorithm="hierarchical",
-  #                               degree=list(from=0, to=2)),
-  #       nodesIdSelection = TRUE
-  #     )  %>%
-  #     visConfigure(enabled=T) %>%
-  #     visLegend(addEdges = ledges, useGroups = FALSE)
-  #   netout
-  # })
-  # logging::loginfo('executing line 419')
-  browser()
-  nodes2 <-reactive({merge(nodes(), 
-                           df_nodes, 
+
+  # We need this so that we can show description of each organization
+  # when a vertex is hovered
+  nodes2 <-reactive({merge(nodes(),
+                           df_nodes,
                            by=c("id"), all.x=TRUE) })
   
-  output$networkvisfinal <- renderVisNetwork({ 
+  # edges data.frame for legend
+  ledges <- data.frame(color = hue_pal()(5),
+                       # str_to_title()
+                       label = c("Affiliation", "Alliance", 
+                                 "Merger","Rivalry", "Splinter")
+  )
+
+  output$networkvisfinal <- renderVisNetwork({
     # nodes data.frame for legend
-    
+    # browser()
     netout = visNetwork(nodes2(),
-                        edges(), 
+                        edges(),
                         width = "100%")  %>%
-      
-      visPhysics(solver = "repulsion") %>% 
+
+      visPhysics(solver = "repulsion") %>%
       visNodes()  %>%
-      visOptions_custom(highlightNearest = TRUE, selectedBy="label") %>% 
+      visOptions_custom(highlightNearest = TRUE, selectedBy="label") %>%
       visEdges(
         label=edges()$title,
         font = list(size = 1),
-        chosen = list(edge = TRUE, 
-                      label = htmlwidgets::JS("function(values, id, selected, hovering) 
+        chosen = list(edge = TRUE,
+                      label = htmlwidgets::JS("function(values, id, selected, hovering)
                                                     {values.size = 10;width=10}"))) %>%
       visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
@@ -463,12 +408,12 @@ s <- shinyServer(function(input, output){
                  max-width:300px',
                      hover = TRUE,
                      keyboard = TRUE,
-                     dragNodes = T, 
-                     dragView = T, 
+                     dragNodes = T,
+                     dragView = T,
                      zoomView = T) %>%   # explicit edge options
       visOptions(
-        highlightNearest = list(enabled=T, 
-                                algorithm="hierarchical", 
+        highlightNearest = list(enabled=T,
+                                algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE
       )  %>%
