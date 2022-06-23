@@ -28,7 +28,7 @@ preprocess <- function(df)
   df$label[df$status == "Splinters"] = "splinter"
   df$label[df$status == "Rivals"] = "rivalry"
   df$label[df$status == "Allies"] = "alliance"
-  df$status_id = as.numeric(as.factor(df$status))
+  df$status_id = as.numeric(df$status)
   
   df$title =  ifelse(df$label=="affiliation" | df$label=="alliance", 
                      paste0("An ", df$label, " occurred in ", df$year, 
