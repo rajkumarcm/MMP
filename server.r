@@ -3,44 +3,39 @@ rm(list=ls(all=TRUE))
 options(warn=-1)
 #setwd("/users/irismalone/Dropbox/NCITE/MMP/prototypev2/")
 library(shiny)
-library(dplyr)
-library(ggplot2)
-library(ggiraph)
 
-library(ggraph)
-library(igraph)
-library(shinydashboard)
-library(tidyverse)
-library(dplyr)
-library(shiny)
-library(ggplot2)
 library(visNetwork)
-library(networkD3)
 library(RColorBrewer)
 library(logging)
 library(shinyjs)
 set.seed(123)
 
-library(ggraph)
-library(igraph)
-library(shinydashboard)
-library(tidyverse)
-library(dplyr)
-
 library(logging)
 
+start_source <- Sys.time()
 source('handle_data.R')
+end_source <- Sys.time()
+time_source <- end_source - start_source
 
 # Load data
+start_load_data <- Sys.time()
 df <- load_data()
+end_load_data <- Sys.time()
+time_load_data <- end_load_data - start_load_data
 
 # Pre-process
+start_preprocess <- Sys.time()
 df <- preprocess(df)
+end_preprocess <- Sys.time()
+time_preprocess <- end_preprocess - start_preprocess
 
-gg <- make_graph(df)
+# Perhaps we do not need this as we are not making use of this anywhere
+# start_make_graph <- Sys.time()
+# gg <- make_graph(df)
+# end_make_graph <- Sys.time()
+# time_make_graph <- end_make_graph - start_make_graph
 
 
-require(dplyr)
 df = na.omit(df)
 
 fmtarrstr <- function(arr){
@@ -55,9 +50,9 @@ clrpal <- brewer.pal(n=11,name="Spectral")
 clrscale <- sprintf('d3.scaleOrdinal() .domain([%s]) .range([%s]);',
                     fmtarrstr(1:11),fmtarrstr(clrpal))
 
-visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNearest = FALSE, 
-                               nodesIdSelection = FALSE, selectedBy = NULL, autoResize = NULL, 
-                               clickToUse = NULL, manipulation = NULL) 
+visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNearest = FALSE,
+                               nodesIdSelection = FALSE, selectedBy = NULL, autoResize = NULL,
+                               clickToUse = NULL, manipulation = NULL)
 {
   if (!any(class(graph) %in% c("visNetwork", "visNetwork_Proxy"))) {
     stop("graph must be a visNetwork or a visNetworkProxy object")
@@ -75,26 +70,26 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
   options$width <- width
   if (!is.null(manipulation)) {
     if (manipulation) {
-      graph$x$datacss <- paste(readLines(system.file("htmlwidgets/lib/css/dataManipulation.css", 
+      graph$x$datacss <- paste(readLines(system.file("htmlwidgets/lib/css/dataManipulation.css",
                                                      package = "visNetwork"), warn = FALSE), collapse = "\n")
     }
   }
-  if (!"nodes" %in% names(graph$x) && any(class(graph) %in% 
+  if (!"nodes" %in% names(graph$x) && any(class(graph) %in%
                                           "visNetwork")) {
     highlight <- list(enabled = FALSE)
     idselection <- list(enabled = FALSE)
     byselection <- list(enabled = FALSE)
   }
   else {
-    highlight <- list(enabled = FALSE, hoverNearest = FALSE, 
+    highlight <- list(enabled = FALSE, hoverNearest = FALSE,
                       degree = 1, algorithm = "all")
     if (is.list(highlightNearest)) {
-      if (any(!names(highlightNearest) %in% c("enabled", 
+      if (any(!names(highlightNearest) %in% c("enabled",
                                               "degree", "hover", "algorithm"))) {
         stop("Invalid 'highlightNearest' argument")
       }
       if ("algorithm" %in% names(highlightNearest)) {
-        stopifnot(highlightNearest$algorithm %in% c("all", 
+        stopifnot(highlightNearest$algorithm %in% c("all",
                                                     "hierarchical"))
         highlight$algorithm <- highlightNearest$algorithm
       }
@@ -103,11 +98,11 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
       }
       if (highlight$algorithm %in% "hierarchical") {
         if (is.list(highlight$degree)) {
-          stopifnot(all(names(highlight$degree) %in% 
+          stopifnot(all(names(highlight$degree) %in%
                           c("from", "to")))
         }
         else {
-          highlight$degree <- list(from = highlight$degree, 
+          highlight$degree <- list(from = highlight$degree,
                                    to = highlight$degree)
         }
       }
@@ -134,7 +129,7 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
     }
     idselection <- list(enabled = FALSE, style = "width: 150px; height: 26px")
     if (is.list(nodesIdSelection)) {
-      if (any(!names(nodesIdSelection) %in% c("enabled", 
+      if (any(!names(nodesIdSelection) %in% c("enabled",
                                               "selected", "style", "values"))) {
         stop("Invalid 'nodesIdSelection' argument. List can have 'enabled', 'selected', 'style', 'values'")
       }
@@ -175,11 +170,11 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
         }
       }
     }
-    byselection <- list(enabled = FALSE, style = "width: 150px; height: 26px", 
+    byselection <- list(enabled = FALSE, style = "width: 150px; height: 26px",
                         multiple = FALSE)
     if (!is.null(selectedBy)) {
       if (is.list(selectedBy)) {
-        if (any(!names(selectedBy) %in% c("variable", 
+        if (any(!names(selectedBy) %in% c("variable",
                                           "selected", "style", "values", "multiple"))) {
           stop("Invalid 'selectedBy' argument. List can have 'variable', 'selected', 'style', 'values', 'multiple'")
         }
@@ -214,19 +209,19 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
       }
       else {
         if (!byselection$variable %in% colnames(graph$x$nodes)) {
-          warning("Can't find '", byselection$variable, 
+          warning("Can't find '", byselection$variable,
                   "' in node data.frame")
         }
         else {
           byselection$enabled <- TRUE
-          byselection$values <- unique(graph$x$nodes[, 
+          byselection$values <- unique(graph$x$nodes[,
                                                      byselection$variable])
           if (byselection$multiple) {
-            byselection$values <- unique(gsub("^[[:space:]]*|[[:space:]]*$", 
-                                              "", do.call("c", strsplit(as.character(byselection$values), 
+            byselection$values <- unique(gsub("^[[:space:]]*|[[:space:]]*$",
+                                              "", do.call("c", strsplit(as.character(byselection$values),
                                                                         split = ","))))
           }
-          if (any(c("integer", "numeric") %in% class(graph$x$nodes[, 
+          if (any(c("integer", "numeric") %in% class(graph$x$nodes[,
                                                                    byselection$variable]))) {
             byselection$values <- sort(byselection$values)
           }
@@ -252,7 +247,7 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
       }
     }
   }
-  x <- list(highlight = highlight, idselection = idselection, 
+  x <- list(highlight = highlight, idselection = idselection,
             byselection = byselection)
   if (highlight$hoverNearest) {
     graph <- visInteraction(graph, hover = TRUE)
@@ -270,7 +265,7 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
       x$byselection <- NULL
     }
     data <- list(id = graph$id, options = x)
-    graph$session$sendCustomMessage("visShinyCustomOptions", 
+    graph$session$sendCustomMessage("visShinyCustomOptions",
                                     data)
   }
   else {
@@ -290,9 +285,11 @@ edges <- data.frame(from = df$from,
                     map=df$map,
                     color=df$color)
 
-
+start_create_edges <- Sys.time()
 graph <- graph.data.frame(edges, directed = T)
-degree_value <- degree(graph, mode = "in")
+end_create_edges <- Sys.time()
+time_create_edges <- end_create_edges - start_create_edges
+
 
 nodes = with(df, data.frame(id = unique(c(as.character(from),
                                           as.character(to))),
@@ -306,35 +303,81 @@ nodes = with(df, data.frame(id = unique(c(as.character(from),
 hex <- hue_pal()(5)
 df$color <- hex[df$status_id]
 
+# Compute the number of incoming connection for each vertex
+start_degree_value <- Sys.time()
+degree_value <- degree(graph, mode = "in")
+end_degree_value <- Sys.time()
+time_degree <- end_degree_value - start_degree_value
 
-nodes$value <- degree_value[match(nodes$id, names(degree_value))]
+# Are both node$id and degree value the same ?
+# 
+# Turns out group id == degree(s) of a vertex
+# Appears the group_ids were automatically created by some script.
+# However I am surprised why we are doing this here given it was a script that
+# generated the group_id.
+# nodes$value <- degree_value[match(nodes$id, names(degree_value))]
 
-degreePal <- factor(cut(nodes$value, 5),
+# Throwing nodes into 5 different bins based on histogram binning technique
+# on the basis of their strength represented by a unique color.
+# But represented by just 4 colors for 5 bins ? I will change this to 4 for the 
+# time-being
+
+degreePal <- factor(cut(as.numeric(nodes$id), 4),
                     labels = c("lightblue", "#619CFF", "orange", "darkblue"))
 nodes$central_color <- degreePal
 
-betweeness =  betweenness(graph, directed = F) # assignment
-names(betweeness)
-nodes$between <- betweeness[match(nodes$id, names(betweeness))]
-#labels = c("#fde725", "#5ec962", "#21918c", "#3b528b", "#440154"))
+# The amount of influence the vertex has on the flow of paths in the network
+# This should be somewhat an expensive operation.
+start_betweenness_value <- Sys.time()
+betweenness =  betweenness(graph, directed = F) # assignment
+end_betweenness_value <- Sys.time()
+time_betweenness <- end_betweenness_value - start_betweenness_value
 
+# This is not required as we are not utilising the following line
+# names(betweeness)
+
+# Magically sum(as.numeric(names(betweenness)) == as.numeric(names(degree_value)))
+# shows degree_value == betweenness
+# As it was the same case with degree_value I wish to comment this out as well.
+nodes$between <- betweenness[match(nodes$id, names(betweenness))]
+
+# Now betweenness is the same as degree_value and it appears 
+# 'id' is an almighty here.
+
+# Once again, three bins, but one color. This is technically correct though.
+# Any rationale behind the number 3 ?
 degreePal <- factor(cut(nodes$between, 3),
                     labels = c("#fde725"))
 nodes$between_color <- degreePal
 
+# Even with "with" usage, and data.frame call, there is an overhead attached to 
+# it. A temporary memory is allocated until assigned back to nodes. 
+# Hence I am changing it.
+# nodes = with(nodes, data.frame(from, id, value, central_color, between, between_color))
+# value == id hence no need to use value
 
-nodes$from = nodes$id
-nodes =with(nodes, data.frame(from, id, value, central_color, between, between_color))
-df = merge(df, nodes, by=c("from"), all.x=T)
-
-head(df)
+nodes <- nodes[, c('id', 'central_color', 'between', 'between_color')]
+# Something is not correct about by=c("from") because
+# nodes$from or nodes$id is actually the degree of centrality with mode "in"
+# that refers to the number of incoming edges, but we are merging with "from"
+# that refers to the departing node. This must be a blender mistake I guess.
+# For debugging purposes---------------------------------------------------
+n_nodes1 <- length(unique(df$from))
+n_nodes2 <- length(unique(as.numeric(nodes$id)))
+loginfo(paste('length of df$from:', n_nodes1))
+loginfo(paste('length of nodes$id:', n_nodes2))
+loginfo('length(nodes$id) > length(df$from) because ids in nodes dataframe
+        is a concatenation of both from and to nodes in df dataframe.')
+loginfo('Pay attention at the place where you merge df and nodes')
+#--------------------------------------------------------------------------
+# browser()
+df = merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
 
 df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
 df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
 cnames <- c('id', 'title', 'level')
 colnames(df_nodes) <- cnames
 df_nodes <- unique(df_nodes)
-
 
 s <- shinyServer(function(input, output){
   
@@ -343,6 +386,7 @@ s <- shinyServer(function(input, output){
       dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) %>%
       dplyr::filter(year >= input$range[1] & year <= input$range[2])
   })
+  
   
   # filtered_df_nodes <-reactive({
   #   df_nodes %>%
@@ -365,18 +409,21 @@ s <- shinyServer(function(input, output){
     )
   })
   
+  
   nodes <- reactive({
     data.frame(id = unique(c(filtered_df()$from,
                              filtered_df()$to)),
                label = unique(c(filtered_df()$group1_name,
                                 filtered_df()$group2_name)))
   })
+  
 
   # We need this so that we can show description of each organization
   # when a vertex is hovered
   nodes2 <-reactive({merge(nodes(),
                            df_nodes,
-                           by=c("id"), all.x=TRUE) })
+                           by=c("id"), all.x=TRUE)
+                          })
   
   # edges data.frame for legend
   ledges <- data.frame(color = hue_pal()(5),
@@ -394,7 +441,6 @@ s <- shinyServer(function(input, output){
 
       visPhysics(solver = "repulsion") %>%
       visNodes()  %>%
-      visOptions_custom(highlightNearest = TRUE, selectedBy="label") %>%
       visEdges(
         label=edges()$title,
         font = list(size = 1),
@@ -412,19 +458,17 @@ s <- shinyServer(function(input, output){
                      dragView = T,
                      zoomView = T) %>%   # explicit edge options
       visOptions(
-        highlightNearest = list(enabled=T,
+        highlightNearest = list(enabled=T, hover=T,
                                 algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
-        nodesIdSelection = TRUE
+                           nodesIdSelection = TRUE
       )  %>%
-      visConfigure(enabled=T) %>%
+      # visConfigure(enabled=T) %>%
       visLegend(addEdges = ledges, useGroups = FALSE)
     netout
   })
   
-  # myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+  myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
   
 })
-  
-  
 
