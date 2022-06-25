@@ -111,11 +111,11 @@ u <- shinyUI(fluidPage(
                               checkboxGroupInput("filterEdges",
                                                  "Select relationship:",
                                                  selected = unique(df$status_id),
-                                                 choices = c("Affiliates"=1, 
+                                                 choices = c("Affiliates"=5, 
                                                              "Allies"=2, 
                                                              "Mergers"=3,
-                                                             "Rivals"=4,
-                                                             "Splinters"=5)
+                                                             "Rivals"=1,
+                                                             "Splinters"=4)
                               ),
                               
                               sliderInput("range", 

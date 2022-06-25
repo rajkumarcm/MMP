@@ -12,29 +12,16 @@ set.seed(123)
 
 library(logging)
 
-start_source <- Sys.time()
 source('handle_data.R')
-end_source <- Sys.time()
-time_source <- end_source - start_source
 
 # Load data
-start_load_data <- Sys.time()
 df <- load_data()
-end_load_data <- Sys.time()
-time_load_data <- end_load_data - start_load_data
 
 # Pre-process
-start_preprocess <- Sys.time()
 df <- preprocess(df)
-end_preprocess <- Sys.time()
-time_preprocess <- end_preprocess - start_preprocess
 
 # Perhaps we do not need this as we are not making use of this anywhere
-# start_make_graph <- Sys.time()
 # gg <- make_graph(df)
-# end_make_graph <- Sys.time()
-# time_make_graph <- end_make_graph - start_make_graph
-
 
 df = na.omit(df)
 
@@ -275,6 +262,7 @@ visOptions_custom <- function (graph, width = NULL, height = NULL, highlightNear
   graph
 }
 
+# browser()
 edges <- data.frame(from = df$from, 
                     to = df$to, 
                     title=df$label,
@@ -285,11 +273,7 @@ edges <- data.frame(from = df$from,
                     map=df$map,
                     color=df$color)
 
-start_create_edges <- Sys.time()
 graph <- graph.data.frame(edges, directed = T)
-end_create_edges <- Sys.time()
-time_create_edges <- end_create_edges - start_create_edges
-
 
 nodes = with(df, data.frame(id = unique(c(as.character(from),
                                           as.character(to))),
@@ -298,16 +282,11 @@ nodes = with(df, data.frame(id = unique(c(as.character(from),
                             title=unique(c(as.character(group1_name),
                                            as.character(group2_name))),
                             size = min(color)))
+# browser() 
 
 # Create degree centrality
-hex <- hue_pal()(5)
-df$color <- hex[df$status_id]
-
 # Compute the number of incoming connection for each vertex
-start_degree_value <- Sys.time()
 degree_value <- degree(graph, mode = "in")
-end_degree_value <- Sys.time()
-time_degree <- end_degree_value - start_degree_value
 
 # Are both node$id and degree value the same ?
 # 
@@ -325,6 +304,7 @@ time_degree <- end_degree_value - start_degree_value
 degreePal <- factor(cut(as.numeric(nodes$id), 4),
                     labels = c("lightblue", "#619CFF", "orange", "darkblue"))
 nodes$central_color <- degreePal
+# browser() # check what color is assigned to each group
 
 # The amount of influence the vertex has on the flow of paths in the network
 # This should be somewhat an expensive operation.
@@ -372,7 +352,7 @@ loginfo('Pay attention at the place where you merge df and nodes')
 #--------------------------------------------------------------------------
 # browser()
 df = merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
-
+# browser()
 df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
 df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
 cnames <- c('id', 'title', 'level')
@@ -394,6 +374,7 @@ s <- shinyServer(function(input, output){
   # })
   
   edges <- reactive({
+    # browser()
     data.frame(from = filtered_df()$from, 
                to = filtered_df()$to,
                source = as.character(filtered_df()$group1_name),
@@ -426,15 +407,15 @@ s <- shinyServer(function(input, output){
                           })
   
   # edges data.frame for legend
-  ledges <- data.frame(color = hue_pal()(5),
+  tmp_df <- unique(df[, c('status', 'color')])
+  ledges <- data.frame(color = tmp_df$color,
                        # str_to_title()
-                       label = c("Affiliation", "Alliance", 
-                                 "Merger","Rivalry", "Splinter")
+                       label = tmp_df$status
   )
 
   output$networkvisfinal <- renderVisNetwork({
     # nodes data.frame for legend
-    # browser()
+    # browser() # Check if all the values we previous saw align
     netout = visNetwork(nodes2(),
                         edges(),
                         width = "100%")  %>%
@@ -469,6 +450,29 @@ s <- shinyServer(function(input, output){
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+
+  observe ({
+
+    filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
+    filteredNodes2 <- data.frame(id=unique(c(filteredEdges$from,
+                                             filteredEdges$to)),
+                                 label=unique(c(as.character(filteredEdges$source),
+                                                as.character(filteredEdges$target)))
+
+                                 #title=unique(c(as.character(filteredNodes$group1_name),
+                                 #              as.character(filteredNodes$group2_name)))
+    )
+    hiddenNodes <- anti_join(nodes(), filteredNodes2)
+    hiddenEdges <- anti_join(edges(), filteredEdges)
+    if(length(input$filterEdges) < max(edges()$status_id))
+      if(anti_join(data.frame(id=1:5), data.frame(id=as.numeric(input$filterEdges)))$id==4)
+        browser() # deliberately did this to stop only when I uncheck status_id=4
+
+    visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)
+    visRemoveEdges(myVisNetworkProxy, id=as.character(hiddenEdges$status_id))
+    visUpdateNodes(myVisNetworkProxy, nodes = filteredNodes2)
+
+  })
   
 })
 

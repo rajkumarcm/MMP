@@ -1,6 +1,5 @@
 load_data <- function()
 {
-  logging::loginfo('handle_data called')
   rel <- read.csv('data/relationshipsmmp.csv', sep=',', header=T, 
                  fileEncoding = 'UTF-8-BOM', check.names=T,
                  colClasses=c('multiple'='factor'))
@@ -19,7 +18,7 @@ preprocess <- function(df)
   # Instead of creating separate columns with same information
   # that causes the memory to grow we could instead rename the columns
   # to make them more convenient
-  cnames[cnames == 'type'] <- 'status'
+  cnames[cnames == 'type'] <- 'status' # It is already a factor
   cnames[cnames == 'group1_id'] <- 'from'
   cnames[cnames == 'group2_id'] <- 'to'
   colnames(df) <- cnames
@@ -29,6 +28,14 @@ preprocess <- function(df)
   df$label[df$status == "Rivals"] = "rivalry"
   df$label[df$status == "Allies"] = "alliance"
   df$status_id = as.numeric(df$status)
+  # browser()
+  
+  # For debugging-----------------------------------
+  tmp_df <- df[, c('group1_name', 'group2_name', 'status', 'status_id')]
+  bool_mask <- df$group1_name == "People's Liberation Organization of Tamil Eelam"
+  check_df <- tmp_df[bool_mask, ]
+  # browser()
+  #-------------------------------------------------
   
   df$title =  ifelse(df$label=="affiliation" | df$label=="alliance", 
                      paste0("An ", df$label, " occurred in ", df$year, 
@@ -36,7 +43,9 @@ preprocess <- function(df)
                      paste0("A ", df$label, " occurred in ", df$year, 
                             " between ",  df$group1_name, " and ", df$group2_name))
   library(scales)
-  df$color = palette()[df$status_id]
+  # df$color = palette()[df$status_id]
+  hex <- hue_pal()(5)
+  df$color <- hex[df$status_id]
   return(df)
 }
 
