@@ -363,7 +363,7 @@ s <- shinyServer(function(input, output){
     # Hence I wish to try adding a composite key to try get the filter
     # working
     data.frame(
-               link_id = filtered_df()$link_id,
+               id = filtered_df()$link_id,
                from = filtered_df()$from, 
                to = filtered_df()$to,
                source = as.character(filtered_df()$group1_name),
@@ -412,7 +412,7 @@ s <- shinyServer(function(input, output){
       visPhysics(solver = "repulsion") %>%
       visNodes()  %>%
       visEdges(
-        # id=edges()$link_id,
+        # id=filtered_df()$link_id,
         label=edges()$title,
         font = list(size = 1),
         chosen = list(edge = TRUE,
@@ -434,7 +434,7 @@ s <- shinyServer(function(input, output){
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE)  %>%
       # visConfigure(enabled=T) %>%
-      visLegend(addEdges = ledges, useGroups = FALSE)
+      visLegend(addEdges = ledges, useGroups = FALSE) # uncomment >%> above
     netout
   })
   
@@ -457,12 +457,14 @@ s <- shinyServer(function(input, output){
     hiddenEdges <- anti_join(edges(), filteredEdges)
     # browser()
     # if(length(input$filterEdges) < max(edges()$status_id))
-    #   if(anti_join(data.frame(status_id=1:5), data.frame(status_id=as.numeric(input$filterEdges)))$status_id==4)
-    #     browser() # deliberately did this to stop only when I uncheck status_id=4
+    #   if(anti_join(data.frame(status_id=1:5), 
+    #                data.frame(status_id=as.numeric(input$filterEdges)))$status_id==3)
+    #     browser() # deliberately did this to stop only when I uncheck status_id=3
 
     visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)
-    visRemoveEdges(myVisNetworkProxy, id=hiddenEdges$link_id)
+    visRemoveEdges(myVisNetworkProxy, id=hiddenEdges$id)
     visUpdateNodes(myVisNetworkProxy, nodes = filteredNodes2)
+    visUpdateEdges(myVisNetworkProxy, edges=filteredEdges)
 
   })
   

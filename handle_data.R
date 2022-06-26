@@ -36,11 +36,11 @@ preprocess <- function(df)
   check_df <- tmp_df[bool_mask, ]
   # browser()
   #-------------------------------------------------
-  
+  # Debugging - injected link_id in the edge title
   df$title =  ifelse(df$label=="affiliation" | df$label=="alliance", 
-                     paste0("An ", df$label, " occurred in ", df$year, 
+                     paste0("An ", df$link_id, " ", df$label, " occurred in ", df$year, 
                             " between ", df$group1_name, " and ", df$group2_name),
-                     paste0("A ", df$label, " occurred in ", df$year, 
+                     paste0("A ", df$link_id, " ", df$label, " occurred in ", df$year, 
                             " between ",  df$group1_name, " and ", df$group2_name))
   library(scales)
   # df$color = palette()[df$status_id]
