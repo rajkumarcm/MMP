@@ -456,7 +456,6 @@ s <- shinyServer(function(input, output){
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
 
   observe ({
-    browser()
     loginfo(paste('Receiving edges size:', nrow(edges())))
     loginfo(paste('Receiving nodes size:', nrow(nodes())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
