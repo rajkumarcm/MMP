@@ -19,6 +19,7 @@ df <- load_data()
 
 # Pre-process
 df <- preprocess(df)
+df$link_id <- 1:nrow(df)
 
 # Perhaps we do not need this as we are not making use of this anywhere
 # gg <- make_graph(df)
@@ -353,11 +354,6 @@ s <- shinyServer(function(input, output){
   })
   
   
-  # filtered_df_nodes <-reactive({
-  #   df_nodes %>%
-  #     dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) 
-  # })
-  
   edges <- reactive({
     # Edges not having a unique ID is apparently not a great idea
     # Hence I wish to try adding a composite key to try get the filter
@@ -379,7 +375,6 @@ s <- shinyServer(function(input, output){
     )
   })
   
-  
   nodes <- reactive({
     data.frame(id = unique(c(filtered_df()$from,
                              filtered_df()$to)),
@@ -387,7 +382,6 @@ s <- shinyServer(function(input, output){
                                 filtered_df()$group2_name)))
   })
   
-
   # We need this so that we can show description of each organization
   # when a vertex is hovered
   nodes2 <-reactive({merge(nodes(),
@@ -412,12 +406,11 @@ s <- shinyServer(function(input, output){
       visPhysics(solver = "repulsion") %>%
       visNodes()  %>%
       visEdges(
-        # id=filtered_df()$link_id,
         label=edges()$title,
-        font = list(size = 1),
-        chosen = list(edge = TRUE,
-                      label = htmlwidgets::JS("function(values, id, selected, hovering)
-                                                    {values.size = 10;width=10}"))) %>%
+        font = list(size = 1) ) %>%
+        # chosen = list(edge = TRUE,
+        #               label = htmlwidgets::JS("function(values, id, selected, hovering)
+        #                                             {values.size = 10;width=10}"))) %>%
       visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
                 -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
