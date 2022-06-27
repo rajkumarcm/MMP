@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>Title</title>
+<style>
+#sp
+{
+  width:200px;
+  height:800px;
+  position:absolute;
+  left:-200px;
+  transition: 1s left;
+  background-color:blue;
+}
+
+#menu_div
+{
+  width:80px;
+  height:50px;
+  margin-left:200px;
+  background-color:red;
+}
+
+#mp
+{
+  margin-left:85px;
+}
+</style>
+
+<script>
+ function toggleMenu() {
+   existingLeft = parseFloat(getComputedStyle(document.getElementById('sp')).left);
+   if(existingLeft == -200)
+	   left = '0px';
+   else
+      left = '-200px'; 
+   document.getElementById('sp').style.setProperty('left', left);
+  
+}
+</script>
+
+</head>
+<body>
+<div id="sp">
+  <div id="menu_div" onclick=toggleMenu()>
+    <img src="menu_icon.jpg" width="80px" height="50px">
+  </div>
+</div>
+<div id="mp"><h1>Main Panel</h1></div>
+</body>
+</html>
