@@ -24,6 +24,7 @@ df$link_id <- 1:nrow(df)
 # Perhaps we do not need this as we are not making use of this anywhere
 # gg <- make_graph(df)
 
+# Drop incomplete values
 df = na.omit(df)
 
 # fmtarrstr <- function(arr){
@@ -263,7 +264,8 @@ df = na.omit(df)
 #   graph
 # }
 
-# browser()
+# Edges dataframe created for the sake of computing the betweenness
+# and the degree of centrality
 tmp_edges <- data.frame(from = df$from, 
                         to = df$to, 
                         title=df$label,
@@ -275,8 +277,13 @@ tmp_edges <- data.frame(from = df$from,
                         color=df$color)
 
 graph <- graph.data.frame(tmp_edges, directed = T)
-rm('tmp_edges') # This would certainly cause confusion if left alive
 
+# This would certainly cause confusion if left alive
+rm('tmp_edges') 
+
+# Nodes dataframe.
+# Need to discuss about this with Iris. I don't completely agree with the
+# way this has been created.
 nodes = with(df, data.frame(id = unique(c(as.character(from),
                                           as.character(to))),
                             label = unique(c(as.character(group1_name),
@@ -284,19 +291,18 @@ nodes = with(df, data.frame(id = unique(c(as.character(from),
                             title=unique(c(as.character(group1_name),
                                            as.character(group2_name))),
                             size = min(color)))
-# browser() 
 
 # Create degree centrality
 # Compute the number of incoming connection for each vertex
 degree_value <- degree(graph, mode = "in")
 nodes$value <- degree_value[match(nodes$id, names(degree_value))]
 
+
 # Throwing nodes into 5 different bins based on histogram binning technique
 # on the basis of their strength represented by a unique color.
 # But represented by just 4 colors for 5 bins ? I will change this to 4 for the 
 # time-being
-
-degreePal <- factor(cut(as.numeric(nodes$id), 4),
+degreePal <- factor(cut(as.numeric(nodes$value), 4),
                     labels = c("lightblue", "#619CFF", "orange", "darkblue"))
 nodes$central_color <- degreePal
 
@@ -307,6 +313,13 @@ betweenness =  betweenness(graph, directed = F) # assignment
 # This is not required as we are not utilising the following line
 # names(betweeness)
 
+# What is this doing is retrieving the betweenness centrality from
+# a complex dataframe that apparently has two values for each entry
+# one corresponding to the nodes$id and the other corresponds to the
+# betweenness centrality itself. Hence we use the match function to 
+# query the betweenness centrality value in the same order nodes are
+# organised in the nodes dataframe so we only link the values with those
+# that they truly belong to.
 nodes$between <- betweenness[match(nodes$id, names(betweenness))]
 
 # Once again, three bins, but one color. This is technically correct though.
@@ -322,10 +335,7 @@ nodes$between_color <- degreePal
 # value == id hence no need to use value
 
 nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color')]
-# Something is not correct about by=c("from") because
-# nodes$from or nodes$id is actually the degree of centrality with mode "in"
-# that refers to the number of incoming edges, but we are merging with "from"
-# that refers to the departing node. This must be a blender mistake I guess.
+
 # For debugging purposes---------------------------------------------------
 n_nodes1 <- length(unique(df$from))
 n_nodes2 <- length(unique(as.numeric(nodes$id)))
@@ -336,13 +346,20 @@ loginfo('length(nodes$id) > length(df$from) because ids in nodes dataframe
 loginfo('Pay attention at the place where you merge df and nodes')
 #--------------------------------------------------------------------------
 # While merging we do not want the id to conflict between two data frames
-# browser()
+
+# df here corresponds to the edges data frame, and we are merging with nodes
+# dataframe to give more information to edges such as degree of centrality,
+# central_color, betweenness centrality and between_color.
+# Need to check where these are used.
 df = merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
-# browser()
+
 df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
 df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
 cnames <- c('id', 'title', 'level')
 colnames(df_nodes) <- cnames
+
+# Since this is not a relationship dataframe, instead a database of nodes itself
+# we want to ensure that there are no duplicates.
 df_nodes <- unique(df_nodes)
 
 s <- shinyServer(function(input, output){
@@ -355,19 +372,18 @@ s <- shinyServer(function(input, output){
   
   
   edges <- reactive({
-    # Edges not having a unique ID is apparently not a great idea
-    # Hence I wish to try adding a composite key to try get the filter
-    # working
+    # When edges do not have a unique identifier, they cannot be visnetwork
+    # cannot be asked to remove or add them back to the network. Any form
+    # of manipulation that happens without unique ID will be erroneuous. 
+    # I have included an ID that made the status filter to now work under both
+    # map=All and map=any map_name
     data.frame(
                id = filtered_df()$link_id,
                from = filtered_df()$from, 
                to = filtered_df()$to,
                source = as.character(filtered_df()$group1_name),
                target = as.character(filtered_df()$group2_name),
-               # tooltip
                title=filtered_df()$title,
-               #group=as.character(filtered_df()$status),
-               #status=as.character(filtered_df()$status), 
                status_id=filtered_df()$status_id, 
                year=filtered_df()$year, 
                map_name=filtered_df()$map_name,
@@ -375,6 +391,11 @@ s <- shinyServer(function(input, output){
     )
   })
   
+  # Once again, as I mentioned earlier in one of the places where nodes
+  # data frame was originally created, I do not agree with the way id and
+  # label attributes are associated given unique function is used that will
+  # perhaps erase the order. There are chances that one relationship is
+  # given label of another relationship.
   nodes <- reactive({
     data.frame(id = unique(c(filtered_df()$from,
                              filtered_df()$to)),
@@ -385,21 +406,22 @@ s <- shinyServer(function(input, output){
   # We need this so that we can show description of each organization
   # when a vertex is hovered
   nodes2 <-reactive({merge(nodes(),
-                           # the df that contains description, start year
+                           # the df that contains description, start year, etc,.
                            df_nodes,
                            by=c("id"), all.x=TRUE)
                           })
   
   # edges data.frame for legend
   tmp_df <- unique(df[, c('status', 'color')])
+  
+  # ledges is created & used for the sake of displaying legend
+  # that aid in understanding the edges
   ledges <- data.frame(color = tmp_df$color,
-                       # str_to_title()
                        label = tmp_df$status
   )
 
   output$networkvisfinal <- renderVisNetwork({
-    # nodes data.frame for legend
-    # browser()
+    
     netout = visNetwork(nodes2(),
                         edges(),
                         width = "100%")  %>%
@@ -408,9 +430,9 @@ s <- shinyServer(function(input, output){
       visEdges(
         label=edges()$title,
         font = list(size = 1) ) %>%
-        # chosen = list(edge = TRUE,
-        #               label = htmlwidgets::JS("function(values, id, selected, hovering)
-        #                                             {values.size = 10;width=10}"))) %>%
+        chosen = list(edge = TRUE,
+                      label = htmlwidgets::JS("function(values, id, selected, hovering)
+                                                    {values.size = 10;width=10}")) %>%
       visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
                 -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
@@ -427,14 +449,13 @@ s <- shinyServer(function(input, output){
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE)  %>%
       # visConfigure(enabled=T) %>%
-      visLegend(addEdges = ledges, useGroups = FALSE) # uncomment >%> above
+      visLegend(addEdges = ledges, useGroups = FALSE)
     netout
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
 
   observe ({
-    # browser()
     loginfo(paste('Receiving edges size:', nrow(edges())))
     loginfo(paste('Receiving nodes size:', nrow(nodes())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
@@ -443,20 +464,15 @@ s <- shinyServer(function(input, output){
                                  label=unique(c(filteredEdges$source,
                                                 filteredEdges$target))
 
-                                 #title=unique(c(as.character(filteredNodes$group1_name),
-                                 #              as.character(filteredNodes$group2_name)))
     )
     hiddenNodes <- anti_join(nodes(), filteredNodes2)
     hiddenEdges <- anti_join(edges(), filteredEdges)
-    # browser()
-    # if(length(input$filterEdges) < max(edges()$status_id))
-    #   if(anti_join(data.frame(status_id=1:5), 
-    #                data.frame(status_id=as.numeric(input$filterEdges)))$status_id==3)
-    #     browser() # deliberately did this to stop only when I uncheck status_id=3
 
     visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)
     visRemoveEdges(myVisNetworkProxy, id=hiddenEdges$id)
     visUpdateNodes(myVisNetworkProxy, nodes = filteredNodes2)
+    # Should update the edges when changes are made. visUpdateNodes is not 
+    # adequate
     visUpdateEdges(myVisNetworkProxy, edges=filteredEdges)
 
   })
