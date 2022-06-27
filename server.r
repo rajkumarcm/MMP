@@ -430,9 +430,9 @@ s <- shinyServer(function(input, output){
       visEdges(
         label=edges()$title,
         font = list(size = 1) ) %>%
-        chosen = list(edge = TRUE,
-                      label = htmlwidgets::JS("function(values, id, selected, hovering)
-                                                    {values.size = 10;width=10}")) %>%
+        # chosen = list(edge = TRUE,
+        #               label = htmlwidgets::JS("function(values, id, selected, hovering)
+        #                                             {values.size = 10;width=10}")) %>%
       visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
                 -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
@@ -456,6 +456,7 @@ s <- shinyServer(function(input, output){
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
 
   observe ({
+    browser()
     loginfo(paste('Receiving edges size:', nrow(edges())))
     loginfo(paste('Receiving nodes size:', nrow(nodes())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
