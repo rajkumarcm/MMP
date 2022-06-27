@@ -102,7 +102,10 @@ u <- shinyUI(fluidPage(
   titlePanel("MMP Prototype 2"),
   
   sidebarLayout(position = "left",
-                sidebarPanel( h2("Options"),
+                
+                div( id="sp", 
+                     tags$img(height = 80, width = 50, src ="menu.jpg"),
+                              h2("Options"),
                               selectInput("map_name",
                                           "Select map:",
                                           selected = maps[1],
