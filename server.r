@@ -481,5 +481,29 @@ s <- shinyServer(function(input, output){
 
   })
   
+  fdf <- reactive({
+    # fe = filtered_edges
+    tmp_df <- df[df$map_name==input$dd_map_name | 
+                input$dd_map_name=='All', c('from', 'to', 'group1_name', 
+                                            'group2_name', 'year', 'status',
+                                            'description', 'map_name', 'primary',
+                                            'title')]
+    tmp_df[tmp_df$year >= input$dd_range[1] & tmp_df$year <= input$dd_range[2],]
+    
+  })
+  
+  output$dataTable <- renderDataTable({
+    fdf()
+  })
+  
+    observeEvent('downloadData',{
+    output$downloadData <- downloadHandler(
+      filename <- function(){"data.csv"},
+      content <- function(file){
+        write.csv(fdf(), file)
+      }
+    )
+  })
+  
 })
 
