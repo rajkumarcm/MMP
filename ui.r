@@ -180,8 +180,8 @@ u <- shinyUI(fluidPage(
                         
                         tabPanel("Spatial",
                                  visNetworkOutput("networkvisfinal",
-                                                  width="1200px", 
-                                                  height="800px"),
+                                                  width="2000px", 
+                                                  height="1200px"),
                                  style = "background-color: #eeeeee;"),
                         tabPanel("Hierarchical", 
                                  visNetworkOutput("visnetworktimeline",
