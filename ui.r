@@ -88,6 +88,13 @@ u <- shinyUI(fluidPage(
   tags$head(
     # Note the wrapping of the string in HTML()
     tags$style(HTML("
+    
+     body{
+         background-color:#eeeeee;
+         width:2560px;
+         height:1440;
+     }
+      
       #sp
       {
         width:480px;
@@ -120,11 +127,6 @@ u <- shinyUI(fluidPage(
         top:87px;
       }
       
-      body{
-         background-color:#eeeeee;
-         width:2560px;
-         height:1440;
-      }
       
       #range
       {
@@ -133,7 +135,31 @@ u <- shinyUI(fluidPage(
       
       .irs-grid-text{
         font-size: 12pt;
-        transform: rotate(-90deg) translate(-30px);"
+        transform: rotate(-90deg) translate(-30px);
+      }
+      
+      #dd_body{
+        width:1500px;
+        height:800px;
+      }
+      
+      #dd_sp
+      {
+        width:400px;
+        position:absolute;
+      }
+      
+      #dd_mp
+     {
+       width:600px;
+       height:300px;
+       left:450px;
+       position:absolute;
+     }
+
+      
+      #db_div{margin-top:70px; margin-bottom:50px;}
+      "
     ))
   ),
   
@@ -146,14 +172,36 @@ u <- shinyUI(fluidPage(
              ),
              
              tabPanel(title='Download the data', id='downloadNM', value="downloadNM",
-                      
-                      
-             ),
+                      div(id="dd_body",
+                        div(id="dd_sp",
+                            
+                          selectInput("dd_map_name",
+                                      "Select map:",
+                                      # For debugging purposes change to maps[1] once finished
+                                      selected = maps[1],
+                                      choices = maps),
+                          
+                          sliderInput("dd_range", 
+                                      label = "Choose a start and end year:",
+                                      min = min(df$year), max = max(df$year), 
+                                      value = c(min(df$year), max(df$year)), 
+                                      sep = "",
+                                      width=360) ,
+                          div(id="db_div",
+                          downloadButton('downloadData'))
+                        ),
+                        
+                        
+                        div(id="dd_mp",
+                            dataTableOutput('dataTable')
+                          )
+                      ) # dd_body
+             ), # tabpanel
              
              tabPanel(title='Visualize the Data', id='vizNM', value='vizNM',
                       sidebarLayout(position = "left",
                                     shinyjs::hidden(
-                                      div( id="sp",
+                                      div( id="sp", class="sp",
                                            div(id="sp2", 
                                                div(id ="icon_div",
                                                    tags$img(id="closeSp", height = 20, width = 20, 
@@ -185,7 +233,7 @@ u <- shinyUI(fluidPage(
                                            ))),
                                     
                                     mainPanel(
-                                      div(id = "mp",
+                                      div(id = "mp", class="mp",
                                           h2("Network Plots"),
                                           actionButton('toggleMenu', 'Filter'),
                                           tabsetPanel(
