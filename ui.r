@@ -13,7 +13,7 @@ library(shinyjs)
 set.seed(123)
 
 source('handle_data.R')
-setwd("C:/Users/Rajkumar/Desktop/experiment/mpp/")
+
 # Load data
 df <- load_data()
 
@@ -24,9 +24,9 @@ df <- preprocess(df)
 maps <- c("All", unique(df$map_name))
 status_names <- as.character(unique(df$status))
 status_id <- 
-
-
-gg <- make_graph(df)
+  
+  
+  gg <- make_graph(df)
 
 # require(dplyr)
 
@@ -93,7 +93,7 @@ u <- shinyUI(fluidPage(
         width:480px;
         height:800px;
         position:absolute;
-        z-index:100;
+        z-index:10;
         top:200px;
         background-color:#d9d9d9;
       }
@@ -134,74 +134,85 @@ u <- shinyUI(fluidPage(
       .irs-grid-text{
         font-size: 12pt;
         transform: rotate(-90deg) translate(-30px);"
-      ))
+    ))
   ),
   
   shinyjs::useShinyjs(),
-  titlePanel("MMP Prototype 2"),
   
-  sidebarLayout(position = "left",
-                shinyjs::hidden(
-                div( id="sp",
-                     div(id="sp2", 
-                     div(id ="icon_div",
-                         tags$img(id="closeSp", height = 20, width = 20, 
-                                  src = 'close.png') ),
-                              h2("Options"),
-                              selectInput("map_name",
-                                          "Select map:",
-                                          selected = maps[1],
-                                          choices = maps),
-                              
-                              checkboxGroupInput("filterEdges",
-                                                 "Select relationship:",
-                                                 selected = unique(df$status_id),
-                                                 choices = c("Affiliates"=5, 
-                                                             "Allies"=2, 
-                                                             "Mergers"=3,
-                                                             "Rivals"=1,
-                                                             "Splinters"=4)
-                              ),
-                              
-                              sliderInput("range", 
-                                          label = "Choose a start and end year:",
-                                          min = min(df$year), max = max(df$year), 
-                                          value = c(min(df$year), max(df$year)), 
-                                          sep = "",
-                                          width=360)
-                              
-                ))),
-                
-                mainPanel(
-                  div(id = "mp",
-                      h2("Network Plots"),
-                      actionButton('toggleMenu', 'Filter'),
-                      tabsetPanel(
-                        
-                        tabPanel("Spatial",
-                                 visNetworkOutput("networkvisfinal",
-                                                  width="2000px", 
-                                                  height="1200px"),
-                                 style = "background-color: #eeeeee;"),
-                        tabPanel("Hierarchical", 
-                                 visNetworkOutput("visnetworktimeline",
-                                                  height="500px"),
-                                 style = "background-color: #eeeeee;"),
-                        tabPanel("Sankey", 
-                                 sankeyNetworkOutput("diagram",
-                                                     height="500px"),
-                                 style = "background-color: #eeeeee;")
-                        
+  navbarPage('MMP Prototype 2', selected="vizNM",  
+             tabPanel(title='About the App', id='aboutNM',
+                      value='aboutNM'
+                      
+             ),
+             
+             tabPanel(title='Download the data', id='downloadNM', value="downloadNM",
+                      
+                      
+             ),
+             
+             tabPanel(title='Visualize the Data', id='vizNM', value='vizNM',
+                      sidebarLayout(position = "left",
+                                    shinyjs::hidden(
+                                      div( id="sp",
+                                           div(id="sp2", 
+                                               div(id ="icon_div",
+                                                   tags$img(id="closeSp", height = 20, width = 20, 
+                                                            src = 'close.png') ),
+                                               h2("Options"),
+                                               selectInput("map_name",
+                                                           "Select map:",
+                                                           # For debugging purposes change to maps[1] once finished
+                                                           selected = maps[2],
+                                                           choices = maps),
+                                               
+                                               checkboxGroupInput("filterEdges",
+                                                                  "Select relationship:",
+                                                                  selected = unique(df$status_id),
+                                                                  choices = c("Affiliates"=5, 
+                                                                              "Allies"=2, 
+                                                                              "Mergers"=3,
+                                                                              "Rivals"=1,
+                                                                              "Splinters"=4)
+                                               ),
+                                               
+                                               sliderInput("range", 
+                                                           label = "Choose a start and end year:",
+                                                           min = min(df$year), max = max(df$year), 
+                                                           value = c(min(df$year), max(df$year)), 
+                                                           sep = "",
+                                                           width=360)
+                                               
+                                           ))),
+                                    
+                                    mainPanel(
+                                      div(id = "mp",
+                                          h2("Network Plots"),
+                                          actionButton('toggleMenu', 'Filter'),
+                                          tabsetPanel(
+                                            
+                                            tabPanel("Spatial",
+                                                     visNetworkOutput("networkvisfinal",
+                                                                      width="2000px", 
+                                                                      height="1200px"),
+                                                     style = "background-color: #eeeeee;"),
+                                            tabPanel("Hierarchical", 
+                                                     visNetworkOutput("visnetworktimeline",
+                                                                      height="500px"),
+                                                     style = "background-color: #eeeeee;"),
+                                            tabPanel("Sankey", 
+                                                     sankeyNetworkOutput("diagram",
+                                                                         height="500px"),
+                                                     style = "background-color: #eeeeee;")
+                                            
+                                          )
+                                      )
+                                    )
                       )
-                  )
-                )
-  ),
+             ),
+             tabPanel(title='Profile Links', id='plNM', value='plNM'),
+             id='nbp',
+  )
   
-  # WHERE YOUR FOOTER GOES
-  hr(),
-  print("Not for publication or distribution.")
-  
-  # print("Not for publication or distribution. Iris Malone (irismalone@gwu.edu)")
 ))
 
 
