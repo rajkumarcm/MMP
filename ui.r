@@ -3,30 +3,17 @@ rm(list=ls(all=TRUE))
 options(warn=-1)
 #setwd("/users/irismalone/Dropbox/NCITE/MMP/prototypev2/")
 library(shiny)
-library(dplyr)
-library(ggplot2)
-library(ggiraph)
 
-library(ggraph)
-library(igraph)
-library(shinydashboard)
-library(tidyverse)
-library(dplyr)
-library(shiny)
-library(ggplot2)
 library(visNetwork)
 library(networkD3)
 library(RColorBrewer)
-set.seed(123)
-
 library(ggraph)
 library(igraph)
-library(shinydashboard)
-library(tidyverse)
-library(dplyr)
+library(shinyjs)
+set.seed(123)
 
 source('handle_data.R')
-
+setwd("C:/Users/Rajkumar/Desktop/experiment/mpp/")
 # Load data
 df <- load_data()
 
@@ -95,16 +82,71 @@ df$actor_color = ifelse(df$map_name=="Global Al Qaeda" |
                           df$map_name == "Global Islamic State", 1, 0)
 head(df)
 
-
-
 u <- shinyUI(fluidPage(
   
+  
+  tags$head(
+    # Note the wrapping of the string in HTML()
+    tags$style(HTML("
+      #sp
+      {
+        width:480px;
+        height:800px;
+        position:absolute;
+        z-index:100;
+        top:200px;
+        background-color:#d9d9d9;
+      }
+      
+      #sp2
+      {
+        position:relative;
+        width:400px;
+        height:800px;
+        margin-left:80px
+      }
+      
+      #icon_div
+      {
+        width:20px;
+        height:20px;
+        margin-top:10px;
+        margin-left:370px;
+      }
+      
+      #mp
+      {
+        margin-left:85px;
+        top:87px;
+      }
+      
+      body{
+         background-color:#eeeeee;
+         width:2560px;
+         height:1440;
+      }
+      
+      #range
+      {
+        font-size:5pt;
+      }
+      
+      .irs-grid-text{
+        font-size: 12pt;
+        transform: rotate(-90deg) translate(-30px);"
+      ))
+  ),
+  
+  shinyjs::useShinyjs(),
   titlePanel("MMP Prototype 2"),
   
   sidebarLayout(position = "left",
-                
-                div( id="sp", 
-                     tags$img(height = 80, width = 50, src ="menu.jpg"),
+                shinyjs::hidden(
+                div( id="sp",
+                     div(id="sp2", 
+                     div(id ="icon_div",
+                         tags$img(id="closeSp", height = 20, width = 20, 
+                                  src = 'close.png') ),
                               h2("Options"),
                               selectInput("map_name",
                                           "Select map:",
@@ -124,28 +166,34 @@ u <- shinyUI(fluidPage(
                               sliderInput("range", 
                                           label = "Choose a start and end year:",
                                           min = min(df$year), max = max(df$year), 
-                                          value = c(1959, 2021), sep = "")
+                                          value = c(min(df$year), max(df$year)), 
+                                          sep = "",
+                                          width=360)
                               
-                ),
+                ))),
                 
-                mainPanel(h2("Network Plots"),
-                          tabsetPanel(
-                            
-                            tabPanel("Spatial",
-                                     visNetworkOutput("networkvisfinal",
-                                                      width="1200px", 
-                                                      height="800px"),
-                                     style = "background-color: #eeeeee;"),
-                            tabPanel("Hierarchical", 
-                                     visNetworkOutput("visnetworktimeline",
-                                                      height="500px"),
-                                     style = "background-color: #eeeeee;"),
-                            tabPanel("Sankey", 
-                                     sankeyNetworkOutput("diagram",
-                                                         height="500px"),
-                                     style = "background-color: #eeeeee;")
-                            
-                          )
+                mainPanel(
+                  div(id = "mp",
+                      h2("Network Plots"),
+                      actionButton('toggleMenu', 'Filter'),
+                      tabsetPanel(
+                        
+                        tabPanel("Spatial",
+                                 visNetworkOutput("networkvisfinal",
+                                                  width="1200px", 
+                                                  height="800px"),
+                                 style = "background-color: #eeeeee;"),
+                        tabPanel("Hierarchical", 
+                                 visNetworkOutput("visnetworktimeline",
+                                                  height="500px"),
+                                 style = "background-color: #eeeeee;"),
+                        tabPanel("Sankey", 
+                                 sankeyNetworkOutput("diagram",
+                                                     height="500px"),
+                                 style = "background-color: #eeeeee;")
+                        
+                      )
+                  )
                 )
   ),
   

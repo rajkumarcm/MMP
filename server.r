@@ -8,6 +8,7 @@ library(visNetwork)
 library(RColorBrewer)
 library(logging)
 library(shinyjs)
+library(dplyr)
 set.seed(123)
 
 library(logging)
@@ -363,6 +364,9 @@ colnames(df_nodes) <- cnames
 df_nodes <- unique(df_nodes)
 
 s <- shinyServer(function(input, output){
+  
+  shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
+  shinyjs::onclick('closeSp', shinyjs::toggle(id='sp', anim=T, animType='fade'))
   
   filtered_df <- reactive({
     df %>% 
