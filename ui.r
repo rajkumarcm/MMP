@@ -23,10 +23,8 @@ df <- preprocess(df)
 # For the input controls
 maps <- c("All", unique(df$map_name))
 status_names <- as.character(unique(df$status))
-status_id <- 
   
-  
-  gg <- make_graph(df)
+gg <- make_graph(df)
 
 # require(dplyr)
 
@@ -156,9 +154,28 @@ u <- shinyUI(fluidPage(
        left:450px;
        position:absolute;
      }
+     
+     #about_ct
+     {
+       width:600px;
+       height:600px;
+       font-family: Merriweather;
+       font-size: 14pt;
+       color: #333333;
+       text-align: justify;
+       margin-left: 200px;
+       line-height: 36px;
+     }
 
       
       #db_div{margin-top:70px; margin-bottom:50px;}
+      #about_title_div
+      {
+         width:600px;
+         height:auto;
+         border-style: none none outset none;
+         box-shadow: 0px 7px 16px #888;
+      }
       "
     ))
   ),
@@ -167,8 +184,19 @@ u <- shinyUI(fluidPage(
   
   navbarPage('MMP Prototype 2', selected="vizNM",  
              tabPanel(title='About the App', id='aboutNM',
-                      value='aboutNM'
-                      
+                      value='aboutNM',
+                      div(id="about_ct",
+                          tags$div(id='about_title_div',
+                          HTML("<h2>&nbsp;Mapping Militants Project</h2>")),
+                          tags$br(),
+                          tags$div(id="mpp_video", 
+                                   HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/5Gj_l0x-SEQ" title="CISAC Who We Are REVISED" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
+                                   ),
+                          tags$br(),
+                          tags$p("The MMP research project traces the evolution of militant organizations and the interactions that develop among them over time. Findings are presented in interactive “maps,” which provide both (1) visual representations of how relationships among militant organizations change over time and (2) links to in-depth profiles of individual groups. The project provides uniquely accessible and clear genealogical information about violent extremist organizations that, combined with the detailed group profiles, is an invaluable resource to students, scholars, journalists, policy analysts, and others interested in violent oppositional organizations. The project helps identify patterns in, as well as causes and consequences of, violent extremist group evolution by describing and comparing the genealogy of different families of organizations. Genealogies are presented in interactive diagrams or “maps” that detail how groups form, split, merge, collaborate, compete, shift ideological direction, adopt or renounce violence, grow, shrink, and eventually decline over time.  The MMP research project also provides a database of detailed and documented group profiles. It develops computer software to assemble, organize, and display the profiles and genealogical information that researchers have produced."),
+                          tags$br(),
+                          tags$p("From 2009 to 2012, MMP was funded by an award from the Social and Behavioral Dimensions of National Security, Conflict, and Cooperation competition, a joint venture between the National Science Foundation and the Department of Defense. From 2012 to 2019 the research was supported by Stanford University, including the Freeman Spogli Institute for International Studies Policy Implementation Lab. In 2019, the project received funding from the", tags$a(href = "https://www.unomaha.edu/ncite/index.php", "National Counterterrorism, Innovation, Technology, and Education Center (NCITE)", .noWS = "outside"), " a U.S. Department of Homeland Security Center of Excellence.  The project relies primarily on research assistance from Stanford undergraduate and graduate students.", '!', .noWS = c("after-begin", "before-end"))
+                          )
              ),
              
              tabPanel(title='Download the data', id='downloadNM', value="downloadNM",
