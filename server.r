@@ -298,7 +298,6 @@ nodes = with(df, data.frame(id = unique(c(as.character(from),
 degree_value <- degree(graph, mode = "in")
 nodes$value <- degree_value[match(nodes$id, names(degree_value))]
 
-
 # Throwing nodes into 5 different bins based on histogram binning technique
 # on the basis of their strength represented by a unique color.
 # But represented by just 4 colors for 5 bins ? I will change this to 4 for the 
@@ -322,12 +321,19 @@ betweenness =  betweenness(graph, directed = F) # assignment
 # organised in the nodes dataframe so we only link the values with those
 # that they truly belong to.
 nodes$between <- betweenness[match(nodes$id, names(betweenness))]
+colorPalette <- colorRampPalette(c('blue','red'))
+# browser()
+betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 0.3, 10, 25, 
+                                                             40, 60, 100, 1500,
+                                                             6500)))
+nodes$between_color <- colorPalette(8)[betweenness_ranked]
 
-# Once again, three bins, but one color. This is technically correct though.
-# Any rationale behind the number 3 ?
-degreePal <- factor(cut(nodes$between, 3),
-                    labels = c("#fde725"))
-nodes$between_color <- degreePal
+
+# I don't think we are using this anywhere. I will use some good techniques
+# to make use of betweenness value.
+# degreePal <- factor(cut(nodes$between, 3),
+#                     labels = c("#fde725"))
+# nodes$between_color <- degreePal
 
 # Even with "with" usage, and data.frame call, there is an overhead attached to 
 # it. A temporary memory is allocated until assigned back to nodes. 
@@ -400,16 +406,22 @@ s <- shinyServer(function(input, output){
   # label attributes are associated given unique function is used that will
   # perhaps erase the order. There are chances that one relationship is
   # given label of another relationship.
-  nodes <- reactive({
-    data.frame(id = unique(c(filtered_df()$from,
-                             filtered_df()$to)),
-               label = unique(c(filtered_df()$group1_name,
+  nodes1 <- reactive({
+    tmp_df <- data.frame(id = unique(c(filtered_df()$from,
+                                     filtered_df()$to)),
+                         label = unique(c(filtered_df()$group1_name,
                                 filtered_df()$group2_name)))
+     # browser()
+     tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color')], by='id')
+     cnames <- colnames(tmp_df)
+     cnames[cnames == 'between_color'] <- 'color'
+     colnames(tmp_df) <- cnames
+     tmp_df
   })
   
   # We need this so that we can show description of each organization
   # when a vertex is hovered
-  nodes2 <-reactive({merge(nodes(),
+  nodes2 <-reactive({merge(nodes1(),
                            # the df that contains description, start year, etc,.
                            df_nodes,
                            by=c("id"), all.x=TRUE)
@@ -430,6 +442,13 @@ s <- shinyServer(function(input, output){
                         edges(),
                         width = "100%")  %>%
       visPhysics(solver = "repulsion") %>%
+      # visEvents(
+#         stabilizationIterationsDone="function() {
+# progrs = { 'value': params.iterations, 'total': params.total };
+# shiny.setInputValue('progressBarId', progrs, {priority: 'event'});
+# alert('done');
+# }"
+#       ) %>%
       visNodes()  %>%
       visEdges(
         label=edges()$title,
@@ -461,7 +480,7 @@ s <- shinyServer(function(input, output){
 
   observe ({
     loginfo(paste('Receiving edges size:', nrow(edges())))
-    loginfo(paste('Receiving nodes size:', nrow(nodes())))
+    loginfo(paste('Receiving nodes size:', nrow(nodes1())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
     filteredNodes2 <- data.frame(id=unique(c(filteredEdges$from,
                                              filteredEdges$to)),
@@ -469,7 +488,7 @@ s <- shinyServer(function(input, output){
                                                 filteredEdges$target))
 
     )
-    hiddenNodes <- anti_join(nodes(), filteredNodes2)
+    hiddenNodes <- anti_join(nodes1(), filteredNodes2)
     hiddenEdges <- anti_join(edges(), filteredEdges)
 
     visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)

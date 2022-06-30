@@ -238,7 +238,7 @@ u <- shinyUI(fluidPage(
                                                selectInput("map_name",
                                                            "Select map:",
                                                            # For debugging purposes change to maps[1] once finished
-                                                           selected = maps[2],
+                                                           selected = maps[1],
                                                            choices = maps),
                                                
                                                checkboxGroupInput("filterEdges",
