@@ -369,7 +369,7 @@ colnames(df_nodes) <- cnames
 # we want to ensure that there are no duplicates.
 df_nodes <- unique(df_nodes)
 
-s <- shinyServer(function(input, output){
+s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
   shinyjs::onclick('closeSp', shinyjs::toggle(id='sp', anim=T, animType='fade'))
@@ -436,6 +436,7 @@ s <- shinyServer(function(input, output){
                        label = tmp_df$status
   )
 
+ 
   output$networkvisfinal <- renderVisNetwork({
     
     netout = visNetwork(nodes2(),
@@ -471,16 +472,19 @@ s <- shinyServer(function(input, output){
                                 algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE)  %>%
+        
       # visConfigure(enabled=T) %>%
       visLegend(addEdges = ledges, useGroups = FALSE)
     netout
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
-
+  
+  # This observe updates the nodes and edges on visnetworkfinal - the main
+  # spatial graph
   observe ({
-    loginfo(paste('Receiving edges size:', nrow(edges())))
-    loginfo(paste('Receiving nodes size:', nrow(nodes1())))
+    # loginfo(paste('Receiving edges size:', nrow(edges())))
+    # loginfo(paste('Receiving nodes size:', nrow(nodes1())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
     filteredNodes2 <- data.frame(id=unique(c(filteredEdges$from,
                                              filteredEdges$to)),
@@ -499,6 +503,44 @@ s <- shinyServer(function(input, output){
     visUpdateEdges(myVisNetworkProxy, edges=filteredEdges)
 
   })
+  
+  # This observes the status checkboxes input and as soon as the status
+  # is checked or unchecked
+  observeEvent(input$filterEdges, {
+    # Update the input list that shows the available edges to be selected
+    # We cannot show all edges after input$filterEdges has been altered.
+    # All edges will only make sense to be shown when no status in the checkbox
+    # is left unchecked.
+    default_choices <- c("0"="None",
+                         "5"="Affiliates", 
+                         "2"="Allies", 
+                         "3"="Mergers",
+                         "1"="Rivals",
+                         "4"="Splinters")
+    availableRel <- input$filterEdges
+    filtered_choices <- c()
+    filtered_choices[["None"]] <- 0
+    for(i in 1:length(availableRel))
+    {
+      choice_id <- availableRel[i]
+      choice <- default_choices[choice_id]
+      filtered_choices[[choice]] <- as.numeric(choice_id)
+    }
+    updateSelectInput(session, 'selectStatus', label="Highlight one status",
+                      choices=filtered_choices)
+  })
+  
+  observeEvent(input$selectStatus, {
+    selectedStatus <- as.numeric(input$selectStatus)
+    if(selectedStatus > 0){
+      selectedEdgesId <- edges()[edges()$status_id == selectedStatus, 'id']
+      # browser()
+      visSelectEdges(myVisNetworkProxy, selectedEdgesId)
+    }
+    else
+      visUnselectAll(myVisNetworkProxy)
+  })
+  
   
   fdf <- reactive({
     # fe = filtered_edges

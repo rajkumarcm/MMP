@@ -238,11 +238,11 @@ u <- shinyUI(fluidPage(
                                                selectInput("map_name",
                                                            "Select map:",
                                                            # For debugging purposes change to maps[1] once finished
-                                                           selected = maps[1],
+                                                           selected = maps[2],
                                                            choices = maps),
                                                
                                                checkboxGroupInput("filterEdges",
-                                                                  "Select relationship:",
+                                                                  "Filter relationship:",
                                                                   selected = unique(df$status_id),
                                                                   choices = c("Affiliates"=5, 
                                                                               "Allies"=2, 
@@ -250,6 +250,16 @@ u <- shinyUI(fluidPage(
                                                                               "Rivals"=1,
                                                                               "Splinters"=4)
                                                ),
+                                               selectInput("selectStatus",
+                                                           "Highlight one status",
+                                                           selected = 0,
+                                                           choices = c("None"=0,
+                                                                       "Affiliates"=5, 
+                                                                       "Allies"=2, 
+                                                                       "Mergers"=3,
+                                                                       "Rivals"=1,
+                                                                       "Splinters"=4
+                                                                       )),
                                                
                                                sliderInput("range", 
                                                            label = "Choose a start and end year:",
