@@ -20,6 +20,8 @@ df <- load_data()
 
 # Pre-process
 df <- preprocess(df)
+# link_id is not unique. Reassigning link_id to make edges unique
+# This was the reason why status filter was breaking
 df$link_id <- 1:nrow(df)
 
 # Perhaps we do not need this as we are not making use of this anywhere
@@ -359,8 +361,17 @@ loginfo('Pay attention at the place where you merge df and nodes')
 # central_color, betweenness centrality and between_color.
 # Need to check where these are used.
 df = merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
-
+# Check group ids
 df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
+loginfo(paste('The length of the actual nodes dataframe is:', nrow(df_nodes)))
+loginfo(paste('Total number of unique group id:', 
+              length(unique(df_nodes$group_id))))
+duplicated_gids <- unique(all_gids[duplicated(all_gids)])
+check_var <- df_nodes[df_nodes$group_id %in% duplicated_gids, 
+                      c('group_id', 'group_name', 'map_name', 'startyear')] %>% 
+             arrange(group_name)
+loginfo('Inspect check_var variable for further information about duplicates')
+# browser()
 df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
 cnames <- c('id', 'title', 'level')
 colnames(df_nodes) <- cnames

@@ -12,7 +12,7 @@ load_data <- function()
 preprocess <- function(df)
 {
   
-  df=subset(df, df$link_id != 1803)
+  # df=subset(df, df$link_id != 1803)
   cnames <- colnames(df)
   
   # Instead of creating separate columns with same information
