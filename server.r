@@ -4,7 +4,8 @@ options(warn=-1)
 #setwd("/users/irismalone/Dropbox/NCITE/MMP/prototypev2/")
 library(shiny)
 
-library(visNetwork)
+library(visNetwork) # For Spatial
+library(networkD3)  # For Sankey
 library(RColorBrewer)
 library(logging)
 library(shinyjs)
@@ -576,6 +577,48 @@ s <- shinyServer(function(input, output, session){
       }
     )
   })
+    
+    #------------------Sankey graph----------------------------------
+    
+    filtered_df_sankey <-reactive({
+      df %>%
+        dplyr::filter(map_name == input$map_name) %>%
+        dplyr::filter(year >= input$range[1] & year <= input$range[2] ) %>%
+        dplyr::filter(status=="Splinters" | status == "Mergers")
+    })
+    
+    nodes_sankey <- reactive({
+      data.frame(
+        name = unique(c(as.character(filtered_df_sankey()$group1_name),
+                        as.character(filtered_df_sankey()$group2_name))))
+    })
+    
+    links_sankey <- reactive({ 
+      data.frame(map_name= filtered_df_sankey()$map_name,
+                 source = filtered_df_sankey()$group1_name,
+                 target = filtered_df_sankey()$group2_name,
+                 value  = rep(1, length(filtered_df_sankey()$group1_name)),
+                 IDsource = match(filtered_df_sankey()$group1_name, nodes_sankey()$name) - 1,
+                 IDtarget = match(filtered_df_sankey()$group2_name, nodes_sankey()$name) - 1
+      )  
+    })
+    
+    output$diagram <- renderSankeyNetwork({
+      sankeyNetwork(
+        Links = links_sankey(),
+        Nodes = nodes_sankey(),
+        Source = "IDsource",
+        Target = "IDtarget",
+        Value = "value",
+        NodeID = "name",
+        #units = 'TWh', 
+        #iterations=100,
+        #fontSize = 12, 
+        nodeWidth = 30,
+        sinksRight = FALSE
+      )
+    })
+    #----------------------------------------------------------------
   
 })
 
