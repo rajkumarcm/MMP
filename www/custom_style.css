@@ -1,0 +1,90 @@
+body
+{
+   background-color:#eeeeee;
+   width:2560px;
+   height:1440;
+}
+
+#sp
+{
+  width:480px;
+  height:800px;
+  position:absolute;
+  z-index:10;
+  top:200px;
+  background-color:#d9d9d9;
+}
+
+#sp2
+{
+  position:relative;
+  width:400px;
+  height:800px;
+  margin-left:80px
+}
+
+#icon_div
+{
+  width:20px;
+  height:20px;
+  margin-top:10px;
+  margin-left:370px;
+}
+
+#mp
+{
+  margin-left:85px;
+  top:87px;
+}
+
+
+#range
+{
+  font-size:5pt;
+}
+
+.irs-grid-text{
+  font-size: 12pt;
+  transform: rotate(-90deg) translate(-30px);
+}
+
+#dd_body{
+  width:1500px;
+  height:800px;
+}
+
+#dd_sp
+{
+  width:400px;
+  position:absolute;
+}
+
+#dd_mp
+{
+ width:600px;
+ height:300px;
+ left:450px;
+ position:absolute;
+}
+
+#about_ct
+{
+ width:600px;
+ height:600px;
+ font-family: Merriweather;
+ font-size: 14pt;
+ color: #333333;
+ text-align: justify;
+ margin-left: 200px;
+ line-height: 36px;
+}
+
+
+#db_div{margin-top:70px; margin-bottom:50px;}
+#about_title_div
+{
+   width:600px;
+   height:auto;
+   border-style: none none outset none;
+   box-shadow: 0px 7px 16px #888;
+}

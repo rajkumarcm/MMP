@@ -1,35 +1,11 @@
-#Shiny Prototype
-rm(list=ls(all=TRUE))
-options(warn=-1)
-#setwd("/users/irismalone/Dropbox/NCITE/MMP/prototypev2/")
-library(shiny)
 
-library(visNetwork) # For Spatial
-library(networkD3)  # For Sankey
-library(RColorBrewer)
-library(logging)
-library(shinyjs)
-library(dplyr)
-set.seed(123)
 
-library(logging)
 
-source('handle_data.R')
-
-# Load data
-df <- load_data()
-
-# Pre-process
-df <- preprocess(df)
-# link_id is not unique. Reassigning link_id to make edges unique
-# This was the reason why status filter was breaking
-df$link_id <- 1:nrow(df)
 
 # Perhaps we do not need this as we are not making use of this anywhere
 # gg <- make_graph(df)
 
-# Drop incomplete values
-df = na.omit(df)
+
 
 # fmtarrstr <- function(arr){
 #   # first add ' surrounding every element
@@ -268,118 +244,6 @@ df = na.omit(df)
 #   graph
 # }
 
-# Edges dataframe created for the sake of computing the betweenness
-# and the degree of centrality
-tmp_edges <- data.frame(from = df$from, 
-                        to = df$to, 
-                        title=df$label,
-                        group=df$status,
-                        status=df$status, 
-                        status_id=df$status_id, 
-                        year=df$year, 
-                        map=df$map,
-                        color=df$color)
-
-graph <- graph.data.frame(tmp_edges, directed = T)
-
-# This would certainly cause confusion if left alive
-rm('tmp_edges') 
-
-# Nodes dataframe.
-# Need to discuss about this with Iris. I don't completely agree with the
-# way this has been created.
-nodes = with(df, data.frame(id = unique(c(as.character(from),
-                                          as.character(to))),
-                            label = unique(c(as.character(group1_name),
-                                             as.character(group2_name))),
-                            title=unique(c(as.character(group1_name),
-                                           as.character(group2_name))),
-                            size = min(color)))
-
-# Create degree centrality
-# Compute the number of incoming connection for each vertex
-degree_value <- degree(graph, mode = "in")
-nodes$value <- degree_value[match(nodes$id, names(degree_value))]
-
-# Throwing nodes into 5 different bins based on histogram binning technique
-# on the basis of their strength represented by a unique color.
-# But represented by just 4 colors for 5 bins ? I will change this to 4 for the 
-# time-being
-degreePal <- factor(cut(as.numeric(nodes$value), 4),
-                    labels = c("lightblue", "#619CFF", "orange", "darkblue"))
-nodes$central_color <- degreePal
-
-# The amount of influence the vertex has on the flow of paths in the network
-# This should be somewhat an expensive operation.
-betweenness =  betweenness(graph, directed = F) # assignment
-
-# This is not required as we are not utilising the following line
-# names(betweeness)
-
-# What is this doing is retrieving the betweenness centrality from
-# a complex dataframe that apparently has two values for each entry
-# one corresponding to the nodes$id and the other corresponds to the
-# betweenness centrality itself. Hence we use the match function to 
-# query the betweenness centrality value in the same order nodes are
-# organised in the nodes dataframe so we only link the values with those
-# that they truly belong to.
-nodes$between <- betweenness[match(nodes$id, names(betweenness))]
-colorPalette <- colorRampPalette(c('blue','red'))
-# browser()
-betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 0.3, 10, 25, 
-                                                             40, 60, 100, 1500,
-                                                             6500)))
-nodes$between_color <- colorPalette(8)[betweenness_ranked]
-
-
-# I don't think we are using this anywhere. I will use some good techniques
-# to make use of betweenness value.
-# degreePal <- factor(cut(nodes$between, 3),
-#                     labels = c("#fde725"))
-# nodes$between_color <- degreePal
-
-# Even with "with" usage, and data.frame call, there is an overhead attached to 
-# it. A temporary memory is allocated until assigned back to nodes. 
-# Hence I am changing it.
-# nodes = with(nodes, data.frame(from, id, value, central_color, between, between_color))
-# value == id hence no need to use value
-
-nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color')]
-
-# For debugging purposes---------------------------------------------------
-n_nodes1 <- length(unique(df$from))
-n_nodes2 <- length(unique(as.numeric(nodes$id)))
-loginfo(paste('length of df$from:', n_nodes1))
-loginfo(paste('length of nodes$id:', n_nodes2))
-loginfo('length(nodes$id) > length(df$from) because ids in nodes dataframe
-        is a concatenation of both from and to nodes in df dataframe.')
-loginfo('Pay attention at the place where you merge df and nodes')
-#--------------------------------------------------------------------------
-# While merging we do not want the id to conflict between two data frames
-
-# df here corresponds to the edges data frame, and we are merging with nodes
-# dataframe to give more information to edges such as degree of centrality,
-# central_color, betweenness centrality and between_color.
-# Need to check where these are used.
-df = merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
-# Check group ids
-df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
-loginfo(paste('The length of the actual nodes dataframe is:', nrow(df_nodes)))
-loginfo(paste('Total number of unique group id:', 
-              length(unique(df_nodes$group_id))))
-duplicated_gids <- unique(all_gids[duplicated(all_gids)])
-check_var <- df_nodes[df_nodes$group_id %in% duplicated_gids, 
-                      c('group_id', 'group_name', 'map_name', 'startyear')] %>% 
-             arrange(group_name)
-loginfo('Inspect check_var variable for further information about duplicates')
-# browser()
-df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
-cnames <- c('id', 'title', 'level')
-colnames(df_nodes) <- cnames
-
-# Since this is not a relationship dataframe, instead a database of nodes itself
-# we want to ensure that there are no duplicates.
-df_nodes <- unique(df_nodes)
 
 s <- shinyServer(function(input, output, session){
   
@@ -465,7 +329,7 @@ s <- shinyServer(function(input, output, session){
       visNodes()  %>%
       visEdges(
         label=edges()$title,
-        font = list(size = 1) ) %>%
+        font = list(size = 1)) %>%  # SMOOTH IS FALSE FOR TESTING SPEED--------------------------
         # chosen = list(edge = TRUE,
         #               label = htmlwidgets::JS("function(values, id, selected, hovering)
         #                                             {values.size = 10;width=10}")) %>%
