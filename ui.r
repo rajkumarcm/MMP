@@ -19,7 +19,6 @@ u <- shinyUI(fluidPage(
   ),
   
   shinyjs::useShinyjs(),
-  
   navbarPage('MMP Prototype 2', selected="vizNM",  
              tabPanel(title='About the App', id='aboutNM',
                       value='aboutNM',

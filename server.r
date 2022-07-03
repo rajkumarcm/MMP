@@ -1,5 +1,10 @@
 
-
+# Note------------------------------------------------------------------------
+# In the Sankey graph, connections are filtered to be either Splinters or 
+# Mergers.
+# dplyr::filter(status=="Splinters" | status == "Mergers")
+# Why did they do this ?
+#-----------------------------------------------------------------------------
 
 
 # Perhaps we do not need this as we are not making use of this anywhere
@@ -258,9 +263,9 @@ s <- shinyServer(function(input, output, session){
   
   
   edges <- reactive({
-    # When edges do not have a unique identifier, they cannot be visnetwork
+    # When edges do not have a unique identifier, then visnetwork
     # cannot be asked to remove or add them back to the network. Any form
-    # of manipulation that happens without unique ID will be erroneuous. 
+    # of manipulation that happens without unique ID will be erroneous. 
     # I have included an ID that made the status filter to now work under both
     # map=All and map=any map_name
     data.frame(
@@ -446,10 +451,11 @@ s <- shinyServer(function(input, output, session){
     
     filtered_df_sankey <-reactive({
       df %>%
-        dplyr::filter(map_name == input$map_name) %>%
+        dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) %>%
         dplyr::filter(year >= input$range[1] & year <= input$range[2] ) %>%
         dplyr::filter(status=="Splinters" | status == "Mergers")
     })
+    
     
     nodes_sankey <- reactive({
       data.frame(
@@ -464,7 +470,7 @@ s <- shinyServer(function(input, output, session){
                  value  = rep(1, length(filtered_df_sankey()$group1_name)),
                  IDsource = match(filtered_df_sankey()$group1_name, nodes_sankey()$name) - 1,
                  IDtarget = match(filtered_df_sankey()$group2_name, nodes_sankey()$name) - 1
-      )  
+      )
     })
     
     output$diagram <- renderSankeyNetwork({
