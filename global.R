@@ -23,6 +23,10 @@ source('handle_data.R', local=T)
 # 3. Take a look at D1
 # 4. Check why edges require information about node colors
 # at line where df = merge(df, nodes) is called
+#-- -- -- -- -- -- -- -- -- ---- -- -- -- ---- -- -- -- 
+#- - - - - - - - - - - - -  - - - - - - - - - - - - - - 
+# Update: I have commented line 126 for testing purposes.
+# If anything breaks uncomment 126 and comment 127
 #---------------------------------------------------
 
 # Load and preprocess data--------------------------
@@ -108,7 +112,7 @@ nodes$between_color <- colorPalette(8)[betweenness_ranked]
 nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color')]
 # End of centrality---------------------------------------
 
-
+#------------------------------------------------------------------------------
 # D1: For debugging purposes - total nodes in edges == nodes in nodes variable?
 n_nodes1 <- length(unique(c(df$from, df$to)))
 n_nodes2 <- length(unique(as.numeric(nodes$id)))
@@ -119,12 +123,17 @@ loginfo('Pay attention at the place where you merge df and nodes')
 
 # Merging edges with nodes dataframe to give more information to edges such as 
 # degree of centrality,central_color, betweenness centrality and between_color.
-df <- merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
+
+#----- Update: df does not need information - central_color, between, and 
+# between_color. Doesn't make any sense.
+# df <- merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
+df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T)
 
 # Nodes database-------------------------------------------------------------
 
 df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
 
+#----------------------------------------------------------------------------
 # D2: Does nodes dataframe contain any duplicates IDs ?----------------------
 loginfo(paste('The length of actual nodes dataframe is:',
               nrow(df_nodes)))
