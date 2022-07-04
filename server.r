@@ -342,9 +342,9 @@ s <- shinyServer(function(input, output, session){
         label=edges()$title,
         font = list(size = 1),
         # Chosen has zero effect on the rendered labels of the edges
-        # chosen = list(edge = TRUE,
-        #               label = htmlwidgets::JS("function(values, id, selected, hovering)
-        #                               {values.size = 10;width=10}"))
+        chosen = list(edge = TRUE,
+                      label = htmlwidgets::JS("function(values, id, selected, hovering)
+                                      {alert(values); values.size = '200'; width='500px';}"))
                       ) %>%
       visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
@@ -360,10 +360,11 @@ s <- shinyServer(function(input, output, session){
         highlightNearest = list(enabled=T, #hover=T,
                                 algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
-        nodesIdSelection = TRUE)  %>%
+        nodesIdSelection = TRUE,
+        autoResize = T)  %>%
         
       # visConfigure(enabled=T) %>%
-      visLegend(addEdges = ledges, useGroups = FALSE)
+      visLegend(addEdges = ledges, useGroups = FALSE, width = '0.1', zoom = F)
     netout
   })
   
@@ -430,7 +431,7 @@ s <- shinyServer(function(input, output, session){
       visUnselectAll(myVisNetworkProxy)
   })
   
-  
+  # For Download data
   fdf <- reactive({
     # fe = filtered_edges
     tmp_df <- df[df$map_name==input$dd_map_name | 
@@ -443,8 +444,10 @@ s <- shinyServer(function(input, output, session){
   })
   
   output$dataTable <- renderDataTable({
-    fdf()
-  })
+    fdf()[, !(colnames(fdf()) %in% c('description'))]
+  }, 
+    options = list(pageLength=5)
+  )
   
     observeEvent('downloadData',{
     output$downloadData <- downloadHandler(
@@ -482,6 +485,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$diagram <- renderSankeyNetwork({
+      # browser()
       sankeyNetwork(
         Links = links_sankey(),
         Nodes = nodes_sankey(),

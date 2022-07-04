@@ -17,7 +17,7 @@ source('handle_data.R', local=T)
 #---------------------------------------------------
 
 #----------For debugging purposes-------------------
-# 1. Check whether nodes$value is consumed
+# 1. Check whether nodes$value is consumed - Fixed
 # 2. Check the degreePal line where the degree histogram
 # is discretized into 4 bins - Check the intervals of degree
 # 3. Take a look at D1
@@ -89,7 +89,7 @@ nodes$central_color <- degreePal
 
 # The amount of influence the vertex has on the flow of paths in the network
 # This should be somewhat an expensive operation.
-betweenness =  betweenness(graph, directed = F)
+betweenness =  betweenness(graph, directed = F, normalized=T)
 
 # What is this doing is retrieving the betweenness centrality from
 # a complex dataframe that apparently has two values for each entry
@@ -102,12 +102,13 @@ nodes$between <- betweenness[match(nodes$id, names(betweenness))]
 colorPalette <- colorRampPalette(c('blue','red'))
 
 # After visualizing the distribution of betweenness centrality by means of
-# boxplot the intervals in the breaks list was extracted. Some are 25th percentile,
-# some are median, 75th percentile and two levels between max.
-betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 0.3, 10, 25, 
-                                                             40, 60, 100, 1500,
-                                                             6500)))
-nodes$between_color <- colorPalette(8)[betweenness_ranked]
+# boxplot the intervals in the breaks list was extracted.
+#c(0, 0.3, 10, 25, 
+# 40, 60, 100, 1500,
+# 6500)
+betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 6e-4, 
+                                                             6e-3, 2e-01)))
+nodes$between_color <- colorPalette(3)[betweenness_ranked]
 
 nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color')]
 # End of centrality---------------------------------------
