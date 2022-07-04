@@ -47,11 +47,10 @@ preprocess <- function(df)
                             " between ",  df$group1_name, " and ", df$group2_name))
   require(scales)
   # Each status will have its own color.
-  hex <- hue_pal()(5)
+  hex <- hue_pal()(length(unique(df$status_id)))
   df$color <- hex[df$status_id]
 
-  #----------------------------Irissssssssssssssssssssssss---------------------
-  loginfo('Ask Iris what this is meant for -in handle_data.R preprocess()')  
+  #----------------------------------------------------------------------------
   df$actor_color = ifelse(df$map_name=="Global Al Qaeda" |
                           df$map_name == "Global Islamic State", 1, 0)
   #----------------------------------------------------------------------------
