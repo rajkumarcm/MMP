@@ -250,6 +250,25 @@
 # }
 
 
+get_legend <- function(ledges)
+{
+   html_content <- ""
+   y <- 30
+   for(i in 1:nrow(ledges))
+   {
+     color <- ledges[i, 'color']
+     label <- ledges[i, 'label']
+     line1 <- sprintf("<line x1='0' y1='%dpx' x2='90px' y2='%dpx' stroke='%s' stroke-width='3px' />", y, y, color)
+     text <- sprintf("<text x='100px' y='%dpx' class='legend_label'><a href='javascript:showDesc(\"%s\");'>%s</a></text>", y, label, label)
+     line2 <- sprintf("<line x1='190px' y1='%dpx' x2='280px' y2='%dpx' stroke='%s' stroke-width='3px' />", y, y, color)
+     sub_html <- paste0(line1, paste0(text, line2))
+     
+     html_content <- paste(html_content, sub_html)
+     y <- y + 50
+   }
+   html_content
+}
+
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
@@ -322,7 +341,7 @@ s <- shinyServer(function(input, output, session){
  
   output$networkvisfinal <- renderVisNetwork({
     # browser()
-    netout = visNetwork(nodes2(),
+    visNetwork(nodes2(),
                         edges(),
                         width = "100%")  %>%
       visPhysics(solver = "repulsion") %>%
@@ -361,11 +380,11 @@ s <- shinyServer(function(input, output, session){
                                 algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE,
-        autoResize = T)  %>%
+        autoResize = T)  #%>%
         
       # visConfigure(enabled=T) %>%
-      visLegend(addEdges = ledges, useGroups = FALSE, width = '0.1', zoom = F)
-    netout
+      # visLegend(addEdges = ledges, useGroups = FALSE, width = '0.1', zoom = F)
+    
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
@@ -498,6 +517,34 @@ s <- shinyServer(function(input, output, session){
         #fontSize = 12, 
         nodeWidth = 30,
         sinksRight = FALSE
+      )
+    })
+    
+    output$nvf_legend <- renderUI({
+      
+      # browser()
+      svg_content <- get_legend(ledges)
+      HTML(
+        paste0("
+        <style>
+        .legend_label
+        {
+          font-size:15pt;
+        }
+        </style>
+        </br></br></br></br>
+        <h2 style='width:100px;'>Legend</h2>
+        <svg viewBox='0 0 301 500' xmlns='http://www.w3.org/2000/svg'>",
+        paste0(
+           svg_content, "</svg>"))
+      )
+    })
+    
+    output$reg_hideDesc <- renderUI({
+      HTML(
+        "<script>
+        document.getElementById('mp').addEventListener('click', hideDesc);
+        </script>"
       )
     })
     #----------------------------------------------------------------

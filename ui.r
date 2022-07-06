@@ -15,11 +15,12 @@ status_names <- as.character(unique(df$status))
 u <- shinyUI(fluidPage(
   
   tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "custom_style.css")
+    tags$link(rel = "stylesheet", type = "text/css", href = "custom_style.css"),
+    tags$script(src="my_script.js")
   ),
   
   shinyjs::useShinyjs(),
-  navbarPage('MMP Prototype 2', selected="vizNM",  
+  navbarPage('MMP Prototype 2', selected="vizNM", id="nbp", 
              tabPanel(title='About the App', id='aboutNM',
                       value='aboutNM',
                       div(id="about_ct",
@@ -108,15 +109,21 @@ u <- shinyUI(fluidPage(
                                            ))),
                                     
                                     mainPanel(
-                                      div(id = "mp", class="mp",
+                                      div(id = "mp", class="mp", 
                                           h2("Network Plots"),
                                           actionButton('toggleMenu', 'Filter'),
                                           tabsetPanel(
                                             
                                             tabPanel("Spatial",
+                                                     div(id="nvf_body", 
+                                                         uiOutput("nvf_legend"),
+                                                         
+                                                         div(id="nvf_mp",
+                                                             div(id="popDiv"),
+                                                             uiOutput("reg_hideDesc"),
                                                      visNetworkOutput("networkvisfinal",
                                                                       width="2000px", 
-                                                                      height="1200px"),
+                                                                      height="1200px"))),
                                                      style = "background-color: #eeeeee;"),
                                             tabPanel("Hierarchical", 
                                                      visNetworkOutput("visnetworktimeline",
@@ -128,12 +135,13 @@ u <- shinyUI(fluidPage(
                                                      style = "background-color: #eeeeee;")
                                             
                                           )
-                                      )
+                                          
+                                      ),
+                                      
                                     )
                       )
              ),
-             tabPanel(title='Profile Links', id='plNM', value='plNM'),
-             id='nbp',
+             tabPanel(title="Profile Links", id="plNM", value="plNM")
   )
   
 ))

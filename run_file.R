@@ -10,4 +10,5 @@ library(shiny)
 # vwr = dialogViewer('./', width = 1600, height = 1200)
 
 # runGadget(shinyAppDir(appDir = './'), viewer = vwr)
-runGadget(shinyAppDir(appDir = './'), viewer=browserViewer(browser=getOption('browser')))
+runGadget(shinyAppDir(appDir = './'), 
+          viewer=browserViewer(browser=getOption('browser')))
