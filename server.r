@@ -249,6 +249,9 @@
 #   graph
 # }
 
+library('maps')
+library('geosphere')
+library('ggplot2')
 
 get_legend <- function(ledges)
 {
@@ -548,6 +551,15 @@ s <- shinyServer(function(input, output, session){
       )
     })
     #----------------------------------------------------------------
-  
+    output$geoMap <- renderPlot({
+      map_name <- filtered_df()$map_name
+      
+      browser()
+      # map("county", regions=c("new jersey"), boundary=T, col='tomato',
+      #     fill=T)
+      map("state", border="gray10", fill=T, bg='gray10', col="orange")
+    })
+    
+    
 })
 

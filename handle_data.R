@@ -58,6 +58,9 @@ preprocess <- function(df)
   # Remove records with missing data
   df <- na.omit(df)
   
+  #Backup the old link_id
+  df$old_link_id <- df$link_id
+  
   return(df)
 }
 

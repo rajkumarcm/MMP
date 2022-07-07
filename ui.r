@@ -132,6 +132,10 @@ u <- shinyUI(fluidPage(
                                             tabPanel("Sankey", 
                                                      sankeyNetworkOutput("diagram",
                                                                          height="500px"),
+                                                     style = "background-color: #eeeeee;"),
+                                            
+                                            tabPanel("Geographical",
+                                                     plotOutput("geoMap"),
                                                      style = "background-color: #eeeeee;")
                                             
                                           )
