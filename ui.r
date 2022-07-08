@@ -122,8 +122,9 @@ u <- shinyUI(fluidPage(
                                                              div(id="popDiv"),
                                                              uiOutput("reg_hideDesc"),
                                                      visNetworkOutput("networkvisfinal",
-                                                                      width="2000px", 
-                                                                      height="1200px"))),
+                                                                      width="67%", 
+                                                                      height="100%"
+                                                                      ))),
                                                      style = "background-color: #eeeeee;"),
                                             tabPanel("Hierarchical", 
                                                      visNetworkOutput("visnetworktimeline",
