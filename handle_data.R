@@ -40,10 +40,16 @@ preprocess <- function(df)
   # browser()
   #-------------------------------------------------
   
+  #Backup the old link_id
+  df$old_link_id <- df$link_id
+  
+  # link_id is not unique. Reassigning link_id to make edges unique
+  df$link_id <- 1:nrow(df)
+  
   df$title =  ifelse(df$label=="affiliation" | df$label=="alliance", 
-                     paste0("An ", df$label, " occurred in ", df$year, 
+                     paste0("An (lid:)", df$link_id, "", df$label, " occurred in ", df$year, 
                             " between ", df$group1_name, " and ", df$group2_name),
-                     paste0("A ", df$label, " occurred in ", df$year, 
+                     paste0("A (lid:)", df$link_id, "", df$label, " occurred in ", df$year, 
                             " between ",  df$group1_name, " and ", df$group2_name))
   require(scales)
   # Each status will have its own color.
@@ -58,9 +64,6 @@ preprocess <- function(df)
   # Remove records with missing data
   df <- na.omit(df)
   
-  #Backup the old link_id
-  df$old_link_id <- df$link_id
-  
   return(df)
 }
 
@@ -70,5 +73,81 @@ make_graph <- function(df)
   relations <- unique(data.frame(from=df$group1_name,
                                  to=df$group2_name))
   graph.edgelist(as.matrix(relations), directed = T)
+}
+
+remove_edges_rd <- function(df)
+{
+  # Remove edges with redundant description
+  cnames_uyear <- c('from', 'to', 'status', 'map_name', 'primary', 'year')
+  unique_edges <- unique(df[, cnames_uyear])
+  new_df <- c()
+  
+  for(i in 1:nrow(unique_edges))
+  {
+    d_lids <- NULL
+    edge <- unique_edges[i,]
+    
+    # tmp has all duplicates of each (i.e., ith) unique edge.
+    tmp <- df[df$from == edge$from & 
+              df$to == edge$to & 
+              df$status == edge$status & 
+              df$map_name == edge$map_name & 
+              df$year == edge$year &
+              df$primary == edge$primary, 'link_id']
+    
+    # If there are duplicates
+    if(length(tmp) > 1)
+    {
+      d_lid <- tmp[1] # Picking any one is just fine
+      new_df <- rbind(new_df, df[df$link_id == d_lid,])
+    }
+    else
+      new_df <- rbind(new_df, df[df$link_id==tmp,])
+  }
+  
+  new_df <- data.frame(new_df)
+  colnames(new_df) <- colnames(df)
+  new_df
+}
+
+
+remove_edges_ry <- function(df)
+{
+  # This function must be called after remove_edges_rd
+  # Remove edges with redundant description
+  cnames_udesc <- c('from', 'to', 'status', 'map_name', 'primary')
+  unique_edges <- unique(df[, cnames_udesc])
+  new_df <- c()
+  
+  for(i in 1:nrow(unique_edges))
+  {
+    d_lids <- NULL
+    edge <- unique_edges[i,]
+    
+    # tmp has link id of all duplicates of each (i.e., ith) unique edge.
+    tmp <- df[df$from == edge$from & 
+              df$to == edge$to & 
+              df$status == edge$status & 
+              df$map_name == edge$map_name & 
+              df$primary == edge$primary, 'link_id']
+    
+    # If there are duplicates
+    if(length(tmp) > 1)
+    {
+      # edges with duplicates in year
+      df_dyear <- df[df$link_id %in% tmp,]
+      
+      # edges with earliest date
+      df_eyear <- df_dyear[df_dyear$year == min(df_dyear$year),]
+      
+      new_df <- rbind(new_df, df_eyear)
+    }
+    else # When there are no duplicates, there will be only a single edge
+      new_df <- rbind(new_df, df[df$link_id==tmp,])
+  }
+  
+  new_df <- data.frame(new_df)
+  colnames(new_df) <- colnames(df)
+  new_df  
 }
 

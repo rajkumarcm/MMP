@@ -32,10 +32,9 @@ source('handle_data.R', local=T)
 # Load and preprocess data--------------------------
 df <- load_data()
 df <- preprocess(df)
+df <- remove_edges_rd(df)
+df <- remove_edges_ry(df)
 #---------------------------------------------------
-
-# link_id is not unique. Reassigning link_id to make edges unique
-df$link_id <- 1:nrow(df)
 
 # Check if this is needed-----------------------------------------
 # gg <- make_graph(df)
