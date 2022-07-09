@@ -14,12 +14,11 @@ status_names <- as.character(unique(df$status))
 
 u <- shinyUI(fluidPage(
   
+  shinyjs::useShinyjs(),
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "custom_style.css"),
     tags$script(src="my_script.js")
   ),
-  
-  shinyjs::useShinyjs(),
   navbarPage('MMP Prototype 2', selected="vizNM", id="nbp", 
              tabPanel(title='About the App', id='aboutNM',
                       value='aboutNM',
@@ -115,16 +114,19 @@ u <- shinyUI(fluidPage(
                                           tabsetPanel(
                                             
                                             tabPanel("Spatial",
-                                                     div(id="nvf_body", 
+                                                     div(id="nvf_body",
                                                          uiOutput("nvf_legend"),
-                                                         
+
                                                          div(id="nvf_mp",
                                                              div(id="popDiv"),
                                                              uiOutput("reg_hideDesc"),
                                                      visNetworkOutput("networkvisfinal",
-                                                                      width="67%", 
-                                                                      height="100%"
-                                                                      ))),
+                                                                      width="100%", 
+                                                                      height="1200px"
+                                                                      )
+                                                     )
+                                                     )
+                                                     ,
                                                      style = "background-color: #eeeeee;"),
                                             tabPanel("Hierarchical", 
                                                      visNetworkOutput("visnetworktimeline",
