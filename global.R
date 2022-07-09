@@ -34,6 +34,7 @@ df <- load_data()
 df <- preprocess(df)
 df <- remove_edges_rd(df)
 df <- remove_edges_ry(df)
+df <- make_undirected(df)
 #---------------------------------------------------
 
 # Check if this is needed-----------------------------------------

@@ -151,3 +151,99 @@ remove_edges_ry <- function(df)
   new_df  
 }
 
+# make_undirected <- function(df)
+# {
+#   # When two edges with same connection i.e., 
+#   # one connecting A to B, and the other connecting
+#   # B to A are present, remove one of them...
+#   # Do not call this if you want a directed network
+#   # at which point you will see two side edges as duplicates
+#   # unless there are arrows depicting the direction.
+#   
+#   nodes_id <- unique(c(df$from, df$to))
+#   ud_df <- c()
+#   visited_nodes <- c()
+#   for(i in 1:length(nodes_id))
+#   {
+#     id <- nodes_id[i]
+#     
+#     # this is expected to return a unique set
+#     ltor <- df[df$from==id, 'to']
+#     
+#     # this is NOT expected to return a unique set
+#     rtol <- unique(df[df$from %in% ltor, 'to'])
+#     
+#     rtol <- rtol[(rtol != id) & (!(rtol %in% visited_nodes))]
+#     ud_df <- rbind(ud_df, df[df$from == id,])
+#     ud_df <- rbind(ud_df, df[df$from %in% rtol & df$to != id,])
+#     visited_nodes <- c(visited_nodes, id)
+#   }
+#   ud_df <- data.frame(ud_df)
+#   colnames(ud_df) <- colnames(df)
+#   ud_df
+# }
+
+make_undirected <- function(df)
+{
+  cnames <- colnames(df)
+  cnames <- cnames[-(which(cnames==c('link_id')))]
+  accepted_list <- c()
+  count <- 0
+  for(i in 1:nrow(df))
+  {
+    row <- df[i, ]
+    reverse_row <- row
+    reverse_row$from <- row$to
+    reverse_row$to <- row$from
+    
+    tmp_lid <- df[df$from==reverse_row$from &
+                  df$to==reverse_row$to &
+                  df$year==reverse_row$year &
+                  # df$multiple==reverse_row$multiple &
+                  df$map_name==reverse_row$map_name &
+                  df$primary==reverse_row$primary &
+                  df$status==reverse_row$status,
+                    'link_id' # new link_id that is unique
+                  ]
+    # if(row$link_id==372){
+    #   print('debug...')
+    # }
+    # Remove if exists
+    
+    if(length(tmp_lid) >= 1)
+    {
+      index <- which(df$link_id==tmp_lid)
+      if(!index %in% accepted_list)
+      {
+        accepted_list <- c(accepted_list, i)
+      }
+    }
+    # else if(length(tmp_lid) > 1)
+    # {
+    #   print('debug...')
+    #   warning('more than 1 reverse row found. this should not happen...')
+    # }
+    else
+    {
+      # index <- which(df$link_id==tmp_lid)
+      # if(index %in% accepted_list)
+      #   {
+        # print('catch me')
+      # }
+      accepted_list <- c(accepted_list, i)
+      count <- count + 1
+    }
+
+  }
+  df[accepted_list, ]
+}
+
+# For debugging--------------------------
+# df <- load_data()
+# df <- preprocess(df)
+# df <- remove_edges_rd(df)
+# df <- remove_edges_ry(df)
+# # df <- data.frame(from=c(0,1,1,1,2,7), to=c(1, 2, 4, 8, 1, 1))
+# df <- make_undirected(df)
+# print('debug...')
+#-----------------------------------------
