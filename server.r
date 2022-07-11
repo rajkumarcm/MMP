@@ -9,6 +9,9 @@
 library('maps')
 library('geosphere')
 library('ggplot2')
+library(tidyverse)
+
+source('filter_medges_all.R', local=T)
 
 get_legend <- function(ledges)
 {
@@ -35,9 +38,11 @@ s <- shinyServer(function(input, output, session){
   shinyjs::onclick('closeSp', shinyjs::toggle(id='sp', anim=T, animType='fade'))
   
   filtered_df <- reactive({
-    df %>% 
+    tmp_df <- df %>% 
       dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) %>%
       dplyr::filter(year >= input$range[1] & year <= input$range[2])
+    tmp_df <- filter_edges_mmap(tmp_df)
+    tmp_df
   })
   
   
@@ -161,7 +166,7 @@ s <- shinyServer(function(input, output, session){
     
     filteredNodes2 <- filteredNodes2 %>% inner_join(df_nodes[, c("id", "label")],
                                                     by="id", keep=F)
-  
+    
     hiddenNodes <- anti_join(nodes2(), filteredNodes2)
     hiddenEdges <- anti_join(edges(), filteredEdges)
 
@@ -317,7 +322,4 @@ s <- shinyServer(function(input, output, session){
       #     fill=T)
       map("state", border="gray10", fill=T, bg='gray10', col="orange")
     })
-    
-    
 })
-
