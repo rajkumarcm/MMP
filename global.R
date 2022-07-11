@@ -64,13 +64,18 @@ rm('tmp_edges')
 # with information hoping they are relevant with each other.
 # There is chance that they both cannot be related at all.
 # This can cause nodes to carry wrong labels showing incorrect information.
-nodes = with(df, data.frame(id = unique(c(as.character(from),
-                                          as.character(to))),
-                            label = unique(c(as.character(group1_name),
-                                             as.character(group2_name))),
-                            title=unique(c(as.character(group1_name),
-                                           as.character(group2_name))),
-                            size = min(color)))
+
+# Nodes database-------------------------------------------------------------
+
+df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
+
+nodes = with(df, data.frame(id = unique(c(from, to))))
+
+nodes <- nodes %>% inner_join(unique(df_nodes[, c("group_id", "group_name")]), 
+                              by=c("id"="group_id"), keep=F)
+# browser()
+colnames(nodes) <- c('id', 'label')
+nodes$title <- nodes$label
 
 # Centrality measures------------------------------------------------
 
@@ -130,9 +135,7 @@ loginfo('Pay attention at the place where you merge df and nodes')
 # df <- merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
 df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T)
 
-# Nodes database-------------------------------------------------------------
-
-df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
+#--------------Verify the integrity of df_nodes dataframe
 
 #----------------------------------------------------------------------------
 # D2: Does nodes dataframe contain any duplicates IDs ?----------------------
@@ -151,8 +154,11 @@ loginfo('Inspect check_var variable for further information about duplicates')
 #D2: End-----------------------------------------------------------------------
 
 # Rename df_nodes columns
-df_nodes <- df_nodes[, c('group_id', 'description', 'startyear')]
-cnames <- c('id', 'title', 'level')
+
+# df_nodes_original <- df_nodes
+
+df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear')]
+cnames <- c('id', 'label', 'title', 'level')
 colnames(df_nodes) <- cnames
 
 #------------------------------------------------------------------------------

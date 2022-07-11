@@ -66,28 +66,29 @@ s <- shinyServer(function(input, output, session){
   # label attributes are associated given unique function is used that will
   # perhaps erase the order. There are chances that one relationship is
   # given label of another relationship.
-  nodes1 <- reactive({
-    # browser()
+  nodes2 <- reactive({
+    
     tmp_df <- data.frame(id = unique(c(filtered_df()$from,
-                                     filtered_df()$to)),
-                         label = unique(c(filtered_df()$group1_name,
-                                filtered_df()$group2_name)))
-     # browser()
-     tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value')], 
+                                     filtered_df()$to)))
+    tmp_df <- tmp_df %>% inner_join(unique(df_nodes),
+                                    by="id", keep=F)
+    
+    # nodes dataframe is created using correct inner join
+    tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value')], 
                      by='id')
-     cnames <- colnames(tmp_df)
-     cnames[cnames == 'between_color'] <- 'color'
-     colnames(tmp_df) <- cnames
-     tmp_df
+    cnames <- colnames(tmp_df)
+    cnames[cnames == 'between_color'] <- 'color'
+    colnames(tmp_df) <- cnames
+    tmp_df
   })
   
   # We need this so that we can show description of each organization
   # when a vertex is hovered
-  nodes2 <-reactive({merge(nodes1(),
-                           # the df that contains description, start year, etc,.
-                           df_nodes,
-                           by=c("id"), all.x=TRUE)
-                          })
+  # nodes2 <-reactive({merge(nodes1(),
+  #                          # the df that contains description, start year, etc,.
+  #                          df_nodes,
+  #                          by=c("id"), all.x=TRUE)
+  #                         })
   
   # edges data.frame for legend
   tmp_df <- unique(df[, c('status', 'color')])
@@ -156,12 +157,12 @@ s <- shinyServer(function(input, output, session){
     # loginfo(paste('Receiving nodes size:', nrow(nodes1())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
     filteredNodes2 <- data.frame(id=unique(c(filteredEdges$from,
-                                             filteredEdges$to)),
-                                 label=unique(c(filteredEdges$source,
-                                                filteredEdges$target))
-
-    )
-    hiddenNodes <- anti_join(nodes1(), filteredNodes2)
+                                             filteredEdges$to)))
+    
+    filteredNodes2 <- filteredNodes2 %>% inner_join(df_nodes[, c("id", "label")],
+                                                    by="id", keep=F)
+  
+    hiddenNodes <- anti_join(nodes2(), filteredNodes2)
     hiddenEdges <- anti_join(edges(), filteredEdges)
 
     visRemoveNodes(myVisNetworkProxy, id = hiddenNodes$id)
