@@ -135,28 +135,7 @@ loginfo('Pay attention at the place where you merge df and nodes')
 # df <- merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
 df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T)
 
-#--------------Verify the integrity of df_nodes dataframe
-
-#----------------------------------------------------------------------------
-# D2: Does nodes dataframe contain any duplicates IDs ?----------------------
-loginfo(paste('The length of actual nodes dataframe is:',
-              nrow(df_nodes)))
-loginfo(paste('Total number of unique node/group id:', 
-              length(unique(df_nodes$group_id))))
-all_gids <- df_nodes$group_id
-duplicated_gids <- unique(all_gids[duplicated(all_gids)])
-loginfo(paste("In df_nodes there are ", paste(length(duplicated_gids), 
-                                              " duplicate group_id's found")))
-check_var <- df_nodes[all_gids %in% duplicated_gids, 
-                      c('group_id', 'group_name', 'map_name', 'startyear')] %>% 
-             arrange(group_name)
-loginfo('Inspect check_var variable for further information about duplicates')
-#D2: End-----------------------------------------------------------------------
-
 # Rename df_nodes columns
-
-# df_nodes_original <- df_nodes
-
 df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear')]
 cnames <- c('id', 'label', 'title', 'level')
 colnames(df_nodes) <- cnames
