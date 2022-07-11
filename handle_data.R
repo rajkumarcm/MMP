@@ -205,18 +205,19 @@ make_undirected <- function(df)
                   df$status==reverse_row$status,
                     'link_id' # new link_id that is unique
                   ]
-    # if(row$link_id==372){
-    #   print('debug...')
-    # }
+    if(row$link_id==11){
+      print('debug...')
+    }
     # Remove if exists
     
-    if(length(tmp_lid) >= 1)
+    if(length(tmp_lid) == 1)
     {
-      index <- which(df$link_id==tmp_lid)
-      if(!index %in% accepted_list)
+      # tmp_lid[1] is used so that we can ignore the other direction
+      if((!(row$link_id %in% accepted_list)) & (!(tmp_lid[1] %in% accepted_list)))
       {
-        accepted_list <- c(accepted_list, i)
+        accepted_list <- c(accepted_list, row$link_id)
       }
+      #else do not add
     }
     # else if(length(tmp_lid) > 1)
     # {
@@ -230,20 +231,19 @@ make_undirected <- function(df)
       #   {
         # print('catch me')
       # }
-      accepted_list <- c(accepted_list, i)
+      accepted_list <- c(accepted_list, row$link_id)
       count <- count + 1
     }
-
   }
-  df[accepted_list, ]
+  df[df$link_id %in% accepted_list, ]
 }
 
 # For debugging--------------------------
-# df <- load_data()
-# df <- preprocess(df)
-# df <- remove_edges_rd(df)
-# df <- remove_edges_ry(df)
+df <- load_data()
+df <- preprocess(df)
+df <- remove_edges_rd(df)
+df <- remove_edges_ry(df)
 # # df <- data.frame(from=c(0,1,1,1,2,7), to=c(1, 2, 4, 8, 1, 1))
-# df <- make_undirected(df)
+df <- make_undirected(df)
 # print('debug...')
 #-----------------------------------------
