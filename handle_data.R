@@ -111,18 +111,41 @@ remove_edges_rd <- function(df)
 }
 
 
-remove_edges_ry <- function(df)
+remove_edges_ry <- function(df, undirected=T)
 {
   # This function must be called after remove_edges_rd
   # Remove edges with redundant description
+  
+  # Get the row with least year
+  get_row_lyear <- function(lids, new_df)
+  {
+    # If there are duplicates
+    if(length(lids) > 1)
+    {
+      # edges with duplicates in year
+      df_dyear <- df[df$link_id %in% lids,]
+      
+      # edges with earliest date
+      df_eyear <- df_dyear[df_dyear$year == min(df_dyear$year),]
+      
+      new_df <- rbind(new_df, df_eyear)
+    }
+    else # When there are no duplicates, there will be only a single link_id
+      new_df <- rbind(new_df, df[df$link_id==lids,])
+    
+    new_df
+  }
+  
   cnames_udesc <- c('from', 'to', 'status', 'map_name', 'primary')
   unique_edges <- unique(df[, cnames_udesc])
   new_df <- c()
+  accepted <- c()
   
   for(i in 1:nrow(unique_edges))
   {
     d_lids <- NULL
     edge <- unique_edges[i,]
+    tmp_df <- c()
     
     # tmp has link id of all duplicates of each (i.e., ith) unique edge.
     tmp <- df[df$from == edge$from & 
@@ -131,57 +154,60 @@ remove_edges_ry <- function(df)
               df$map_name == edge$map_name & 
               df$primary == edge$primary, 'link_id']
     
-    # If there are duplicates
-    if(length(tmp) > 1)
+    # if(245 %in% tmp)
+    # {
+    #   print('breakpoint...')
+    # }
+    tmp_forward_df <- get_row_lyear(tmp, c())
+    
+    reverse_lids <- df[df$from == edge$to & 
+                       df$to == edge$from & 
+                       df$status == edge$status & 
+                       df$map_name == edge$map_name & 
+                       df$primary == edge$primary, 'link_id']
+    tmp_reverse_df <- get_row_lyear(reverse_lids, c())
+    
+    if(undirected & nrow(tmp_reverse_df) != 0)
     {
-      # edges with duplicates in year
-      df_dyear <- df[df$link_id %in% tmp,]
+      if(tmp_forward_df$year < tmp_reverse_df$year)
+      {
+        if(!tmp_forward_df$link_id %in% accepted)
+        {
+          tmp_df <- tmp_forward_df
+          accepted <- c(accepted, tmp_forward_df$link_id)
+        }
+        #else don't add
+      }
+      else
+      {
+        if(!tmp_reverse_df$link_id %in% accepted)
+        {
+          tmp_df <- tmp_reverse_df
+          accepted <- c(accepted, tmp_reverse_df$link_id)
+        }
+      }
       
-      # edges with earliest date
-      df_eyear <- df_dyear[df_dyear$year == min(df_dyear$year),]
-      
-      new_df <- rbind(new_df, df_eyear)
+      new_df <- rbind(new_df, tmp_df)
     }
-    else # When there are no duplicates, there will be only a single edge
-      new_df <- rbind(new_df, df[df$link_id==tmp,])
+    else
+    {
+      if(!tmp_forward_df$link_id %in% accepted)
+      {
+        new_df <- rbind(new_df, tmp_forward_df)
+        accepted <- c(accepted, tmp_forward_df$link_id)
+      }
+      
+    }
+    # if(nrow(new_df[new_df$link_id==245,])>0)
+    # {
+    #   print('breakpoint...')
+    # }
   }
   
   new_df <- data.frame(new_df)
   colnames(new_df) <- colnames(df)
-  new_df  
+  new_df
 }
-
-# make_undirected <- function(df)
-# {
-#   # When two edges with same connection i.e., 
-#   # one connecting A to B, and the other connecting
-#   # B to A are present, remove one of them...
-#   # Do not call this if you want a directed network
-#   # at which point you will see two side edges as duplicates
-#   # unless there are arrows depicting the direction.
-#   
-#   nodes_id <- unique(c(df$from, df$to))
-#   ud_df <- c()
-#   visited_nodes <- c()
-#   for(i in 1:length(nodes_id))
-#   {
-#     id <- nodes_id[i]
-#     
-#     # this is expected to return a unique set
-#     ltor <- df[df$from==id, 'to']
-#     
-#     # this is NOT expected to return a unique set
-#     rtol <- unique(df[df$from %in% ltor, 'to'])
-#     
-#     rtol <- rtol[(rtol != id) & (!(rtol %in% visited_nodes))]
-#     ud_df <- rbind(ud_df, df[df$from == id,])
-#     ud_df <- rbind(ud_df, df[df$from %in% rtol & df$to != id,])
-#     visited_nodes <- c(visited_nodes, id)
-#   }
-#   ud_df <- data.frame(ud_df)
-#   colnames(ud_df) <- colnames(df)
-#   ud_df
-# }
 
 make_undirected <- function(df)
 {
@@ -205,9 +231,9 @@ make_undirected <- function(df)
                   df$status==reverse_row$status,
                     'link_id' # new link_id that is unique
                   ]
-    if(row$link_id==11){
-      print('debug...')
-    }
+    # if(row$link_id==11){
+    #   print('breakpoint...')
+    # }
     # Remove if exists
     
     if(length(tmp_lid) == 1)
@@ -239,11 +265,12 @@ make_undirected <- function(df)
 }
 
 # For debugging--------------------------
-df <- load_data()
-df <- preprocess(df)
-df <- remove_edges_rd(df)
-df <- remove_edges_ry(df)
+# df <- load_data()
+# df <- preprocess(df)
+# df <- remove_edges_rd(df)
+# df <- remove_edges_ry(df)
+# df <- make_undirected(df)
 # # df <- data.frame(from=c(0,1,1,1,2,7), to=c(1, 2, 4, 8, 1, 1))
-df <- make_undirected(df)
+# 
 # print('debug...')
 #-----------------------------------------

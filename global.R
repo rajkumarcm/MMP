@@ -73,7 +73,7 @@ nodes = with(df, data.frame(id = unique(c(from, to))))
 
 nodes <- nodes %>% inner_join(unique(df_nodes[, c("group_id", "group_name")]), 
                               by=c("id"="group_id"), keep=F)
-# browser()
+
 colnames(nodes) <- c('id', 'label')
 nodes$title <- nodes$label
 
@@ -89,7 +89,10 @@ nodes$value <- degree_value[match(nodes$id, names(degree_value))]
 # But represented by just 4 colors for 5 bins ? I will change this to 4 for the 
 # time-being
 degreePal <- factor(cut(as.numeric(nodes$value), 4),
-                    labels = c("lightblue", "#619CFF", "orange", "darkblue"))
+                    # After removing redundancies this code started giving trouble
+                    # not allowing to have the following line
+                    # labels = c("lightblue", "#619CFF", "orange", "darkblue"))
+                    labels = c("lightblue", "#619CFF", "orange"))
 nodes$central_color <- degreePal
 
 # The amount of influence the vertex has on the flow of paths in the network

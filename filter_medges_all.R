@@ -8,7 +8,7 @@ filter_edges_mmap <- function(edges)
   cnames <- c('from', 'to', 'status_id', 'year', 'color')
   u_edges <- unique(edges[, cnames])
   n_edges <- c()
-  
+  # count <- 1
   for(i in 1:nrow(u_edges))
   {
     u_e <- u_edges[i,]
@@ -26,8 +26,15 @@ filter_edges_mmap <- function(edges)
           primary <- edges[edges$link_id==d_lid, 'primary']
           map_name <- edges[edges$link_id==d_lid, 'map_name']
           pattern <- paste0('.*', paste0(primary, '.*'))
+          # print(count)
+          # if(count==18)
+          # {
+          #     print('breakpoint...')
+          # }
           if(str_detect(map_name, pattern))
             n_edges <- rbind(n_edges, edges[edges$link_id==d_lid,])
+          
+          count <- count + 1
         }
     }
     else
@@ -38,4 +45,4 @@ filter_edges_mmap <- function(edges)
   n_edges
 }
 
-tmp_df <- filter_edges_mmap(df)
+# tmp_df <- filter_edges_mmap(df)
