@@ -100,8 +100,7 @@ body
 #nvf_legend
 {
   height:500px;
-  width:12.1%;
-  min-width:280px;
+  width:280px;
   position:absolute;
 }
 
@@ -109,7 +108,7 @@ body
 {
   width:100%;
   height:80%;
-  margin-left:12.1%;
+  margin-left:290px;
 }
 
 #nvf_mp > #popDiv h2
