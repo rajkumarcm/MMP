@@ -122,7 +122,7 @@ u <- shinyUI(fluidPage(
                                                              uiOutput("reg_hideDesc"),
                                                      visNetworkOutput("networkvisfinal",
                                                                       width="100%", 
-                                                                      height="1200px"
+                                                                      height="1000px"
                                                                       )
                                                      )
                                                      )
