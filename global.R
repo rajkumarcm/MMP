@@ -114,28 +114,17 @@ colorPalette <- colorRampPalette(c('blue','red'))
 #c(0, 0.3, 10, 25, 
 # 40, 60, 100, 1500,
 # 6500)
-betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 6e-4, 
-                                                             6e-3, 2e-01)))
-nodes$between_color <- colorPalette(3)[betweenness_ranked]
+betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 6e-4, 6e-3, 2e-01),
+                                     include.lowest = T, right=T, ordered_result = T))
+nodes$between_color <- c("slategrey", "gold", "tomato")[betweenness_ranked]
 
 nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color')]
 # End of centrality---------------------------------------
 
-#------------------------------------------------------------------------------
-# D1: For debugging purposes - total nodes in edges == nodes in nodes variable?
-n_nodes1 <- length(unique(c(df$from, df$to)))
-n_nodes2 <- length(unique(as.numeric(nodes$id)))
-loginfo(paste('length of df$from:', n_nodes1))
-loginfo(paste('length of nodes$id:', n_nodes2))
-loginfo('Pay attention at the place where you merge df and nodes')
-#--------------------------------------------------------------------------
-
 # Merging edges with nodes dataframe to give more information to edges such as 
 # degree of centrality,central_color, betweenness centrality and between_color.
 
-#----- Update: df does not need information - central_color, between, and 
-# between_color. Doesn't make any sense.
-# df <- merge(df, nodes, by.x=c("from"), by.y=c("id"), all.x=T)
+
 df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T)
 
 # Rename df_nodes columns

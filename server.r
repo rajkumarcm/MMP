@@ -86,15 +86,7 @@ s <- shinyServer(function(input, output, session){
     colnames(tmp_df) <- cnames
     tmp_df
   })
-  
-  # We need this so that we can show description of each organization
-  # when a vertex is hovered
-  # nodes2 <-reactive({merge(nodes1(),
-  #                          # the df that contains description, start year, etc,.
-  #                          df_nodes,
-  #                          by=c("id"), all.x=TRUE)
-  #                         })
-  
+
   # edges data.frame for legend
   tmp_df <- unique(df[, c('status', 'color')])
   
@@ -106,31 +98,18 @@ s <- shinyServer(function(input, output, session){
 
  
   output$networkvisfinal <- renderVisNetwork({
-    # browser()
     visNetwork(nodes2(),
-                        edges(),
-                        width = "100%")  %>%
+               edges(),
+               width = "100%")  %>%
       visPhysics(solver = "repulsion") %>%
-      # visEvents(deselectEdge="function() {
-      #           var ss = document.getElementById('selectStatus);
-      #           # This is not working
-      # }") %>%
-      # visEvents(
-#         stabilizationIterationsDone="function() {
-# progrs = { 'value': params.iterations, 'total': params.total };
-# shiny.setInputValue('progressBarId', progrs, {priority: 'event'});
-# alert('done');
-# }"
-#       ) %>%
-      visNodes()  %>%
+      visNodes(shadow=T, borderWidth = 1,
+               borderWidthSelected = 2,
+               color=list(highlight='orange',
+                          border='black',
+                          highlight.border='darkred'))  %>%
       visEdges(
         label=edges()$title,
-        font = list(size = 1),
-        # Chosen has zero effect on the rendered labels of the edges
-        chosen = list(edge = TRUE,
-                      label = htmlwidgets::JS("function(values, id, selected, hovering)
-                                      {alert(values); values.size = '200'; width='500px';}"))
-                      ) %>%
+        font = list(size = 1)) %>%
       visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
                 -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
@@ -146,11 +125,7 @@ s <- shinyServer(function(input, output, session){
                                 algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE,
-        autoResize = T)  #%>%
-        
-      # visConfigure(enabled=T) %>%
-      # visLegend(addEdges = ledges, useGroups = FALSE, width = '0.1', zoom = F)
-    
+        autoResize = T)
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")

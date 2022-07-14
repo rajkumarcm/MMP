@@ -127,7 +127,7 @@ u <- shinyUI(fluidPage(
                                                      )
                                                      )
                                                      ,
-                                                     style = "background-color: #eeeeee;"),
+                                                     style = "background-color: #FCFCF3;"),
                                             tabPanel("Hierarchical", 
                                                      visNetworkOutput("visnetworktimeline",
                                                                       height="500px"),
