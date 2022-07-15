@@ -2,7 +2,7 @@ body
 {
    /*background-color:#eeeeee;*/
    background-color:#FCFCF3;
-   min-width: 900px;
+   min-width: 1200px;
    min-height:1000px;
    width:100%;
    height:100%;
@@ -27,7 +27,7 @@ body
 {
   width:480px;
   height:800px;
-  position:absolute;
+  position:relative;
   z-index:10;
   top:200px;
   background-color:#d9d9d9;
@@ -108,19 +108,39 @@ body
    box-shadow: 0px 22px 16px #888;
 }
 
-#nvf_legend
+#nvf_sp
 {
   height:500px;
   width:280px;
+  margin:0;
+  padding:0;
+}
+
+#nvf_legend
+{
+  /*height:500px;
+  width:280px;*/
+  height:775px;
+  width:364px;
   position:absolute;
+}
+
+#nvf_legend_sub
+{
+  height: 500px;
+  width: 280px;
+  position: absolute;
+  margin-top: 429px;
 }
 
 #nvf_mp
 {
   width:80%;
   height:80%;
-  margin-left:290px;
+  margin-left:374px;
 }
+
+
 
 #nvf_mp > #popDiv h2
 {

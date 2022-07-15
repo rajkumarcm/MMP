@@ -79,15 +79,19 @@ s <- shinyServer(function(input, output, session){
                                     by="id", keep=F)
     
     # nodes dataframe is created using correct inner join
-    tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value')], 
+    tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value', 
+                                      'color.border', 'color.highlight.background',
+                                      'color.hover.background',
+                                      'color.hover.border')], 
                      by='id')
     cnames <- colnames(tmp_df)
-    cnames[cnames == 'between_color'] <- 'color'
+    cnames[cnames == 'between_color'] <- 'color.background'
     colnames(tmp_df) <- cnames
     tmp_df
   })
 
   # edges data.frame for legend
+  # browser()
   tmp_df <- unique(df[, c('status', 'color')])
   
   # ledges is created & used for the sake of displaying legend
@@ -102,11 +106,10 @@ s <- shinyServer(function(input, output, session){
                edges(),
                width = "100%")  %>%
       visPhysics(solver = "repulsion") %>%
-      visNodes(shadow=T, borderWidth = 1,
-               borderWidthSelected = 2,
-               color=list(highlight='orange',
-                          border='black',
-                          highlight.border='darkred'))  %>%
+      visNodes(shadow=T, borderWidth = 2,
+               borderWidthSelected = 3,
+               color=list(hover=list(border='black',
+                                     borderWidth=3)))  %>%
       visEdges(
         label=edges()$title,
         font = list(size = 1)) %>%
@@ -119,7 +122,8 @@ s <- shinyServer(function(input, output, session){
                      keyboard = TRUE,
                      dragNodes = T,
                      dragView = T,
-                     zoomView = T) %>%   # explicit edge options
+                     zoomView = T,
+                     multiselect = T) %>%   # explicit edge options
       visOptions(
         highlightNearest = list(enabled=T, #hover=T,
                                 algorithm="hierarchical",
@@ -261,7 +265,7 @@ s <- shinyServer(function(input, output, session){
       )
     })
     
-    output$nvf_legend <- renderUI({
+    output$nvf_legend_sub <- renderUI({
       
       # browser()
       svg_content <- get_legend(ledges)

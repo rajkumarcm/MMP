@@ -64,89 +64,80 @@ u <- shinyUI(fluidPage(
              ), # tabpanel
              
              tabPanel(title='Visualize the Data', id='vizNM', value='vizNM',
-                      sidebarLayout(position = "left",
-                                    shinyjs::hidden(
-                                      div( id="sp", class="sp",
-                                           div(id="sp2", 
-                                               div(id ="icon_div",
-                                                   tags$img(id="closeSp", height = 20, width = 20, 
-                                                            src = 'close.png') ),
-                                               h2("Options"),
-                                               selectInput("map_name",
-                                                           "Select map:",
-                                                           # For debugging purposes change to maps[1] once finished
-                                                           selected = maps[2],
-                                                           choices = maps),
-                                               
-                                               checkboxGroupInput("filterEdges",
-                                                                  "Filter relationship:",
-                                                                  selected = unique(df$status_id),
-                                                                  choices = c("Affiliates"=5, 
-                                                                              "Allies"=2, 
-                                                                              "Mergers"=3,
-                                                                              "Rivals"=1,
-                                                                              "Splinters"=4)
-                                               ),
-                                               selectInput("selectStatus",
-                                                           "Highlight one status",
-                                                           selected = 0,
-                                                           choices = c("None"=0,
-                                                                       "Affiliates"=5, 
-                                                                       "Allies"=2, 
-                                                                       "Mergers"=3,
-                                                                       "Rivals"=1,
-                                                                       "Splinters"=4
-                                                                       )),
-                                               
-                                               sliderInput("range", 
-                                                           label = "Choose a start and end year:",
-                                                           min = min(df$year), max = max(df$year), 
-                                                           value = c(min(df$year), max(df$year)), 
-                                                           sep = "",
-                                                           width=360)
-                                               
-                                           ))),
-                                    
-                                    mainPanel(
-                                      div(id = "mp", class="mp", 
-                                          h2("Network Plots"),
-                                          actionButton('toggleMenu', 'Filter'),
-                                          tabsetPanel(
-                                            
-                                            tabPanel("Spatial",
-                                                     div(id="nvf_body",
-                                                         uiOutput("nvf_legend"),
+                    mainPanel(
+                      div(id = "mp", class="mp", 
+                          h2("Network Plots"),
+                          tabsetPanel(
+                            
+                            tabPanel("Spatial",
+                                     div(id="nvf_body",
+                                         div(id="nvf_legend",
+                                         h2("Options"),
+                                         selectInput("map_name",
+                                                     "Select map:",
+                                                     # For debugging purposes change to maps[1] once finished
+                                                     selected = maps[2],
+                                                     choices = maps),
+                                         
+                                         checkboxGroupInput("filterEdges",
+                                                            "Filter relationship:",
+                                                            selected = unique(df$status_id),
+                                                            choices = c("Affiliates"=5, 
+                                                                        "Allies"=2, 
+                                                                        "Mergers"=3,
+                                                                        "Rivals"=1,
+                                                                        "Splinters"=4)
+                                         ),
+                                         selectInput("selectStatus",
+                                                     "Highlight one status",
+                                                     selected = 0,
+                                                     choices = c("None"=0,
+                                                                 "Affiliates"=5, 
+                                                                 "Allies"=2, 
+                                                                 "Mergers"=3,
+                                                                 "Rivals"=1,
+                                                                 "Splinters"=4
+                                                     )),
+                                         
+                                         sliderInput("range", 
+                                                     label = "Choose a start and end year:",
+                                                     min = min(df$year), max = max(df$year), 
+                                                     value = c(min(df$year), max(df$year)), 
+                                                     sep = "",
+                                                     width=360)),
+                                         
+                                         uiOutput("nvf_legend_sub"),
 
-                                                         div(id="nvf_mp",
-                                                             div(id="popDiv"),
-                                                             uiOutput("reg_hideDesc"),
-                                                     visNetworkOutput("networkvisfinal",
-                                                                      width="100%", 
-                                                                      height="1000px"
-                                                                      )
-                                                     )
-                                                     )
-                                                     ,
-                                                     style = "background-color: #FCFCF3;"),
-                                            tabPanel("Hierarchical", 
-                                                     visNetworkOutput("visnetworktimeline",
-                                                                      height="500px"),
-                                                     style = "background-color: #eeeeee;"),
-                                            tabPanel("Sankey", 
-                                                     sankeyNetworkOutput("diagram",
-                                                                         height="500px"),
-                                                     style = "background-color: #eeeeee;"),
-                                            
-                                            tabPanel("Geographical",
-                                                     plotOutput("geoMap"),
-                                                     style = "background-color: #eeeeee;")
-                                            
-                                          )
-                                          
-                                      ),
-                                      
-                                    )
-                      )
+                                         div(id="nvf_mp",
+                                             div(id="popDiv"),
+                                             uiOutput("reg_hideDesc"),
+                                     visNetworkOutput("networkvisfinal",
+                                                      width="100%", 
+                                                      height="1000px"
+                                                      )
+                                     )
+                                     )
+                                     ,
+                                     style = "background-color: #FCFCF3;"),
+                            tabPanel("Hierarchical", 
+                                     visNetworkOutput("visnetworktimeline",
+                                                      height="500px"),
+                                     style = "background-color: #eeeeee;"),
+                            tabPanel("Sankey", 
+                                     sankeyNetworkOutput("diagram",
+                                                         height="500px"),
+                                     style = "background-color: #eeeeee;"),
+                            
+                            tabPanel("Geographical",
+                                     plotOutput("geoMap"),
+                                     style = "background-color: #eeeeee;")
+                            
+                          )
+                          
+                      ),
+                      
+                    )
+                      #)
              ),
              tabPanel(title="Profile Links", id="plNM", value="plNM")
   )

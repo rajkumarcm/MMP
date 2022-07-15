@@ -116,9 +116,16 @@ colorPalette <- colorRampPalette(c('blue','red'))
 # 6500)
 betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 6e-4, 6e-3, 2e-01),
                                      include.lowest = T, right=T, ordered_result = T))
-nodes$between_color <- c("slategrey", "gold", "tomato")[betweenness_ranked]
+# nodes$between_color <- c("slategrey", "gold", "tomato")[betweenness_ranked]
+nodes$between_color <- c("#47AAF9", "#9351F3", "#F53030")[betweenness_ranked]
+nodes$color.highlight.background <- c("#A2D1F7", "#B487F5", "#F88C8C")[betweenness_ranked]
+nodes$color.hover.background <- c("#A2D1F7", "#B487F5", "#F88C8C")[betweenness_ranked]
+nodes$color.border <- "slategrey"
+nodes$color.hover.border <- "black"
 
-nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color')]
+nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color',
+                   'color.border', 'color.highlight.background',
+                   'color.hover.background', 'color.hover.border')]
 # End of centrality---------------------------------------
 
 # Merging edges with nodes dataframe to give more information to edges such as 
