@@ -75,7 +75,7 @@ s <- shinyServer(function(input, output, session){
     
     tmp_df <- data.frame(id = unique(c(filtered_df()$from,
                                      filtered_df()$to)))
-    tmp_df <- tmp_df %>% inner_join(unique(df_nodes),
+    tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 'level')]),
                                     by="id", keep=F)
     
     # nodes dataframe is created using correct inner join
@@ -293,12 +293,30 @@ s <- shinyServer(function(input, output, session){
       )
     })
     #----------------------------------------------------------------
+    
+    nodes_geo <- reactive({
+      # browser()
+      tmp_df <- data.frame(id = unique(c(df$from,
+                                         df$to)))
+      tmp_df <- tmp_df %>% inner_join(unique(df_nodes),
+                                      by="id", keep=F)
+    })
+
+    # edges_geo <- reactive({
+    #
+    # })
+
     output$geoMap <- renderPlot({
-      map_name <- filtered_df()$map_name
-      
-      browser()
+      # browser()
+      # map_name <- unique(nodes_geo()$map_name)
+
       # map("county", regions=c("new jersey"), boundary=T, col='tomato',
       #     fill=T)
-      map("state", border="gray10", fill=T, bg='gray10', col="orange")
+      maps::map(database="world", border="gray10", fill=T, bg='black',
+          col="grey20")#, xlim=range(nodes_geo()$longitude, na.rm=T), 
+                      #  ylim=range(nodes_geo()$latitude, na.rm=T))
+
+      points(x=nodes_geo()$latitude, y=nodes_geo()$longitude, pch=19, 
+             col='orange', cex=2)
     })
 })

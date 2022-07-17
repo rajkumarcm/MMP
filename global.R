@@ -67,7 +67,7 @@ rm('tmp_edges')
 
 # Nodes database-------------------------------------------------------------
 
-df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
+df_nodes <- read.csv("data/new_nodes.csv", header=T,)
 
 nodes = with(df, data.frame(id = unique(c(from, to))))
 
@@ -135,16 +135,18 @@ nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color',
 df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T)
 
 # Rename df_nodes columns
-df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear')]
-cnames <- c('id', 'label', 'title', 'level')
+df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear', 
+                         'map_name', 'lat', 'long')]
+cnames <- c('id', 'label', 'title', 'level', 'map_name', 'latitude', 'longitude')
 colnames(df_nodes) <- cnames
 
 #------------------------------------------------------------------------------
 # Since this is not a relationship dataframe, instead a database of nodes itself
 # we want to ensure that there are no duplicates.
 #------------------------------------------------------------------------------
-df_nodes <- unique(df_nodes)
 
+df_nodes <- df_nodes[-which(df_nodes$map_name==""),]
+df_nodes <- unique(df_nodes)
 
 
 
