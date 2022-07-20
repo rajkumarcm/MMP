@@ -189,3 +189,17 @@ body
   height:0px;
   width: 0px;;
 }
+
+#fs_icon
+{
+  height:30px;
+  width:30px;
+  right:20px;
+  bottom:20px;
+  position:absolute;
+}
+
+div:fullscreen
+{
+  background-color:#FCFCF3;
+}

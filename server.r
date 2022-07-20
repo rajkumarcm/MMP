@@ -75,7 +75,8 @@ s <- shinyServer(function(input, output, session){
     
     tmp_df <- data.frame(id = unique(c(filtered_df()$from,
                                      filtered_df()$to)))
-    tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 'level')]),
+    tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 
+                                                        'level')]),
                                     by="id", keep=F)
     
     # nodes dataframe is created using correct inner join
@@ -105,7 +106,11 @@ s <- shinyServer(function(input, output, session){
     visNetwork(nodes2(),
                edges(),
                width = "100%")  %>%
-      visPhysics(solver = "repulsion") %>%
+      visPhysics(solver = "forceAtlas2Based",
+                 forceAtlas2Based = list(avoidOverlap=0.7,
+                                         gravitationalConstant=-200,
+                                         damping=0.4)
+                 ) %>%
       visNodes(shadow=T, borderWidth = 2,
                borderWidthSelected = 3,
                color=list(hover=list(border='black',

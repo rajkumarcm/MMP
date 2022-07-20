@@ -11,7 +11,7 @@ maps <- c("All", unique(df$map_name))
 status_names <- as.character(unique(df$status))
 #------------------------------------------------------------------
 
-
+options(device.ask.default = FALSE)
 u <- shinyUI(fluidPage(
   
   shinyjs::useShinyjs(),
@@ -104,7 +104,8 @@ u <- shinyUI(fluidPage(
                                                      min = min(df$year), max = max(df$year), 
                                                      value = c(min(df$year), max(df$year)), 
                                                      sep = "",
-                                                     width=360)),
+                                                     width=360),
+                                                     animate=T),
                                          
                                          uiOutput("nvf_legend_sub"),
 
@@ -114,7 +115,10 @@ u <- shinyUI(fluidPage(
                                      visNetworkOutput("networkvisfinal",
                                                       width="100%", 
                                                       height="1000px"
-                                                      )
+                                                      ),
+                                             div(id='fs_icon', 
+                                               HTML("<img src='fullscreen.png' width='30px' height='30px' onmouseover='this.src=\"fullscreen_hover.png\";' onmouseout='this.src=\"fullscreen.png\";' onclick='toggleFS();' >")
+                                             )
                                      )
                                      )
                                      ,

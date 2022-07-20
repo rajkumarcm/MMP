@@ -48,6 +48,12 @@ function hideDesc()
   popDiv.style.display ='none';
 }
 
-function mp_onload(){
-  
+function toggleFS(){
+  if(!document.fullscreenElement)
+  {
+    var elem = document.getElementById('nvf_body');
+    elem.requestFullscreen();
+  }
+  else
+    document.exitFullscreen();
 }

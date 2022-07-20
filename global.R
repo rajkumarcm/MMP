@@ -81,8 +81,8 @@ nodes$title <- nodes$label
 
 # Create degree centrality
 # Compute the number of incoming connection for each vertex
-degree_value <- degree(graph, mode = "in")
-nodes$value <- degree_value[match(nodes$id, names(degree_value))]
+degree_value <- degree(graph, mode = "total")
+nodes$value <- degree_value[match(nodes$id, names(degree_value))] + 1
 
 # Throwing nodes into 5 different bins based on histogram binning technique
 # on the basis of their strength represented by a unique color.
