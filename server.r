@@ -108,8 +108,8 @@ s <- shinyServer(function(input, output, session){
                width = "100%")  %>%
       visPhysics(solver = "forceAtlas2Based",
                  forceAtlas2Based = list(avoidOverlap=0.7,
-                                         gravitationalConstant=-200,
-                                         damping=0.4)
+                                         gravitationalConstant=-100,
+                                         damping=1)
                  ) %>%
       visNodes(shadow=T, borderWidth = 2,
                borderWidthSelected = 3,
