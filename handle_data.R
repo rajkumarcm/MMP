@@ -33,13 +33,6 @@ preprocess <- function(df)
   # Convert status - factor variable into their IDs.
   df$status_id = as.numeric(df$status)
   
-  # For debugging-----------------------------------
-  # tmp_df <- df[, c('group1_name', 'group2_name', 'status', 'status_id')]
-  # bool_mask <- df$group1_name == "People's Liberation Organization of Tamil Eelam"
-  # check_df <- tmp_df[bool_mask, ]
-  # browser()
-  #-------------------------------------------------
-  
   #Backup the old link_id
   df$old_link_id <- df$link_id
   

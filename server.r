@@ -142,14 +142,16 @@ s <- shinyServer(function(input, output, session){
   # This observe updates the nodes and edges on visnetworkfinal - the main
   # spatial graph
   observe ({
-    # loginfo(paste('Receiving edges size:', nrow(edges())))
-    # loginfo(paste('Receiving nodes size:', nrow(nodes1())))
     filteredEdges <- edges()[edges()$status_id %in% as.numeric(input$filterEdges), , drop = FALSE]
     filteredNodes2 <- data.frame(id=unique(c(filteredEdges$from,
                                              filteredEdges$to)))
     
     filteredNodes2 <- filteredNodes2 %>% inner_join(df_nodes[, c("id", "label")],
                                                     by="id", keep=F)
+    filteredNodes2 <- filteredNodes2 %>% inner_join(nodes, by='id', keep=F)
+    cnames <- colnames(filteredNodes2)
+    cnames[cnames == 'between_color'] <- 'color.background'
+    colnames(filteredNodes2) <- cnames
     
     hiddenNodes <- anti_join(nodes2(), filteredNodes2)
     hiddenEdges <- anti_join(edges(), filteredEdges)
@@ -164,7 +166,7 @@ s <- shinyServer(function(input, output, session){
   })
   
   # This observes the status checkboxes input and as soon as the status
-  # is checked or unchecked
+  # is checked or unchecked - For the highlight status
   observeEvent(input$filterEdges, {
     # Update the input list that shows the available edges to be selected
     # We cannot show all edges after input$filterEdges has been altered.

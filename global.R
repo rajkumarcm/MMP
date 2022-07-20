@@ -65,12 +65,16 @@ rm('tmp_edges')
 # There is chance that they both cannot be related at all.
 # This can cause nodes to carry wrong labels showing incorrect information.
 
+# Reference link-------------------------------------------------------------
+links <- read.csv("data/GroupLinks.csv", header=T)
+
 # Nodes database-------------------------------------------------------------
 
 df_nodes <- read.csv("data/new_nodes.csv", header=T,)
+df_nodes <- df_nodes %>% left_join(links[, c("URL", "Anchor")], 
+                                   by=c("group_name"="Anchor"), copy=T)
 
 nodes = with(df, data.frame(id = unique(c(from, to))))
-
 nodes <- nodes %>% inner_join(unique(df_nodes[, c("group_id", "group_name")]), 
                               by=c("id"="group_id"), keep=F)
 
@@ -106,7 +110,7 @@ betweenness =  betweenness(graph, directed = F, normalized=T)
 # query the betweenness centrality value in the same order nodes are
 # organised in the nodes dataframe so we only link the values with those
 # that they truly belong to.
-nodes$between <- betweenness[match(nodes$id, names(betweenness))]
+between <- betweenness[match(nodes$id, names(betweenness))]
 colorPalette <- colorRampPalette(c('blue','red'))
 
 # After visualizing the distribution of betweenness centrality by means of
@@ -114,8 +118,10 @@ colorPalette <- colorRampPalette(c('blue','red'))
 #c(0, 0.3, 10, 25, 
 # 40, 60, 100, 1500,
 # 6500)
-betweenness_ranked <- as.numeric(cut(nodes$between, breaks=c(0, 6e-4, 6e-3, 2e-01),
-                                     include.lowest = T, right=T, ordered_result = T))
+betweenness_ranked <- as.numeric(cut(between, 
+                                     breaks=c(0, 6e-4, 6e-3, 2e-01),
+                                     include.lowest = T, 
+                                     right=T, ordered_result = T))
 # nodes$between_color <- c("slategrey", "gold", "tomato")[betweenness_ranked]
 nodes$between_color <- c("#47AAF9", "#9351F3", "#F53030")[betweenness_ranked]
 nodes$color.highlight.background <- c("#A2D1F7", "#B487F5", "#F88C8C")[betweenness_ranked]
@@ -123,7 +129,7 @@ nodes$color.hover.background <- c("#A2D1F7", "#B487F5", "#F88C8C")[betweenness_r
 nodes$color.border <- "slategrey"
 nodes$color.hover.border <- "black"
 
-nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color',
+nodes <- nodes[, c('id', 'value', 'central_color', 'between_color',
                    'color.border', 'color.highlight.background',
                    'color.hover.background', 'color.hover.border')]
 # End of centrality---------------------------------------
@@ -136,8 +142,9 @@ df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T
 
 # Rename df_nodes columns
 df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear', 
-                         'map_name', 'lat', 'long')]
-cnames <- c('id', 'label', 'title', 'level', 'map_name', 'latitude', 'longitude')
+                         'map_name', 'lat', 'long', 'URL')]
+cnames <- c('id', 'label', 'title', 'level', 'map_name', 'latitude', 'longitude',
+            'URL')
 colnames(df_nodes) <- cnames
 
 #------------------------------------------------------------------------------
