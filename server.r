@@ -106,10 +106,13 @@ s <- shinyServer(function(input, output, session){
     visNetwork(nodes2(),
                edges(),
                width = "100%")  %>%
+      visEvents(select = "function(properties) {
+     Shiny.setInputValue('link_nid', properties.nodes);}") %>%
       visPhysics(solver = "forceAtlas2Based",
                  forceAtlas2Based = list(avoidOverlap=0.7,
                                          gravitationalConstant=-100,
-                                         damping=1)
+                                         damping=1,
+                                         springLength=100)
                  ) %>%
       visNodes(shadow=T, borderWidth = 2,
                borderWidthSelected = 3,
@@ -135,6 +138,18 @@ s <- shinyServer(function(input, output, session){
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE,
         autoResize = T)
+  })
+  
+  observeEvent(input$link_nid, {
+    url <- df_nodes[df_nodes$id==input$link_nid & 
+                      df_nodes$map_name==input$map_name, "URL"]
+    gname <- df_nodes[df_nodes$id==input$link_nid & 
+                        df_nodes$map_name==input$map_name, "label"]
+    if(is.na(url))
+      url <- '#'
+    output$link <- renderUI({
+      HTML(sprintf("<a href='%s'>%s</a>", url, gname))
+    })
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")

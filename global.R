@@ -8,6 +8,7 @@ library(igraph)
 library(shinyjs)
 library(logging)
 library(dplyr)
+library(fuzzyjoin)
 source('handle_data.R', local=T)
 #---------------------------------------------------
 
@@ -67,12 +68,13 @@ rm('tmp_edges')
 
 # Reference link-------------------------------------------------------------
 links <- read.csv("data/GroupLinks.csv", header=T)
+links$Anchor <- paste0('.*', paste0(links$Anchor, '.*'))
 
 # Nodes database-------------------------------------------------------------
 
 df_nodes <- read.csv("data/new_nodes.csv", header=T,)
-df_nodes <- df_nodes %>% left_join(links[, c("URL", "Anchor")], 
-                                   by=c("group_name"="Anchor"), copy=T)
+df_nodes <- df_nodes %>% regex_left_join(links[, c("URL", "Anchor")],
+                                         by=c("group_name"="Anchor"))
 
 nodes = with(df, data.frame(id = unique(c(from, to))))
 nodes <- nodes %>% inner_join(unique(df_nodes[, c("group_id", "group_name")]), 

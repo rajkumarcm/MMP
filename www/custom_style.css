@@ -190,13 +190,36 @@ body
   width: 0px;;
 }
 
-#fs_icon
+#footer
+{
+  width:100%;
+  height:33px;
+  background-color:#FCFCF9;
+  opacity:0.5;
+  display:flex;
+}
+
+#link
+{
+  height: 100%;
+  width: 65%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#footer > img
 {
   height:30px;
   width:30px;
-  right:20px;
-  bottom:20px;
-  position:absolute;
+  margin-left:0px;
+}
+
+#link > a
+{
+  font-size:18pt;
+  font-family:Merriweather;
+  
 }
 
 div:fullscreen
