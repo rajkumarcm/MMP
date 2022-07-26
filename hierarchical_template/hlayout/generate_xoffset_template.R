@@ -76,9 +76,10 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     if(n_childs_parent > 1)
     {
       current_center <- (max(1, current_width)*90)/2 - node_spacing/2
-      equal_divide_margin <- x - (node_spacing/2)
+      # equal_divide_margin <- x - (node_spacing/2)
       unequal_divide_margin <- (prev_x+(node_spacing/2))+((prev_width*node_spacing)/2) # this should be zero for the left-most node in the graph
-      margin_left <- max(c(equal_divide_margin, unequal_divide_margin))
+      # margin_left <- max(c(equal_divide_margin, unequal_divide_margin))
+      margin_left <- unequal_divide_margin
       # margin_left <- equal_divide_margin
       nodes[nodes$id==node_id, 'x'] <<- margin_left + current_center
       current_x <- margin_left + current_center
@@ -131,7 +132,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     nodes[nodes$id==node_id, 'x']
 }
 
-tmp <- estimate_xcoord(1, 1, 2, node_spacing, 0, -node_spacing/2)
+tmp <- estimate_xcoord(1, 1, 2, 360, 0, -node_spacing/2)
 
 estimate_ycoord <- function(nodes)
 {
