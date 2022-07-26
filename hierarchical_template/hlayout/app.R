@@ -9,7 +9,7 @@
 
 library(shiny)
 library(visNetwork)
-# source('generate_xoffset_template.R')
+source('generate_xoffset_template.R')
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(

@@ -35,7 +35,7 @@ get_width <- function(node_id)
 
 nodes <- data.frame(id=1:12,
                     year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 2013, 2013, 2014))
-edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10),
+edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,11),
 					          to=c(2,4,5,3,6,7,8,9,10,11,12))
 
 visited_nodes <- c()
@@ -62,7 +62,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
   # prev_x -> prev sibling's x coordinate
   if(! node_id %in% visited_nodes)
   {
-    if(node_id==5)
+    if(node_id==10)
     {
       print('breakpoint...')
     }
@@ -81,8 +81,11 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
       # margin_left <- max(c(equal_divide_margin, unequal_divide_margin))
       margin_left <- unequal_divide_margin
       # margin_left <- equal_divide_margin
+      # if(current_center==0)
+      #   current_center <- node_spacing/2
       nodes[nodes$id==node_id, 'x'] <<- margin_left + current_center
       current_x <- margin_left + current_center
+      
     }
     else if(nth_child==1 & n_childs_parent==1)
     {
