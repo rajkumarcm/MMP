@@ -42,7 +42,7 @@ visited_nodes <- c()
 
 fill_width <- function()
 {
-  for(i in 1:length(nodes))
+  for(i in 1:nrow(nodes))
   {
     node_id <- nodes[i, 'id']
     nodes[nodes$id==node_id, 'width'] <<- get_width(node_id)
@@ -58,6 +58,13 @@ global_prev_x <- 0
 
 compute_center <- function(current_width, prev_width, prev_x)
 {
+  #---------------------------
+  #For debugging---
+  if(prev_width==6 & current_width==2)
+  {
+    print('breakpoint...')
+  }
+  #---------------------------
   current_center <- (max(1, current_width)*90)/2 - node_spacing/2
   unequal_divide_margin <- (prev_x+(node_spacing/2))+((prev_width*node_spacing)/2) # this should be zero for the left-most node in the graph
   margin_left <- unequal_divide_margin
@@ -140,23 +147,30 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
 #node_id, nth_child, n_childs_parent, x, prev_width, prev_x
 # tmp <- estimate_xcoord(1, 1, 1, 225, 0, 0)
 
-get_prev_width <- function(node_id)
+get_prev <- function(node_id)
 {
-  width <- 0
+  if(node_id==13)
+  {
+    print('breakpoint...')
+  }
+  tmp_df <- data.frame(width=0, x=0)
   partition1 <- nodes[nodes$id < node_id,]
   if(nrow(partition1) > 0)
   {
     unique_years <- unique(partition1$year)
     min_year <- min(unique_years)
-    width <- 0
     prior_roots <- partition1[partition1$year==min_year, 'id']
     for(i in 1:length(prior_roots))
     {
       root_nid <- prior_roots[i]
-      width <- width + nodes[nodes$id==root_nid, 'width']
+      tmp_df$width <- tmp_df$width + nodes[nodes$id==root_nid, 'width']
     }
+    
+    #For x
+    prior_roots <- partition1[partition1$year==min_year, 'x']
+    tmp_df$x <- max(prior_roots)
   }
-  width
+  tmp_df
 }
 
 fill_xcoord <- function()
@@ -165,7 +179,7 @@ fill_xcoord <- function()
   {
     node_id <- nodes[i, 'id']
     current_width <- nodes[i, 'width']
-    if(node_id==1)
+    if(node_id==13)
     {
       print('breakpoint...')
     }
@@ -173,12 +187,11 @@ fill_xcoord <- function()
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
-    prev_width <- max(global_prev_width, get_prev_width(node_id), na.rm=T)
-    prev_x <- global_prev_x
-    x_current <- compute_center(prev_x=prev_x, prev_width=prev_width,
+    prev <- get_prev(node_id)
+    x_current <- compute_center(prev_x=prev$x, prev_width=prev$width,
                                 current_width=current_width)
     estimate_xcoord(node_id=node_id, nth_child=1, n_childs_parent=1,
-                    x=x_current, prev_width=prev_width, prev_x=prev_x)
+                    x=x_current, prev_width=prev$width, prev_x=prev$x)
   }
 }
 
