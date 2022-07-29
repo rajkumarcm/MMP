@@ -34,9 +34,10 @@ get_width <- function(node_id)
 }
 
 nodes <- data.frame(id=1:15,
-                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 2013, 2013, 2014, 2013, 2014, 2014))
-edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,11,13,13),
-					          to=c(2,4,5,3,6,7,8,9,10,11,12,14,15))
+                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 2013, 2013, 2014, 2013, 2014, 2014),
+                    label=1:15)
+edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,11,13,13),#,16,17),
+                    to=c(2,4,5,3,6,7,8,9,10,11,12,12,14,15))#,17,18))
 
 visited_nodes <- c()
 
@@ -58,13 +59,6 @@ global_prev_x <- 0
 
 compute_center <- function(current_width, prev_width, prev_x)
 {
-  #---------------------------
-  #For debugging---
-  if(prev_width==6 & current_width==2)
-  {
-    print('breakpoint...')
-  }
-  #---------------------------
   current_center <- (max(1, current_width)*90)/2 - node_spacing/2
   unequal_divide_margin <- (prev_x+(node_spacing/2))+((prev_width*node_spacing)/2) # this should be zero for the left-most node in the graph
   margin_left <- unequal_divide_margin
@@ -78,10 +72,6 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
   # prev_x -> prev sibling's x coordinate
   if(! node_id %in% visited_nodes)
   {
-    if(node_id==12)
-    {
-      print('breakpoint...')
-    }
     visited_nodes <<- c(visited_nodes, node_id)
     t_edges <- edges[edges$from==node_id, ]
     t_nodes <- unique(t_edges$to)
@@ -126,10 +116,6 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
         }
         
         child <- t_nodes[i]
-        if(node_id==7 & child==11)
-        {
-          print('breakpoint...')
-        }
         #node_id, nth_child, n_childs_parent, x, prev_x, acc)
         estimate_xcoord(child, i, n_childs, current_x, prev_width, prev_x)
         # local_acc <- local_acc + (current_width - max(c(1, current_width)))
@@ -149,10 +135,6 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
 
 get_prev <- function(node_id)
 {
-  if(node_id==13)
-  {
-    print('breakpoint...')
-  }
   tmp_df <- data.frame(width=0, x=0)
   partition1 <- nodes[nodes$id < node_id,]
   if(nrow(partition1) > 0)
@@ -179,10 +161,6 @@ fill_xcoord <- function()
   {
     node_id <- nodes[i, 'id']
     current_width <- nodes[i, 'width']
-    if(node_id==13)
-    {
-      print('breakpoint...')
-    }
     t_edges <- edges[edges$from==node_id, ]
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
@@ -196,6 +174,86 @@ fill_xcoord <- function()
 }
 
 fill_xcoord()
+
+adjust_coordinate <- function(edge)
+{
+  if(edge$to==12)
+  {
+    print('breakpoint...')
+  }
+  year <- edge$year
+  to <- edge$to
+  status <- edge$status
+  from_nodes <- edges[edges$to==to, #&
+                      #edges$year==year &
+                      #edges$status==status,
+                      'from']
+  n_parents <- length(from_nodes)
+  if(n_parents > 1)
+  {
+    parent_coordinates <- c()
+    for(i in 1:length(from_nodes))
+    {
+      parent_coordinates <- c(parent_coordinates, 
+                              nodes[nodes$id==from_nodes[i], 'x'])
+    }
+    min_coordinate <- min(parent_coordinates)
+    max_coordinate <- max(parent_coordinates)
+    width <- max_coordinate - min_coordinate
+    centralised_coordinate <- min_coordinate + width/n_parents
+    prev_coordinate <- nodes[nodes$id==edge$from, 'x']
+    nodes[nodes$id==to, 'x'] <<- centralised_coordinate
+    offset <- prev_coordinate - centralised_coordinate
+    return(offset)
+  }
+  else
+    return(0)
+}
+
+apply_offset <- function(node_id, offset)
+{
+  to_nodes <- edges[edges$from==node_id, 'to']
+  if(length(to_nodes) > 0)
+  {
+    for(i in 1:length(to_nodes))
+    {
+      child_nid <- to_nodes[i]
+      nodes[nodes$id==child_nid, 'x'] <<- nodes[nodes$id==child_nid, 'x'] + 
+                                              offset
+      apply_offset(child_nid, offset)
+    }
+  }
+}
+
+# Once X coordinates are generated, it is now time to ensure nodes that 
+# have multiple parents get centralized.
+visited_nodes <- c()
+centralise_mpnodes <- function(node_id)
+{
+  if(! node_id %in% visited_nodes)
+  {
+    visited_nodes <- c(visited_nodes, node_id)
+    to_edges <- edges[edges$from==node_id, ]
+    if(nrow(to_edges) > 0)
+    {
+      for(i in 1:nrow(to_edges))
+      {
+        trailing_offset <- adjust_coordinate(to_edges[i,])
+        if(to_edges[i, 'to'] == 12)
+        {
+          print('breakpoint...')
+        }
+        if(trailing_offset > 0)
+        {
+          apply_offset(to_edges[i, 'to'], trailing_offset)
+        }
+        centralise_mpnodes(to_edges[i, 'to'])
+      }
+    }
+  }
+}
+
+centralise_mpnodes(1)
 
 estimate_ycoord <- function(nodes)
 {
