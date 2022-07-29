@@ -33,11 +33,12 @@ get_width <- function(node_id)
 	nodes[nodes$id==node_id, 'width']
 }
 
-nodes <- data.frame(id=1:15,
-                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 2013, 2013, 2014, 2013, 2014, 2014),
-                    label=1:15)
-edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,11,13,13),#,16,17),
-                    to=c(2,4,5,3,6,7,8,9,10,11,12,12,14,15))#,17,18))
+nodes <- data.frame(id=1:17,
+                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 
+                           2013, 2013, 2014, 2013, 2014, 2014, 2013, 2013),
+                    label=1:17)
+edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,11,16,17,13,13),#,16,17),
+                    to=c(2,4,5,3,6,7,8,9,10,11,12,12,12,12,14,15))#,17,18))
 
 visited_nodes <- c()
 
@@ -81,11 +82,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     current_x <- 0
     if(n_childs_parent > 1)
     {
-      # current_center <- (max(1, current_width)*90)/2 - node_spacing/2
-      # unequal_divide_margin <- (prev_x+(node_spacing/2))+((prev_width*node_spacing)/2) # this should be zero for the left-most node in the graph
-      # margin_left <- unequal_divide_margin
-      # nodes[nodes$id==node_id, 'x'] <<- margin_left + current_center
-      # current_x <- margin_left + current_center
+      # When the parent has more than a single child
       current_x <- compute_center(current_width, prev_width, prev_x)
       nodes[nodes$id==node_id, 'x'] <<- current_x
     }
@@ -179,7 +176,7 @@ adjust_coordinate <- function(edge)
 {
   if(edge$to==12)
   {
-    print('breakpoint...')
+    print('breakpoint in adjust_coordinate')
   }
   year <- edge$year
   to <- edge$to
@@ -239,10 +236,6 @@ centralise_mpnodes <- function(node_id)
       for(i in 1:nrow(to_edges))
       {
         trailing_offset <- adjust_coordinate(to_edges[i,])
-        if(to_edges[i, 'to'] == 12)
-        {
-          print('breakpoint...')
-        }
         if(trailing_offset > 0)
         {
           apply_offset(to_edges[i, 'to'], trailing_offset)
