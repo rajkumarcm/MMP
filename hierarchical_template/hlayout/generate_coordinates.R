@@ -1,6 +1,14 @@
 rm(list=ls())
 library(dplyr)
 
+
+nodes <- data.frame(id=1:17,
+                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 
+                           2013, 2013, 2014, 2013, 2014, 2014, 2013, 2013),
+                    label=paste0("",1:17))
+edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,13,13,16,17),#,16,17),
+                    to=c(2,4,5,3,6,7,8,9,10,11,12,14,15,12,12))#,17,18))
+
 get_width <- function(node_id)
 {
   if(!node_id %in% visited_nodes)
@@ -27,31 +35,105 @@ get_width <- function(node_id)
 		
 	  max_width <- max(c(n_childs, total_child_width))
 	  return(max_width)
-	  
   }
   else
-	nodes[nodes$id==node_id, 'width']
+	  nodes[nodes$id==node_id, 'width']
 }
 
-nodes <- data.frame(id=1:15,
-                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 
-                           2013, 2013, 2014, 2013, 2014, 2014),
-                    label=paste0("",1:15))
-edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,11,13,13),#,16,17),
-                    to=c(2,4,5,3,6,7,8,9,10,11,12,12,14,15))#,17,18))
+nodes$degree <- 0
+nodes$inc_intra_connections <- 0
 
+set_degree <- function(node_id)
+{
+  connections <- edges[edges$from==node_id | edges$to==node_id, ]
+  
+  # degree = both incoming and outgoing
+  nodes[nodes$id==node_id, 'degree'] <<- nrow(connections)
+  
+  # number of incoming intranet connections
+  primary_root <- nodes[nodes$id==node_id, 'root_id']
+  from_nodes <- edges[edges$to==node_id, 'from']
+  root_of_connections <- nodes[nodes$id %in% from_nodes, 'root_id']
+  inc_intra_connections <- sum(root_of_connections != primary_root)
+  nodes[nodes$id==node_id, 'inc_intra'] <<- inc_intra_connections
+}
+
+get_degree <- function(node_id)
+{
+  to_nodes <- edges[edges$from==node_id, 'to']
+  n_childs <- length(to_nodes)
+  
+  if(n_childs > 0)
+  {
+    for(i in 1:n_childs)
+    {
+      child <- to_nodes[i]
+      get_degree(child)
+    }
+  }
+  set_degree(node_id)
+}
+
+# Sometimes we need island nodes that would rather be on some side of the 
+# network to get squeezed
+# between nodes. This can be achieved using stabilization, but that's a very 
+# expensive operation. What is feasible and still guarantees correctness would 
+# be to trick the system to think that there is a connection from a node level
+# before the island node connecting "to" the island node. This would innately
+# make the system put the island node between the other nodes and once the
+# coordinates are generated, we can then remove the tricked edges so that false
+# connections do not show up, yet we have island nodes at the right place.
+# Nice trick huh?
+nodes$root = F
+
+old_visited_nodes <- c()
 visited_nodes <- c()
-
+root_nodes <- c()
+children <- c()
 fill_width <- function()
 {
   for(i in 1:nrow(nodes))
   {
     node_id <- nodes[i, 'id']
     nodes[nodes$id==node_id, 'width'] <<- get_width(node_id)
+    
+    # If the DFS truly did discovered any new nodes
+    if(length(visited_nodes) > length(old_visited_nodes))
+    {
+      root_nodes <- c(root_nodes, node_id)
+      
+      if(length(old_visited_nodes) > 0)
+      {
+        # Get the difference between previous visited nodes
+        # and the current visited nodes
+        new_children <- data.frame(id=visited_nodes) %>% 
+                          anti_join(data.frame(id=old_visited_nodes))
+      }
+      else
+        new_children <- visited_nodes
+      
+      # Remove root node id from the newly visited nodes
+      new_children <- new_children[new_children != node_id]
+      
+      nodes[nodes$id %in% new_children, 'root_id'] <<- node_id
+      nodes[nodes$id == node_id, 'root'] <<- T
+      old_visited_nodes <<- visited_nodes
+    }
   }
 }
 
 fill_width()
+
+fill_degree <- function()
+{
+  root_nodes <- nodes[nodes$root==T, 'id']
+  for(i in 1:length(root_nodes))
+  {
+    get_degree(root_nodes[i])
+  }
+}
+
+fill_degree()
 
 visited_nodes <- c()
 node_spacing <- 90
@@ -73,6 +155,10 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
   # prev_x -> prev sibling's x coordinate
   if(! node_id %in% visited_nodes)
   {
+    if(node_id==10)
+    {
+      print('breakpoint...')
+    }
     visited_nodes <<- c(visited_nodes, node_id)
     t_edges <- edges[edges$from==node_id, ]
     t_nodes <- unique(t_edges$to)
@@ -130,34 +216,67 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
 #node_id, nth_child, n_childs_parent, x, prev_width, prev_x
 # tmp <- estimate_xcoord(1, 1, 1, 225, 0, 0)
 
+# get_prev <- function(node_id)
+# {
+#   tmp_df <- data.frame(width=0, x=0)
+#   partition1 <- nodes[nodes$id < node_id,]
+#   if(nrow(partition1) > 0)
+#   {
+#     unique_years <- unique(partition1$year)
+#     min_year <- min(unique_years)
+#     prior_roots <- partition1[partition1$year==min_year, 'id']
+#     for(i in 1:length(prior_roots))
+#     {
+#       root_nid <- prior_roots[i]
+#       tmp_df$width <- tmp_df$width + nodes[nodes$id==root_nid, 'width']
+#     }
+#     
+#     #For x
+#     prior_roots <- partition1[partition1$year==min_year, 'x']
+#     tmp_df$x <- max(prior_roots)
+#   }
+#   tmp_df
+# }
+
 get_prev <- function(node_id)
 {
-  tmp_df <- data.frame(width=0, x=0)
-  partition1 <- nodes[nodes$id < node_id,]
-  if(nrow(partition1) > 0)
-  {
-    unique_years <- unique(partition1$year)
-    min_year <- min(unique_years)
-    prior_roots <- partition1[partition1$year==min_year, 'id']
-    for(i in 1:length(prior_roots))
-    {
-      root_nid <- prior_roots[i]
-      tmp_df$width <- tmp_df$width + nodes[nodes$id==root_nid, 'width']
-    }
-    
-    #For x
-    prior_roots <- partition1[partition1$year==min_year, 'x']
-    tmp_df$x <- max(prior_roots)
-  }
-  tmp_df
+  year <- nodes[nodes$id == node_id, 'year']
+  adjacent_nodes <- nodes[nodes$year==year,]
+  adjacent_nodes <- adjacent_nodes[!is.na(adjacent_nodes$x), ]
+  max_x <- max(adjacent_nodes$x)
+  prev <- adjacent_nodes[adjacent_nodes$x==max_x, c('width', 'x')]
 }
+
+# sort_nodes <- function(root_nodes)
+# {
+#   degree <- c()
+#   # Ignore the first node as it is always guaranteed to contain the
+#   # graph with highest width
+#   for(i in 2:nrow(root_nodes))
+#   {
+#     # Does this node connect to any other disconnected network?
+#     node_id <- root_nodes[i,]
+#     
+#     # children of previous root node
+#     pr_children <- nodes[nodes$root_id==root_nodes$id[i-1],]
+#     
+#     to_nodes <- edges[edges$from==node_id, 'to']
+#     
+#     # For the nature of the problem we are trying to solve, this should suffice
+#     degree <- c(degree, paste0("",node_id)=length(to_nodes))
+#   }
+#   
+#   
+# }
 
 fill_xcoord <- function()
 {
-  for(i in 1:nrow(nodes))
+  root_nodes <- nodes[nodes$root==T, ]
+  root_nodes <- root_nodes %>% arrange(desc(width))
+  for(i in 1:nrow(root_nodes))
   {
-    node_id <- nodes[i, 'id']
-    current_width <- nodes[i, 'width']
+    node_id <- root_nodes[i, 'id']
+    current_width <- root_nodes[i, 'width']
     t_edges <- edges[edges$from==node_id, ]
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
@@ -170,6 +289,133 @@ fill_xcoord <- function()
   }
 }
 
+single_edge_node <- function(node_id)
+{
+  node_connections <- edges[edges$from==node_id | edges$to==node_id,]
+  return(nrow(node_connections)==1)
+}
+
+stabilise_graph <- function(node_id, n_childs_parent)
+{
+  # n_childs_parent represents the number of childrens the parent node has
+  to_nodes <- edges[edges$from==node_id, 'to']
+  n_childs <- length(to_nodes)
+  # When there child nodes
+  if(n_childs > 0)
+  {
+    for(j in 1:n_childs)
+    {
+      child <- to_nodes[j]
+      stabilise_graph(child, n_childs)
+    }
+  }
+  else
+  {
+    # Leaf node
+    # Check if this has any incoming edges that are not part of this 
+    # isolated network
+    from_nodes <- edges[edges$to==node_id, 'from']
+    for(i in 1:length(from_nodes))
+    {
+      incoming_node <- from_nodes[i]
+      if(single_edge_node(incoming_node) & n_childs_parent==1)
+      {
+        push_left(incoming_node, n_childs_parent)
+      }
+      
+    }
+  }
+}
+
+argsort <- function(x)
+{
+  indices <- c()
+  while(length(x) > 0)
+  {
+    tmp.min <- min(x)
+    index <- which(x==tmp.min)
+    indices <- c(indices, index)
+    x <- x[-index]
+  }
+  indices
+}
+
+# Before we generate the x coordinates, it is imperative that we create 
+# tricked edges
+create_fake_edges <- function(nodes, edges)
+{
+  edges$fake <- F
+  root_nodes <- nodes[nodes$root==T, 'id']
+  if(length(root_nodes) > 1)
+  {
+    for(i in 1:length(root_nodes))
+    {
+      node_id <- root_nodes[i]
+      degree <- nodes[nodes$id==node_id, 'degree']
+      if(degree == 1)
+      {
+        to_node <- edges[edges$from==node_id, 'to']
+        prospective_root <- unique(nodes[nodes$id == to_node, 'root_id'])
+        # current_root <- nodes[nodes$id==node_id, 'root_id']
+        current_root <- node_id
+        if(prospective_root != current_root)
+        {
+          # Then creating fake edge is a go
+          
+          # 1. Get the list of incoming connections this "to_node" has
+          incoming_connections <- edges[edges$to==to_node,]
+          from_nodes <- incoming_connections$from
+          
+          # 2. This could be one or many. If many, sort them by width
+          # but before that first remove the current_root id from the 
+          # from_nodes so we know what are the other nodes it receives
+          # connections from.
+          from_nodes <- from_nodes[from_nodes != current_root]
+          
+          # 3 Now sort by width
+          # Yes I am deliberately overwriting this
+          from_nodes <- edges[edges$to %in% from_nodes, 'from']
+          from_nodes <- nodes[nodes$id %in% from_nodes, c('id', 'root_id')]
+          
+          #argmax root width
+          widths <- nodes[nodes$id %in% from_nodes$root_id, 'width']
+          max_width <- max(widths)
+          
+          # corresponding root node to the max width
+          corr_root_nodes <- nodes[nodes$root==T & 
+                                   nodes$width==max_width, 'id']
+          corr_from_node <- nodes[nodes$id %in% from_nodes & 
+                                  nodes$root_id %in% corr_root_nodes, 'id']
+          
+          # Just in case corr_from_node has more than one, just select
+          # the first one
+          if(length(corr_from_node) > 1)
+          {
+            corr_from_node <- corr_from_node[1]
+          }
+          
+          # All set. Create the fake edge now
+          # First get a duplicate edge instead of having to create a 
+          # dataframe with the same structure
+          duplicate_edge <- edges[nrow(edges),]
+          
+          # Fake edge
+          duplicate_edge$from <- corr_from_node
+          duplicate_edge$to <- node_id
+          duplicate_edge$fake <- T
+          
+          edges <- rbind(edges, duplicate_edge)
+          
+        }
+      }
+    }
+  }
+  edges
+}
+
+edges <- create_fake_edges(nodes, edges)
+
+nodes$x <- 0
 fill_xcoord()
 
 adjust_coordinate <- function(edge)
@@ -260,5 +506,6 @@ estimate_ycoord <- function(nodes)
 
 
 nodes <- estimate_ycoord(nodes)
+edges <- edges[edges$fake != T,]
 # save(file='nodes.RData', 'nodes')
 # save(file='edges.RData', 'edges')
