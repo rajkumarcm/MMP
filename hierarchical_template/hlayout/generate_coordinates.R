@@ -148,6 +148,22 @@ compute_center <- function(current_width, prev_width, prev_x)
   margin_left + current_center
 }
 
+argsort <- function(x)
+{
+  indices <- c()
+  for(i in 1:length(x))
+  {
+    tmp.min <- min(x, na.rm=T)
+    index <- which(x==tmp.min)
+    # Sometimes x could have same min value multiple times
+    # that makes it produce multiple indices in index variable
+    index <- index[1] # Just in case
+    indices <- c(indices, index)
+    x[index] <- NaN
+  }
+  indices
+}
+
 estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
                             prev_x)
 {
@@ -155,7 +171,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
   # prev_x -> prev sibling's x coordinate
   if(! node_id %in% visited_nodes)
   {
-    if(node_id==10)
+    if(node_id==7)
     {
       print('breakpoint...')
     }
@@ -163,6 +179,16 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     t_edges <- edges[edges$from==node_id, ]
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
+    
+    # # Rearrange the nodes here
+    deg <- nodes[nodes$id %in% t_nodes, 'degree']
+    indices1 <- which(deg == 1)
+    indices2 <- which(deg > 1)
+    indices <- c(indices1, indices2)
+    t_nodes <- t_nodes[indices]
+    # indices <- rev(argsort(intra_conn))
+    # t_nodes <- t_nodes[indices]
+    
     # local_acc <- acc
     current_width <- nodes[nodes$id==node_id, 'width']
     current_x <- 0
@@ -269,6 +295,7 @@ get_prev <- function(node_id)
 #   
 # }
 
+
 fill_xcoord <- function()
 {
   root_nodes <- nodes[nodes$root==T, ]
@@ -325,19 +352,6 @@ stabilise_graph <- function(node_id, n_childs_parent)
       
     }
   }
-}
-
-argsort <- function(x)
-{
-  indices <- c()
-  while(length(x) > 0)
-  {
-    tmp.min <- min(x)
-    index <- which(x==tmp.min)
-    indices <- c(indices, index)
-    x <- x[-index]
-  }
-  indices
 }
 
 # Before we generate the x coordinates, it is imperative that we create 
