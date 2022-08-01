@@ -12,6 +12,7 @@ library('ggplot2')
 library(tidyverse)
 
 source('filter_medges_all.R', local=T)
+source('generate_xoffset_template.R', local=T)
 
 get_legend <- function(ledges)
 {
@@ -141,10 +142,11 @@ s <- shinyServer(function(input, output, session){
   })
   
   observeEvent(input$link_nid, {
-    url <- df_nodes[df_nodes$id==input$link_nid & 
-                      df_nodes$map_name==input$map_name, "URL"]
-    gname <- df_nodes[df_nodes$id==input$link_nid & 
-                        df_nodes$map_name==input$map_name, "label"]
+    # browser()
+    url <- unique(df_nodes[df_nodes$id==input$link_nid & 
+                      df_nodes$map_name==input$map_name, "URL"])
+    gname <- unique(df_nodes[df_nodes$id==input$link_nid & 
+                        df_nodes$map_name==input$map_name, "label"])
     if(is.na(url))
       url <- '#'
     output$link <- renderUI({
@@ -341,4 +343,5 @@ s <- shinyServer(function(input, output, session){
       points(x=nodes_geo()$latitude, y=nodes_geo()$longitude, pch=19, 
              col='orange', cex=2)
     })
+    
 })
