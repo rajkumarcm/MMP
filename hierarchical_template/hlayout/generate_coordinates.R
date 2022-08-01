@@ -1,18 +1,25 @@
 rm(list=ls())
+# setwd(paste0(getwd(), '/hlayout/'))
 library(dplyr)
 
 
-nodes <- data.frame(id=1:17,
-                    year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 
-                           2013, 2013, 2014, 2013, 2014, 2014, 2013, 2013),
-                    label=paste0("",1:17))
-edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,13,13,16,17),#,16,17),
-                    to=c(2,4,5,3,6,7,8,9,10,11,12,14,15,12,12))#,17,18))
+# nodes <- data.frame(id=1:17,
+#                     year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 
+#                            2013, 2013, 2014, 2013, 2014, 2014, 2013, 2013),
+#                     label=paste0("",1:17))
+# edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,13,13,16,17),#,16,17),
+#                     to=c(2,4,5,3,6,7,8,9,10,11,12,14,15,12,12))#,17,18))
+
+source('preprocess_h.R')
 
 get_width <- function(node_id)
 {
   if(!node_id %in% visited_nodes)
   {
+    if(node_id==25)
+    {
+      print('breakpoint...')
+    }
 	  visited_nodes <<- c(visited_nodes, node_id)
 	  t_edges <- edges[edges$from==node_id, ]
 	  t_nodes <- unique(t_edges$to)
@@ -40,39 +47,6 @@ get_width <- function(node_id)
 	  nodes[nodes$id==node_id, 'width']
 }
 
-nodes$degree <- 0
-nodes$inc_intra_connections <- 0
-
-set_degree <- function(node_id)
-{
-  connections <- edges[edges$from==node_id | edges$to==node_id, ]
-  
-  # degree = both incoming and outgoing
-  nodes[nodes$id==node_id, 'degree'] <<- nrow(connections)
-  
-  # number of incoming intranet connections
-  primary_root <- nodes[nodes$id==node_id, 'root_id']
-  from_nodes <- edges[edges$to==node_id, 'from']
-  root_of_connections <- nodes[nodes$id %in% from_nodes, 'root_id']
-  inc_intra_connections <- sum(root_of_connections != primary_root)
-  nodes[nodes$id==node_id, 'inc_intra'] <<- inc_intra_connections
-}
-
-get_degree <- function(node_id)
-{
-  to_nodes <- edges[edges$from==node_id, 'to']
-  n_childs <- length(to_nodes)
-  
-  if(n_childs > 0)
-  {
-    for(i in 1:n_childs)
-    {
-      child <- to_nodes[i]
-      get_degree(child)
-    }
-  }
-  set_degree(node_id)
-}
 
 # Sometimes we need island nodes that would rather be on some side of the 
 # network to get squeezed
@@ -123,6 +97,40 @@ fill_width <- function()
 }
 
 fill_width()
+
+nodes$degree <- 0
+nodes$inc_intra_connections <- 0
+
+set_degree <- function(node_id)
+{
+  connections <- edges[edges$from==node_id | edges$to==node_id, ]
+  
+  # degree = both incoming and outgoing
+  nodes[nodes$id==node_id, 'degree'] <<- nrow(connections)
+  
+  # number of incoming intranet connections
+  primary_root <- nodes[nodes$id==node_id, 'root_id']
+  from_nodes <- edges[edges$to==node_id, 'from']
+  root_of_connections <- nodes[nodes$id %in% from_nodes, 'root_id']
+  inc_intra_connections <- sum(root_of_connections != primary_root)
+  nodes[nodes$id==node_id, 'inc_intra'] <<- inc_intra_connections
+}
+
+get_degree <- function(node_id)
+{
+  to_nodes <- edges[edges$from==node_id, 'to']
+  n_childs <- length(to_nodes)
+  
+  if(n_childs > 0)
+  {
+    for(i in 1:n_childs)
+    {
+      child <- to_nodes[i]
+      get_degree(child)
+    }
+  }
+  set_degree(node_id)
+}
 
 fill_degree <- function()
 {
@@ -200,6 +208,10 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     }
     else if(nth_child==1 & n_childs_parent==1)
     {
+      if(node_id==621)
+      {
+        print('breakpoint at 621')
+      }
       nodes[nodes$id==node_id, 'x'] <<- x
       current_x <- x
     }
