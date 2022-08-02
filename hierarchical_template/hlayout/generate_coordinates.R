@@ -69,6 +69,10 @@ fill_width <- function()
   for(i in 1:nrow(nodes))
   {
     node_id <- nodes[i, 'id']
+    if(node_id==25)
+    {
+      print('breakpoint at fill_width node_id==25. Inspect why width is 0')
+    }
     nodes[nodes$id==node_id, 'width'] <<- get_width(node_id)
     
     # If the DFS truly did discovered any new nodes
@@ -208,10 +212,11 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     }
     else if(nth_child==1 & n_childs_parent==1)
     {
-      if(node_id==621)
+      if(node_id==625)
       {
-        print('breakpoint at 621')
+        print('breakpoint at estimate_xcoord node_id==625')
       }
+      # print(node_id)
       nodes[nodes$id==node_id, 'x'] <<- x
       current_x <- x
     }
@@ -320,6 +325,10 @@ fill_xcoord <- function()
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
+    if(node_id==625)
+    {
+      print('breakpoint at fill_xcoord. Inspect node_id==625 for why many prev values are generated')
+    }
     prev <- get_prev(node_id)
     x_current <- compute_center(prev_x=prev$x, prev_width=prev$width,
                                 current_width=current_width)
