@@ -285,7 +285,16 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
 get_prev <- function(node_id)
 {
   year <- nodes[nodes$id == node_id, 'year']
-  adjacent_nodes <- nodes[nodes$year==year,]
+  
+  if(length(visited_nodes) == 0)
+    return(data.frame(width=0, x=0))
+  
+  prev_nodes <- nodes[nodes$id %in% visited_nodes, ]
+  adjacent_nodes <- prev_nodes[prev_nodes$year==year,]
+  
+  if(nrow(adjacent_nodes) == 0)
+    return(data.frame(width=0, x=0))
+  
   adjacent_nodes <- adjacent_nodes[!is.na(adjacent_nodes$x), ]
   max_x <- max(adjacent_nodes$x)
   prev <- adjacent_nodes[adjacent_nodes$x==max_x, c('width', 'x')]
