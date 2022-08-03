@@ -69,7 +69,7 @@ fill_width <- function()
   for(i in 1:nrow(nodes))
   {
     node_id <- nodes[i, 'id']
-    if(node_id==25)
+    if(node_id==25 | node_id==624)
     {
       print('breakpoint at fill_width node_id==25. Inspect why width is 0')
     }
@@ -212,9 +212,10 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     }
     else if(nth_child==1 & n_childs_parent==1)
     {
-      if(node_id==625)
+      print(node_id)
+      if(node_id==635)
       {
-        print('breakpoint at estimate_xcoord node_id==625')
+        print('breakpoint at estimate_xcoord node_id==635')
       }
       # print(node_id)
       nodes[nodes$id==node_id, 'x'] <<- x
@@ -325,7 +326,7 @@ fill_xcoord <- function()
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
-    if(node_id==625)
+    if(node_id==635)
     {
       print('breakpoint at fill_xcoord. Inspect node_id==625 for why many prev values are generated')
     }
@@ -386,6 +387,11 @@ create_fake_edges <- function(nodes, edges)
     for(i in 1:length(root_nodes))
     {
       node_id <- root_nodes[i]
+      print(node_id)
+      if(node_id==626)
+      {
+        print('create_fake_edges: breakpoint at node_id==626')
+      }
       degree <- nodes[nodes$id==node_id, 'degree']
       if(degree == 1)
       {
@@ -410,37 +416,39 @@ create_fake_edges <- function(nodes, edges)
           # 3 Now sort by width
           # Yes I am deliberately overwriting this
           from_nodes <- edges[edges$to %in% from_nodes, 'from']
-          from_nodes <- nodes[nodes$id %in% from_nodes, c('id', 'root_id')]
-          
-          #argmax root width
-          widths <- nodes[nodes$id %in% from_nodes$root_id, 'width']
-          max_width <- max(widths)
-          
-          # corresponding root node to the max width
-          corr_root_nodes <- nodes[nodes$root==T & 
-                                   nodes$width==max_width, 'id']
-          corr_from_node <- nodes[nodes$id %in% from_nodes & 
-                                  nodes$root_id %in% corr_root_nodes, 'id']
-          
-          # Just in case corr_from_node has more than one, just select
-          # the first one
-          if(length(corr_from_node) > 1)
+          if(length(from_nodes) > 0)
           {
-            corr_from_node <- corr_from_node[1]
+            from_nodes <- nodes[nodes$id %in% from_nodes, c('id', 'root_id')]
+            
+            #argmax root width
+            widths <- nodes[nodes$id %in% from_nodes$root_id, 'width']
+            max_width <- max(widths)
+            
+            # corresponding root node to the max width
+            corr_root_nodes <- nodes[nodes$root==T & 
+                                     nodes$width==max_width, 'id']
+            corr_from_node <- nodes[nodes$id %in% from_nodes & 
+                                    nodes$root_id %in% corr_root_nodes, 'id']
+            
+            # Just in case corr_from_node has more than one, just select
+            # the first one
+            if(length(corr_from_node) > 1)
+            {
+              corr_from_node <- corr_from_node[1]
+            }
+            
+            # All set. Create the fake edge now
+            # First get a duplicate edge instead of having to create a 
+            # dataframe with the same structure
+            duplicate_edge <- edges[nrow(edges),]
+            
+            # Fake edge
+            duplicate_edge$from <- corr_from_node
+            duplicate_edge$to <- node_id
+            duplicate_edge$fake <- T
+            
+            edges <- rbind(edges, duplicate_edge)
           }
-          
-          # All set. Create the fake edge now
-          # First get a duplicate edge instead of having to create a 
-          # dataframe with the same structure
-          duplicate_edge <- edges[nrow(edges),]
-          
-          # Fake edge
-          duplicate_edge$from <- corr_from_node
-          duplicate_edge$to <- node_id
-          duplicate_edge$fake <- T
-          
-          edges <- rbind(edges, duplicate_edge)
-          
         }
       }
     }
