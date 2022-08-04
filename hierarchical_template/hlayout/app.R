@@ -23,7 +23,7 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-           visNetworkOutput("hierarchical", height="1000px", width="1000px")
+           visNetworkOutput("hierarchical", height="1600px", width="2000px")
         )
    
 )
@@ -144,7 +144,7 @@ ui <- fluidPage(
 server <- function(input, output) {
 
   output$hierarchical <- renderVisNetwork({
-    visNetwork(nodes, edges) %>%
+    visNetwork(nodes, edges %>% select(-label)) %>%
       # visHierarchicalLayout(direction = "UD",
       #                       sortMethod = 'directed'#,
       #                       #parentCentralization = T

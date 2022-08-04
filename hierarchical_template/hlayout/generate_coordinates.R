@@ -1,14 +1,5 @@
 rm(list=ls())
-# setwd(paste0(getwd(), '/hlayout/'))
 library(dplyr)
-
-
-# nodes <- data.frame(id=1:17,
-#                     year=c(2010, 2011, 2011, 2012, 2012, 2012, 2012, 2013, 2013, 
-#                            2013, 2013, 2014, 2013, 2014, 2014, 2013, 2013),
-#                     label=paste0("",1:17))
-# edges <- data.frame(from=c(1,2,2,1,3,3,6,6,7,7,10,13,13,16,17),#,16,17),
-#                     to=c(2,4,5,3,6,7,8,9,10,11,12,14,15,12,12))#,17,18))
 
 source('preprocess_h.R')
 
@@ -16,10 +7,6 @@ get_width <- function(node_id)
 {
   if(!node_id %in% visited_nodes)
   {
-    if(node_id==25)
-    {
-      print('breakpoint...')
-    }
 	  visited_nodes <<- c(visited_nodes, node_id)
 	  t_edges <- edges[edges$from==node_id, ]
 	  t_nodes <- unique(t_edges$to)
@@ -69,10 +56,6 @@ fill_width <- function()
   for(i in 1:nrow(nodes))
   {
     node_id <- nodes[i, 'id']
-    if(node_id==25 | node_id==624)
-    {
-      print('breakpoint at fill_width node_id==25. Inspect why width is 0')
-    }
     nodes[nodes$id==node_id, 'width'] <<- get_width(node_id)
     
     # If the DFS truly did discovered any new nodes
@@ -147,6 +130,28 @@ fill_degree <- function()
 
 fill_degree()
 
+# Mark clone nodes------------------------------------------------------------
+mark_clone <- function(tmp_nodes)
+{
+  tmp_nodes$clone <- F
+  labels <- unique(tmp_nodes[, 'label'])
+  for(i in 1:length(labels))
+  {
+    # ids and years that correspond to the label
+    corr_subset <- tmp_nodes[tmp_nodes$label == labels[i], c('id', 'year')]
+    
+    min_year <- min(corr_subset$year)
+    tmp_nodes[tmp_nodes$label == labels[i] &
+              tmp_nodes$year > min_year, 'clone'] <- T
+  }
+  tmp_nodes
+}
+nodes <- mark_clone(nodes)
+nodes$color.background <- '#97C2FC'
+nodes[nodes$clone==T, 'color.background'] <- '#FB7E81'
+
+# #---------------------------------------------------------------------------
+
 visited_nodes <- c()
 node_spacing <- 90
 global_prev_width <- 0
@@ -183,10 +188,6 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
   # prev_x -> prev sibling's x coordinate
   if(! node_id %in% visited_nodes)
   {
-    if(node_id==7)
-    {
-      print('breakpoint...')
-    }
     visited_nodes <<- c(visited_nodes, node_id)
     t_edges <- edges[edges$from==node_id, ]
     t_nodes <- unique(t_edges$to)
@@ -198,8 +199,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     indices2 <- which(deg > 1)
     indices <- c(indices1, indices2)
     t_nodes <- t_nodes[indices]
-    # indices <- rev(argsort(intra_conn))
-    # t_nodes <- t_nodes[indices]
+    
     
     # local_acc <- acc
     current_width <- nodes[nodes$id==node_id, 'width']
@@ -212,11 +212,6 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     }
     else if(nth_child==1 & n_childs_parent==1)
     {
-      print(node_id)
-      if(node_id==635)
-      {
-        print('breakpoint at estimate_xcoord node_id==635')
-      }
       # print(node_id)
       nodes[nodes$id==node_id, 'x'] <<- x
       current_x <- x
@@ -257,76 +252,48 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
   # else
   #   nodes[nodes$id==node_id, 'x']
 }
-#node_id, nth_child, n_childs_parent, x, prev_width, prev_x
-# tmp <- estimate_xcoord(1, 1, 1, 225, 0, 0)
-
-# get_prev <- function(node_id)
-# {
-#   tmp_df <- data.frame(width=0, x=0)
-#   partition1 <- nodes[nodes$id < node_id,]
-#   if(nrow(partition1) > 0)
-#   {
-#     unique_years <- unique(partition1$year)
-#     min_year <- min(unique_years)
-#     prior_roots <- partition1[partition1$year==min_year, 'id']
-#     for(i in 1:length(prior_roots))
-#     {
-#       root_nid <- prior_roots[i]
-#       tmp_df$width <- tmp_df$width + nodes[nodes$id==root_nid, 'width']
-#     }
-#     
-#     #For x
-#     prior_roots <- partition1[partition1$year==min_year, 'x']
-#     tmp_df$x <- max(prior_roots)
-#   }
-#   tmp_df
-# }
 
 get_prev <- function(node_id)
 {
-  year <- nodes[nodes$id == node_id, 'year']
+  if(length(visited_nodes) == 0)
+    return(data.frame(width=0, x=0))
+  
+  prev_roots <- unique(nodes[nodes$id %in% visited_nodes, 'root_id'])
+  
+  if(length(prev_roots) == 0)
+    return(data.frame(width=0, x=0))
+  
+  last_root <- prev_roots[length(prev_roots)]
+  last_x <- nodes[nodes$id==last_root, 'x']
+  last_width <- nodes[nodes$id==last_root, 'width']
+  last_x1 <- last_x + ((last_width * node_spacing)/2)
   
   if(length(visited_nodes) == 0)
     return(data.frame(width=0, x=0))
   
+  year <- nodes[nodes$id == node_id, 'year']
   prev_nodes <- nodes[nodes$id %in% visited_nodes, ]
   adjacent_nodes <- prev_nodes[prev_nodes$year==year,]
   
   if(nrow(adjacent_nodes) == 0)
     return(data.frame(width=0, x=0))
   
+  
   adjacent_nodes <- adjacent_nodes[!is.na(adjacent_nodes$x), ]
-  max_x <- max(adjacent_nodes$x)
-  prev <- adjacent_nodes[adjacent_nodes$x==max_x, c('width', 'x')]
+  last_x2 <- max(adjacent_nodes$x)
+  
+  last_x <- max(c(last_x1, last_x2))
+  if(last_x == last_x2)
+    last_width <- adjacent_nodes[adjacent_nodes$x==last_x, 'width'][1]
+  
+  prev <- data.frame(width=last_width, x=last_x)
 }
-
-# sort_nodes <- function(root_nodes)
-# {
-#   degree <- c()
-#   # Ignore the first node as it is always guaranteed to contain the
-#   # graph with highest width
-#   for(i in 2:nrow(root_nodes))
-#   {
-#     # Does this node connect to any other disconnected network?
-#     node_id <- root_nodes[i,]
-#     
-#     # children of previous root node
-#     pr_children <- nodes[nodes$root_id==root_nodes$id[i-1],]
-#     
-#     to_nodes <- edges[edges$from==node_id, 'to']
-#     
-#     # For the nature of the problem we are trying to solve, this should suffice
-#     degree <- c(degree, paste0("",node_id)=length(to_nodes))
-#   }
-#   
-#   
-# }
 
 
 fill_xcoord <- function()
 {
   root_nodes <- nodes[nodes$root==T, ]
-  root_nodes <- root_nodes %>% arrange(desc(width))
+  # root_nodes <- root_nodes %>% arrange(desc(width))
   for(i in 1:nrow(root_nodes))
   {
     node_id <- root_nodes[i, 'id']
@@ -335,10 +302,11 @@ fill_xcoord <- function()
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
-    if(node_id==635)
+    if(node_id==690)
     {
-      print('breakpoint at fill_xcoord. Inspect node_id==625 for why many prev values are generated')
+      print('breakpoint at fill_xcoord. Inspect the value of prev and x_current to avoid overlap')
     }
+    
     prev <- get_prev(node_id)
     x_current <- compute_center(prev_x=prev$x, prev_width=prev$width,
                                 current_width=current_width)
@@ -467,6 +435,33 @@ create_fake_edges <- function(nodes, edges)
 
 edges <- create_fake_edges(nodes, edges)
 
+cluster_nodes <- function(nodes)
+{
+  root_nodes <- nodes[nodes$root==T, 'id']
+  for(i in 1:length(root_nodes))
+  {
+    node_id <- root_nodes[i]
+    degree <- nodes[nodes$id==node_id, 'degree']
+    if(degree == 1)
+    {
+      to_node <- edges[edges$from==node_id, 'to']
+      corr_root_id <- nodes[nodes$id==to_node, 'root_id']
+      if(corr_root_id != node_id) # node_id = current root id
+      {
+        idx <- which(nodes$id==node_id)
+        current_node <- nodes[idx,]
+        nodes <- nodes[-idx,]
+        corr_root_idx <- which(nodes$id==corr_root_id)
+        nodes1 <- rbind(nodes[1:corr_root_idx,], current_node)
+        nodes <- rbind(nodes1, nodes[(corr_root_idx+1):nrow(nodes),])
+      }
+    }
+  }
+  nodes
+}
+
+nodes <- cluster_nodes(nodes)
+
 nodes$x <- 0
 fill_xcoord()
 
@@ -544,7 +539,16 @@ centralise_mpnodes <- function(node_id)
   }
 }
 
-centralise_mpnodes(1)
+centralise_all <- function()
+{
+  root_nodes <- nodes[nodes$root==T, 'id']
+  for(i in 1:length(root_nodes))
+  {
+    node_id <- root_nodes[i]
+    centralise_mpnodes(node_id)
+  }
+}
+centralise_all()
 
 estimate_ycoord <- function(nodes)
 {
@@ -556,8 +560,5 @@ estimate_ycoord <- function(nodes)
   return(nodes)
 }
 
-
 nodes <- estimate_ycoord(nodes)
 edges <- edges[edges$fake != T,]
-# save(file='nodes.RData', 'nodes')
-# save(file='edges.RData', 'edges')

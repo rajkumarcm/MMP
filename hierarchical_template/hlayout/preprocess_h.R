@@ -218,7 +218,7 @@ preprocess_hdata <- function(edges, old_nodes)
                                   color=old_edge$color,
                                   actor_color=old_edge$actor_color,
                                   value=old_edge$value,
-                                  label=old_edge$group1_name)
+                                  label=old_edge$label)
         
         edges <- rbind(edges, second_edge)
       }
@@ -233,7 +233,7 @@ preprocess_hdata <- function(edges, old_nodes)
   
 
   edges <- edges %>% arrange(year)
-  nodes <- nodes %>% arrange(year)
+  # nodes <- nodes %>% arrange(year)
   n_nodes <<- nodes
   n_edges <<- edges
 }
@@ -242,5 +242,7 @@ load('IraqNodes.RData')
 load('IraqEdges.RData')
 preprocess_hdata(edges, nodes)
 nodes <- n_nodes
+nodes <- nodes %>% arrange(year)
 edges <- n_edges
+edges <- edges %>% arrange(year)
 rm(list=c('n_nodes', 'n_edges'))
