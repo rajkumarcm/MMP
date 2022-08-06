@@ -579,45 +579,15 @@ centralise_all <- function()
 }
 # centralise_all()
 
-estimate_ycoord_and_fix_x <- function(nodes)
+estimate_ycoord <- function(nodes)
 {
   y.node_spacing <- 150
-  years <- unique(edges$year)
+  years <- unique(nodes$year)
   years <- data.frame(year=years) %>% arrange(year)
-  years <- years$year
-  prev.spacing <- 0
-  next.spacing <- 0
-  
-  for(i in 1:length(years))
-  {
-    yr1 <- years[i]-1 # year of the from node
-    yr2 <- years[i] # actual year of the edge
-    next.spacing <- prev.spacing + y.node_spacing
-    tmp_nodes <- edges[edges$year==yr2, c('from', 'to')]
-    tmp_nodes <- unique(c(tmp_nodes$from, tmp_nodes$to))
-    if(length(tmp_nodes) > 0)
-    {
-      # FROM Node-------------------------------------
-      nodes[nodes$id %in% tmp_nodes & 
-            nodes$year==yr1, 'y'] <- prev.spacing
-      
-      # TO Node---------------------------------------
-      nodes[nodes$id %in% tmp_nodes & 
-            nodes$year==yr2, 'y'] <- next.spacing
-      
-      # Reset x to make the plot vertical rather than letting it flow horizontally 
-      # tmp_x <- nodes[nodes$id %in% tmp_nodes & nodes$year==yr2, 'x']
-      # min_x2 <- min(tmp_x)
-      # nodes[nodes$id %in% tmp_nodes, 'x'] <- 
-      #   nodes[nodes$id %in% tmp_nodes,  'x'] - min_x2
-      
-      prev.spacing <- next.spacing + 20
-    }
-    
-  }
-  # nodes <- nodes %>% inner_join(years, by="year")
+  years$y <- seq(0, by=150, length.out=nrow(years))
+  nodes <- nodes %>% inner_join(years, by="year")
   return(nodes)
 }
 
-nodes <- estimate_ycoord_and_fix_x(nodes)
+nodes <- estimate_ycoord(nodes)
 edges <- edges[edges$fake != T,]
