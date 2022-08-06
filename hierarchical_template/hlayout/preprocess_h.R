@@ -92,11 +92,6 @@ preprocess_hdata <- function(edges, old_nodes)
       else
         prev_found <- T
       
-      if(old_edge$group1_name == 'The Islamic Unity Movement of Kurdistan' &
-         old_edge$year == 2001)
-      {
-        print('breakpoint...')
-      }
       
       # Check if the node exist in appropriate years - FROM
       if(is.null(nodes))
@@ -175,7 +170,21 @@ preprocess_hdata <- function(edges, old_nodes)
       new_edge$to <- id
       
       #------------------Splinters-------------------------------------------
-      if(old_edge$status=='Splinters')
+      first_child <- T
+      if(e > 1)
+      {
+        prev_edge <- tmp_edges[(e-1),]
+        if(nrow(tmp_edges[tmp_edges$from==old_edge$from & 
+                          tmp_edges$status=='Splinters' & 
+                          tmp_edges$year==old_edge$year &
+                          new_edge$status=='Splinters',]) > 1)
+        {
+          first_child <- F
+        }
+      }
+        
+      
+      if(old_edge$status=='Splinters' & first_child == T)
       {
         # If Splinters, then we must add another node that represents the
         # cloned node - these clone nodes specifically must not be marked
@@ -246,8 +255,8 @@ preprocess_hdata <- function(edges, old_nodes)
   n_edges <<- edges
 }
 
-load('SyriaNodes.RData')
-load('SyriaEdges.RData')
+load('IraqNodes.RData')
+load('IraqEdges.RData')
 preprocess_hdata(edges, nodes)
 nodes <- n_nodes
 # nodes <- nodes %>% arrange(width)

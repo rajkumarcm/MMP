@@ -198,11 +198,6 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     merger_roots <- merger_roots[merger_roots != node_id]
     merger_roots <- nodes[nodes$id %in% merger_roots & nodes$root==T, 'id']
     
-    if(node_id==688)
-    {
-      print('breakpoint')
-    }
-    
     # # Rearrange the nodes here
     deg <- nodes[nodes$id %in% t_nodes, 'degree']
     indices1 <- which(deg == 1)
@@ -271,7 +266,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
         prev <- get_prev(merger_roots[i])
         x_current <- compute_center(prev_x=prev$x, prev_width=prev$width,
                                     current_width=1)
-        estimate_xcoord(merger_roots[i], i, 1, x_current, prev$width, prev$x)
+        estimate_xcoord(merger_roots[i], 1, 1, x_current, prev$width, prev$x)
       }
     }
   }
