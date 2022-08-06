@@ -319,6 +319,7 @@ fill_xcoord <- function()
 {
   root_nodes <- nodes[nodes$root==T, ]
   root_nodes <- root_nodes %>% arrange(year)
+  prev_year <- unique(root_nodes$year)[1]
   
   # root_nodes <- root_nodes %>% arrange(desc(width))
   for(i in 1:nrow(root_nodes))
@@ -333,8 +334,9 @@ fill_xcoord <- function()
     {
       print('breakpoint at fill_xcoord. Inspect the value of prev and x_current to avoid overlap')
     }
-    
     prev <- get_prev(node_id)
+
+    
     x_current <- compute_center(prev_x=prev$x, prev_width=prev$width,
                                 current_width=current_width)
     estimate_xcoord(node_id=node_id, nth_child=1, n_childs_parent=1,
@@ -577,15 +579,45 @@ centralise_all <- function()
 }
 # centralise_all()
 
-estimate_ycoord <- function(nodes)
+estimate_ycoord_and_fix_x <- function(nodes)
 {
   y.node_spacing <- 150
-  years <- unique(nodes$year)
+  years <- unique(edges$year)
   years <- data.frame(year=years) %>% arrange(year)
-  years$y <- seq(0, by=150, length.out=nrow(years))
-  nodes <- nodes %>% inner_join(years, by="year")
+  years <- years$year
+  prev.spacing <- 0
+  next.spacing <- 0
+  
+  for(i in 1:length(years))
+  {
+    yr1 <- years[i]-1 # year of the from node
+    yr2 <- years[i] # actual year of the edge
+    next.spacing <- prev.spacing + y.node_spacing
+    tmp_nodes <- edges[edges$year==yr2, c('from', 'to')]
+    tmp_nodes <- unique(c(tmp_nodes$from, tmp_nodes$to))
+    if(length(tmp_nodes) > 0)
+    {
+      # FROM Node-------------------------------------
+      nodes[nodes$id %in% tmp_nodes & 
+            nodes$year==yr1, 'y'] <- prev.spacing
+      
+      # TO Node---------------------------------------
+      nodes[nodes$id %in% tmp_nodes & 
+            nodes$year==yr2, 'y'] <- next.spacing
+      
+      # Reset x to make the plot vertical rather than letting it flow horizontally 
+      # tmp_x <- nodes[nodes$id %in% tmp_nodes & nodes$year==yr2, 'x']
+      # min_x2 <- min(tmp_x)
+      # nodes[nodes$id %in% tmp_nodes, 'x'] <- 
+      #   nodes[nodes$id %in% tmp_nodes,  'x'] - min_x2
+      
+      prev.spacing <- next.spacing + 20
+    }
+    
+  }
+  # nodes <- nodes %>% inner_join(years, by="year")
   return(nodes)
 }
 
-nodes <- estimate_ycoord(nodes)
+nodes <- estimate_ycoord_and_fix_x(nodes)
 edges <- edges[edges$fake != T,]
