@@ -205,6 +205,10 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     indices <- c(indices1, indices2)
     t_nodes <- t_nodes[indices]
     
+    if(node_id==625)
+    {
+      print('estimate_xcoord')
+    }
     
     # local_acc <- acc
     current_width <- nodes[nodes$id==node_id, 'width']
@@ -325,7 +329,7 @@ fill_xcoord <- function()
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
-    if(node_id==688)
+    if(node_id==624)
     {
       print('breakpoint at fill_xcoord. Inspect the value of prev and x_current to avoid overlap')
     }
@@ -571,7 +575,7 @@ centralise_all <- function()
     centralise_mpnodes(node_id)
   }
 }
-centralise_all()
+# centralise_all()
 
 estimate_ycoord <- function(nodes)
 {
