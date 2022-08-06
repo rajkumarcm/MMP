@@ -193,6 +193,16 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
+    merger_roots <- edges[edges$to==node_id &
+                          edges$status=='Mergers', 'from']
+    merger_roots <- merger_roots[merger_roots != node_id]
+    merger_roots <- nodes[nodes$id %in% merger_roots & nodes$root==T, 'id']
+    
+    if(node_id==688)
+    {
+      print('breakpoint')
+    }
+    
     # # Rearrange the nodes here
     deg <- nodes[nodes$id %in% t_nodes, 'degree']
     indices1 <- which(deg == 1)
@@ -223,7 +233,7 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
                                             (node_spacing/2)
       current_x <- current_x + (node_spacing/2)
     }
-
+    
     if(n_childs > 0)
     {
       for(i in 1:n_childs)
@@ -247,6 +257,22 @@ estimate_xcoord <- function(node_id, nth_child, n_childs_parent, x, prev_width,
       # Do not write anything here because
       # we do not need to encode any information about the main node here
       # as they are done before the beginning of the loop
+    }
+    
+    
+    if(length(merger_roots) > 0)
+    {
+      for(i in 1:length(merger_roots))
+      {
+        if(merger_roots[i] == 688)
+        {
+          print('check if get_prev is working properly...')
+        }
+        prev <- get_prev(merger_roots[i])
+        x_current <- compute_center(prev_x=prev$x, prev_width=prev$width,
+                                    current_width=1)
+        estimate_xcoord(merger_roots[i], i, 1, x_current, prev$width, prev$x)
+      }
     }
   }
   # else
@@ -293,6 +319,8 @@ get_prev <- function(node_id)
 fill_xcoord <- function()
 {
   root_nodes <- nodes[nodes$root==T, ]
+  root_nodes <- root_nodes %>% arrange(year)
+  
   # root_nodes <- root_nodes %>% arrange(desc(width))
   for(i in 1:nrow(root_nodes))
   {
@@ -302,7 +330,7 @@ fill_xcoord <- function()
     t_nodes <- unique(t_edges$to)
     n_childs <- length(t_nodes)
     
-    if(node_id==690)
+    if(node_id==688)
     {
       print('breakpoint at fill_xcoord. Inspect the value of prev and x_current to avoid overlap')
     }
@@ -460,8 +488,8 @@ cluster_nodes <- function(nodes)
   nodes
 }
 
+# nodes <- nodes %>% arrange(year, desc(width))
 nodes <- cluster_nodes(nodes)
-
 nodes$x <- 0
 fill_xcoord()
 

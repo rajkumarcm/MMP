@@ -40,25 +40,18 @@ get_nnode <- function(id, new_year, label, new_nodes)
   }
 }
 
-check_prev <- function(nodes, label, year)
+check_prev <- function(nodes, label, prev_year)
 {
-  node_years <- nodes[nodes$label==label, 'year']
-  if(length(node_years) > 0)
+  
+  id <- nodes[nodes$label==label & nodes$year==prev_year, 'id']
+  if(length(id) >= 1)
   {
-    max_year <- max(node_years)
-    if(max_year == year-1)
-    {
-      # i.e., if the latest year matches the current year
-      # then the node does present in the nodes dataframe
-      id <- nodes[nodes$label==label &
-                  nodes$year == year-1, 'id']
-      return(id)
-    }
-    else
-      return(F)
+    # i.e., if the latest year matches the current year
+    # then the node does present in the nodes dataframe
+    return(id)
   }
   else
-    return(F)
+    return(-1)
 }
 
 preprocess_hdata <- function(edges, old_nodes)
@@ -76,19 +69,34 @@ preprocess_hdata <- function(edges, old_nodes)
     {
       old_edge <- tmp_edges[e,]
       new_edge <- old_edge
+      
+      # if(node_id==635)
+      # {
+      #   print('breakpoint...')
+      # }
 
       #----------------------FROM----------------------------------------------
       
-      id <- check_prev(nodes, old_edge$group1_name, old_edge$year)
+      prev_year <- (old_edge$year)-1
+      if(i > 1)
+        prev_year <- years[i-1]
+      
+      id <- check_prev(nodes, old_edge$group1_name, prev_year)
       prev_found <- F
       
-      if(id == F)
+      if(id == -1)
       {
         id <- count
         count <- count + 1
       }
       else
         prev_found <- T
+      
+      if(old_edge$group1_name == 'The Islamic Unity Movement of Kurdistan' &
+         old_edge$year == 2001)
+      {
+        print('breakpoint...')
+      }
       
       # Check if the node exist in appropriate years - FROM
       if(is.null(nodes))
@@ -97,12 +105,12 @@ preprocess_hdata <- function(edges, old_nodes)
                            old_edge$group1_name, nodes)
       }
       else if(nrow(nodes[nodes$label==old_edge$group1_name & 
-                    nodes$year==(old_edge$year)-1, ])==0)
+                    nodes$year==prev_year, ])==0)
       {
         # Inserting node for the first time in the current year
         # id, new_year, label, new_nodes
         
-        nodes <- get_nnode(id, (old_edge$year)-1, 
+        nodes <- get_nnode(id, prev_year, 
                            old_edge$group1_name, nodes)
         
       }
@@ -113,7 +121,7 @@ preprocess_hdata <- function(edges, old_nodes)
         
         # id, new_year, label, new_nodes
         id <- nodes[nodes$label==old_edge$group1_name & 
-                      nodes$year==(old_edge$year)-1, 'id']
+                      nodes$year==prev_year, 'id']
         # if(prev_found==F)
           # nodes <- get_nnode(id, (old_edge$year)-1,
           #                    old_edge$group1_name, nodes)
@@ -180,10 +188,10 @@ preprocess_hdata <- function(edges, old_nodes)
         # from 1998 thereby avoiding overlaps in the edges.
         
         # Just ensure duplicate node is not created
-        id <- check_prev(nodes, old_edge$group1_name, old_edge$year+1) # +1 so it deliberately looks in the current year
+        id <- check_prev(nodes, old_edge$group1_name, old_edge$year) # +1 so it deliberately looks in the current year
         prev_found <- T
         
-        if(id == F)
+        if(id == -1)
         {
           id <- count
           count <- count + 1
@@ -238,11 +246,11 @@ preprocess_hdata <- function(edges, old_nodes)
   n_edges <<- edges
 }
 
-load('IraqNodes.RData')
-load('IraqEdges.RData')
+load('SyriaNodes.RData')
+load('SyriaEdges.RData')
 preprocess_hdata(edges, nodes)
 nodes <- n_nodes
-nodes <- nodes %>% arrange(year)
+# nodes <- nodes %>% arrange(width)
 edges <- n_edges
 edges <- edges %>% arrange(year)
 rm(list=c('n_nodes', 'n_edges'))
