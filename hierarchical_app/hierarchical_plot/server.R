@@ -597,28 +597,34 @@ source('preprocess_h.R', local=F)
 # Define server logic required to draw a histogram
 server <- shinyServer(function(input, output) {
   
-  map_name <- 'Pakistan'
-  
-  edges <- df[df$map_name==map_name & (df$status=='Splinters' | 
-                                       df$status=='Mergers'), ]
-  nodes_mn <- unique(c(edges$from, edges$to))
-  nodes_mn <- data.frame(id=nodes_mn) %>% inner_join(nodes, by='id', copy=T)
-  cnames <- colnames(nodes_mn)
-  cnames[cnames=='level'] <- 'year'
-  colnames(nodes_mn) <- cnames
-  
-  dfs <- preprocess_hdata(edges, nodes_mn)
-  nodes <- dfs[[1]]
-  edges <- dfs[[2]]
-
-  
-  dfs <- get_all_done(nodes, edges)
-  nodes <- dfs[[1]]
-  edges <- dfs[[2]]
+  dfs <- reactive({
+    map_name <- input$map_name
+    
+    edges <- df[df$map_name==map_name & (df$status=='Splinters' | 
+                                           df$status=='Mergers'), ]
+    nodes_mn <- unique(c(edges$from, edges$to))
+    nodes_mn <- data.frame(id=nodes_mn) %>% inner_join(nodes, by='id', copy=T)
+    cnames <- colnames(nodes_mn)
+    cnames[cnames=='level'] <- 'year'
+    colnames(nodes_mn) <- cnames
+    
+    dfs <- preprocess_hdata(edges, nodes_mn)
+    nodes <- dfs[[1]]
+    edges <- dfs[[2]]
+    
+    
+    dfs <- get_all_done(nodes, edges)
+    nodes <- dfs[[1]]
+    nodes <- nodes %>% select(-width)
+    # Inspect and understand where value is given to edges and what does this
+    # attribute mean
+    edges <- edges %>% select(-value)
+    return(list(nodes, edges))
+  })
   
     output$hierarchicalPlot <- renderVisNetwork({
       
-        visNetwork(nodes, edges) %>%
+        visNetwork(dfs()[[1]], dfs()[[2]]) %>%
           visEdges(
             arrows=list(to=list(enabled=T))) %>%
           visPhysics(enabled = F)

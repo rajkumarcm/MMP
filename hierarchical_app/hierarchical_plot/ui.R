@@ -19,13 +19,14 @@ shinyUI(fluidPage(
     # Sidebar with a slider input for number of bins
     sidebarLayout(
         sidebarPanel(
-            
+            selectInput(inputId="map_name", choices = unique(df$map_name),
+                        selected="Iraq", label="Select Map Name:")
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
-            textOutput('testTxt'),
-            visNetworkOutput('hierarchicalPlot', width="1000px", height="1000px")
+            
+            visNetworkOutput('hierarchicalPlot', width="2000px", height="1600px")
         )
     )
 ))
