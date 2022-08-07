@@ -1,5 +1,3 @@
-n_nodes <<- NULL
-n_edges <<- NULL
 
 get_nnode <- function(id, new_year, label, new_nodes)
 {
@@ -249,9 +247,5 @@ preprocess_hdata <- function(edges, old_nodes)
 
 
   edges <- edges %>% arrange(year)
-  # nodes <- nodes %>% arrange(year)
-  n_nodes <<- nodes
-  n_edges <<- edges
-  browser()
+  return(list(nodes, edges))
 }
-print('hello')

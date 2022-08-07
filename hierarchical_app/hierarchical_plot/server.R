@@ -53,7 +53,7 @@ get_all_done <- function(nodes, edges)
   # coordinates are generated, we can then remove the tricked edges so that false
   # connections do not show up, yet we have island nodes at the right place.
   # Nice trick huh?
-  nodes$root <<- F
+  nodes$root <- F
   
   old_visited_nodes <<- c()
   visited_nodes <<- c()
@@ -94,8 +94,8 @@ get_all_done <- function(nodes, edges)
   
   fill_width()
   
-  nodes$degree <<- 0
-  nodes$inc_intra_connections <<- 0
+  nodes$degree <- 0
+  nodes$inc_intra_connections <- 0
   
   set_degree <- function(node_id)
   {
@@ -155,9 +155,9 @@ get_all_done <- function(nodes, edges)
     }
     tmp_nodes
   }
-  nodes <<- mark_clone(nodes)
-  nodes$color.background <<- '#97C2FC'
-  nodes[nodes$clone==T, 'color.background'] <<- '#FB7E81'
+  nodes <- mark_clone(nodes)
+  nodes$color.background <- '#97C2FC'
+  nodes[nodes$clone==T, 'color.background'] <- '#FB7E81'
   
   # #---------------------------------------------------------------------------
   
@@ -464,7 +464,7 @@ get_all_done <- function(nodes, edges)
     edges
   }
   
-  edges <<- create_fake_edges(nodes, edges)
+  edges <- create_fake_edges(nodes, edges)
   
   cluster_nodes <- function(nodes)
   {
@@ -492,8 +492,8 @@ get_all_done <- function(nodes, edges)
   }
   
   # nodes <- nodes %>% arrange(year, desc(width))
-  nodes <<- cluster_nodes(nodes)
-  nodes$x <<- 0
+  nodes <- cluster_nodes(nodes)
+  nodes$x <- 0
   fill_xcoord()
   
   adjust_coordinate <- function(edge)
@@ -588,8 +588,9 @@ get_all_done <- function(nodes, edges)
     return(nodes)
   }
   
-  n_nodes <<- estimate_ycoord(nodes)
-  n_edges <<- edges[edges$fake != T,]
+  nodes <- estimate_ycoord(nodes)
+  edges <- edges[edges$fake != T,]
+  return(list(nodes, edges))
 }
 
 source('preprocess_h.R', local=F)
@@ -606,14 +607,14 @@ server <- shinyServer(function(input, output) {
   cnames[cnames=='level'] <- 'year'
   colnames(nodes_mn) <- cnames
   
-  preprocess_hdata(edges, nodes_mn)
-  nodes <- n_nodes
-  edges <- n_edges
+  dfs <- preprocess_hdata(edges, nodes_mn)
+  nodes <- dfs[[1]]
+  edges <- dfs[[2]]
+
   
-  n_nodes <<- NULL
-  n_edges <<- NULL
-  
-  get_all_done(nodes, edges)
+  dfs <- get_all_done(nodes, edges)
+  nodes <- dfs[[1]]
+  edges <- dfs[[2]]
   
     output$hierarchicalPlot <- renderVisNetwork({
       
