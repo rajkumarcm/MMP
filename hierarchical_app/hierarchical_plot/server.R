@@ -464,7 +464,7 @@ get_all_done <- function(nodes, edges)
     edges
   }
   
-  edges <- create_fake_edges(nodes, edges)
+  # edges <- create_fake_edges(nodes, edges)
   
   cluster_nodes <- function(nodes)
   {

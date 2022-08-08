@@ -20,7 +20,7 @@ shinyUI(fluidPage(
     sidebarLayout(
         sidebarPanel(
             selectInput(inputId="map_name", choices = unique(df$map_name),
-                        selected="Iraq", label="Select Map Name:")
+                        selected="Aleppo", label="Select Map Name:")
         ),
 
         # Show a plot of the generated distribution
