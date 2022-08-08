@@ -68,14 +68,36 @@ rm('tmp_edges')
 
 # Reference link-------------------------------------------------------------
 links <- read.csv("data/GroupLinks.csv", header=T)
-links$Anchor <- paste0('.*', paste0(links$Anchor, '.*'))
+# links$Anchor <- paste0('.*', paste0(links$Anchor, '.*'))
+
+# Coordinates information----------------------------------------------------
+nodes_extra <- read.csv("data/nodes_sample.csv", header=T,
+                        colClasses = c("us_designated"="factor",
+                                       "un_designated"="factor",
+                                       "other_designated"="factor",
+                                       "state_sponsor"="factor"))
+extra_cnames <- data.frame(x=colnames(nodes_extra))
+
 
 # Nodes database-------------------------------------------------------------
 
 df_nodes <- read.csv("data/new_nodes.csv", header=T,)
-df_nodes <- df_nodes %>% regex_left_join(links[, c("URL", "Anchor")],
-                                         by=c("group_name"="Anchor"))
+# df_nodes <- df_nodes %>% regex_left_join(links[, c("URL", "Anchor")],
+#                                          by=c("group_name"="Anchor"))
+df_nodes <- df_nodes %>% left_join(links[, c("URL", "Anchor")],
+                                   by=c("group_name"="Anchor"), keep=T)
 
+df_nodes_cnames <- data.frame(x=colnames(df_nodes))
+c_cnames <- extra_cnames %>% anti_join(df_nodes_cnames)
+# c_cnames = complement column names in the nodes_sample.csv
+c_cnames <- c_cnames$x
+
+df_nodes <- df_nodes %>% left_join(nodes_extra[, c('group_id', c_cnames)], 
+                                   by="group_id")
+#------------------------------------------------------------------------------
+# I need information on what shape to include ---------------------------------
+# df_nodes$shape <- ifelse(df_nodes$us_designated==1 & df_nodes$state_sponsor)
+#------------------------------------------------------------------------------
 nodes = with(df, data.frame(id = unique(c(from, to))))
 nodes <- nodes %>% inner_join(unique(df_nodes[, c("group_id", "group_name")]), 
                               by=c("id"="group_id"), keep=F)
@@ -143,10 +165,18 @@ nodes <- nodes[, c('id', 'value', 'central_color', 'between_color',
 df <- merge(df, nodes[, c('id', 'value')], by.x=c("from"), by.y=c("id"), all.x=T)
 
 # Rename df_nodes columns
-df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear', 
-                         'map_name', 'lat', 'long', 'URL')]
-cnames <- c('id', 'label', 'title', 'level', 'map_name', 'latitude', 'longitude',
-            'URL')
+# df_nodes <- df_nodes[, c('group_id', 'group_name','description', 'startyear', 
+#                          'map_name', 'lat', 'long', 'URL')]
+# cnames <- c('id', 'label', 'title', 'level', 'map_name', 'latitude', 'longitude',
+#             'URL')
+
+cnames <- colnames(df_nodes)
+cnames[cnames=='group_id'] <- 'id'
+cnames[cnames=='group_name'] <- 'label'
+cnames[cnames=='description'] <- 'title'
+cnames[cnames=='startyear'] <- 'level'
+cnames[cnames=='lat'] <- 'latitude'
+cnames[cnames=='long'] <- 'longitude'
 colnames(df_nodes) <- cnames
 
 #------------------------------------------------------------------------------
@@ -157,9 +187,10 @@ colnames(df_nodes) <- cnames
 df_nodes <- df_nodes[-which(df_nodes$map_name==""),]
 df_nodes <- unique(df_nodes)
 
-
-
-
+# Make this available for hierarchical plot code
+status_dict <- unique(df[, c('status', 'status_id')])
+status_dict <- status_dict[status_dict$status=='Mergers' | 
+                             status_dict$status=='Splinters',]
 
 
 
