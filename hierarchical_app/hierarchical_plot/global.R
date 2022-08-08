@@ -187,6 +187,9 @@ colnames(df_nodes) <- cnames
 df_nodes <- df_nodes[-which(df_nodes$map_name==""),]
 df_nodes <- unique(df_nodes)
 
-
+# Make this available for hierarchical plot code
+status_dict <- unique(df[, c('status', 'status_id')])
+status_dict <- status_dict[status_dict$status=='Mergers' | 
+                           status_dict$status=='Splinters',]
 
 

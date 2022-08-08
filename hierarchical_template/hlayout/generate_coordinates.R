@@ -45,7 +45,7 @@ get_width <- function(node_id)
 # coordinates are generated, we can then remove the tricked edges so that false
 # connections do not show up, yet we have island nodes at the right place.
 # Nice trick huh?
-nodes$root = F
+nodes$root <- F
 
 old_visited_nodes <- c()
 visited_nodes <- c()
@@ -394,7 +394,7 @@ create_fake_edges <- function(nodes, edges)
     {
       node_id <- root_nodes[i]
       print(node_id)
-      if(node_id==626)
+      if(node_id==686)
       {
         print('create_fake_edges: breakpoint at node_id==626')
       }
@@ -462,7 +462,7 @@ create_fake_edges <- function(nodes, edges)
   edges
 }
 
-edges <- create_fake_edges(nodes, edges)
+# edges <- create_fake_edges(nodes, edges)
 
 cluster_nodes <- function(nodes)
 {

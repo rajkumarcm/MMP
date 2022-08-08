@@ -255,9 +255,9 @@ preprocess_hdata <- function(edges, old_nodes)
   n_edges <<- edges
 }
 
-load('PakistanAllNodes.RData')
-load('PakistanAllEdges.RData')
-preprocess_hdata(edges, nodes)
+load('CaucasusNodes.RData')
+load('CaucasusEdges.RData')
+preprocess_hdata(edges, nodes_mn)
 nodes <- n_nodes
 # nodes <- nodes %>% arrange(width)
 edges <- n_edges
