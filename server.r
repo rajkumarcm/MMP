@@ -12,7 +12,7 @@ library('ggplot2')
 library(tidyverse)
 
 source('filter_medges_all.R', local=T)
-source('generate_xoffset_template.R', local=T)
+# source('generate_xoffset_template.R', local=T)
 source('preprocess_h.R', local=T)
 
 #-----------------Hierarchical code---------------------------------------------
@@ -905,32 +905,97 @@ s <- shinyServer(function(input, output, session){
         </script>"
       )
     })
-    #----------------------------------------------------------------
+    #---------------------Geography map code-----------------------
+    
+    
+    # nodes_geo <- reactive({
+    #   
+    #   tmp_df <- data.frame(id = unique(c(df$from, df$to)))
+    #   tmp_df <- tmp_df %>% inner_join(unique(df_nodes),
+    #                                   by="id", keep=F)
+    # })
     
     nodes_geo <- reactive({
+      unique_mn <- unique(df$map_name)
+      mp_coords <- data.frame(map_name=unique_mn)
       # browser()
-      tmp_df <- data.frame(id = unique(c(df$from,
-                                         df$to)))
-      tmp_df <- tmp_df %>% inner_join(unique(df_nodes),
-                                      by="id", keep=F)
+      mp_coords$lat <- 0
+      mp_coords$long <- 0
+      mp_betweenness <- 0
+      # mp_coords$count <- 0
+      for(i in 1:length(unique_mn))
+      {
+        mn <- unique_mn[i]
+        # print(mn)
+        tmp.edges <- df[df$map_name==mn, c('from', 'to')]
+        tmp.nodes <- unique(c(tmp.edges$from, tmp.edges$to))
+        tmp.nodes <- data.frame(id=tmp.nodes) %>% 
+                        inner_join(nodes[, c('id', 'between')], by='id')
+        avg_betweenness <- mean(tmp.nodes$between)
+        
+        coord <- coords[coords$map_name==mn,]
+        
+        mp_coords[mp_coords$map_name==mn, c('lat', 'long')] <- 
+                              coord[, c('latitude', 'longitude')]
+        
+        # Use betweenness centrality to color the nodes
+        # browser()
+        mp_coords[mp_coords$map_name==mn, 'betweenness'] <- avg_betweenness
+        # mp_coords[mp_coords$map_name==mn, 'count'] <- n_edges
+      }
+      # browser()
+      tmp.colorPalette <- colorRampPalette(c('blue', 'red'))(7)
+      counts_cut <- cut(mp_coords$betweenness, 7)
+      node.color <- tmp.colorPalette[as.numeric(counts_cut)]
+      mp_coords$color <- node.color
+      
+      mp_coords
     })
-
-    # edges_geo <- reactive({
-    #
-    # })
-
+    
     output$geoMap <- renderPlot({
-      # browser()
-      # map_name <- unique(nodes_geo()$map_name)
-
-      # map("county", regions=c("new jersey"), boundary=T, col='tomato',
-      #     fill=T)
-      maps::map(database="world", border="gray10", fill=T, bg='black',
-          col="grey20")#, xlim=range(nodes_geo()$longitude, na.rm=T), 
-                      #  ylim=range(nodes_geo()$latitude, na.rm=T))
-
-      points(x=nodes_geo()$latitude, y=nodes_geo()$longitude, pch=19, 
-             col='orange', cex=2)
+      
+      lat_range <- range(nodes_geo()$lat)
+      lon_range <- range(nodes_geo()$long)
+      
+      maps::map(database="world", 
+                border="gray10", fill=T, bg='black', col="grey20")
+      
+      points(x=nodes_geo()$lat, y=nodes_geo()$long, pch=19, 
+             col=nodes_geo()$color, cex=2)
+     
+      tmp.edges <- unique(df[, c('from', 'to')] )
+      tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
+                                            by=c('from'='id'), copy=T)
+      cnames <- colnames(tmp.edges)
+      cnames[cnames=='map_name'] <- 'g1_map'
+      colnames(tmp.edges) <- cnames
+      
+      tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
+                                            by=c('to'='id'), copy=T)
+      cnames <- colnames(tmp.edges)
+      cnames[cnames=='map_name'] <- 'g2_map'
+      colnames(tmp.edges) <- cnames
+      
+      tmp.edges <- tmp.edges %>% inner_join(coords, by=c('g1_map'='map_name'))
+      cnames <- colnames(tmp.edges)
+      cnames[cnames=='latitude'] <- 'latitude1'
+      cnames[cnames=='longitude'] <- 'longitude1'
+      colnames(tmp.edges) <- cnames
+      
+      tmp.edges <- tmp.edges %>% inner_join(coords, by=c('g2_map'='map_name'))
+      cnames <- colnames(tmp.edges)
+      cnames[cnames=='latitude'] <- 'latitude2'
+      cnames[cnames=='longitude'] <- 'longitude2'
+      colnames(tmp.edges) <- cnames
+      
+      unique.edges <- unique(tmp.edges)
+      for(mn_idx in 1:nrow(unique.edges))
+      {
+        coord1 <- unique.edges[mn_idx, c('latitude1', 'longitude1')]
+        coord2 <- unique.edges[mn_idx, c('latitude2', 'longitude2')]
+        intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
+        lines(intEdges, col='orange', lwd=2)
+      }
     })
     
     #-------------------- Hierarchical code------------------------------------

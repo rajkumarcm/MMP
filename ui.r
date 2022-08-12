@@ -144,6 +144,10 @@ u <- shinyUI(fluidPage(
                                      style = "background-color: #eeeeee;"),
                             
                             tabPanel("Geographical",
+                                     selectInput("g_map_name", 
+                                                 label="Select Map:", 
+                                                 choices = unique(df$map_name),
+                                                 selected = "Iraq"),
                                      plotOutput("geoMap"),
                                      style = "background-color: #eeeeee;")
                             

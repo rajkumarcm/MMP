@@ -81,7 +81,7 @@ extra_cnames <- data.frame(x=colnames(nodes_extra))
 
 # Nodes database-------------------------------------------------------------
 
-df_nodes <- read.csv("data/new_nodes.csv", header=T,)
+df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
 # df_nodes <- df_nodes %>% regex_left_join(links[, c("URL", "Anchor")],
 #                                          by=c("group_name"="Anchor"))
 df_nodes <- df_nodes %>% left_join(links[, c("URL", "Anchor")],
@@ -135,6 +135,7 @@ betweenness =  betweenness(graph, directed = F, normalized=T)
 # organised in the nodes dataframe so we only link the values with those
 # that they truly belong to.
 between <- betweenness[match(nodes$id, names(betweenness))]
+nodes$between <- between
 colorPalette <- colorRampPalette(c('blue','red'))
 
 # After visualizing the distribution of betweenness centrality by means of
@@ -153,7 +154,7 @@ nodes$color.hover.background <- c("#A2D1F7", "#B487F5", "#F88C8C")[betweenness_r
 nodes$color.border <- "slategrey"
 nodes$color.hover.border <- "black"
 
-nodes <- nodes[, c('id', 'value', 'central_color', 'between_color',
+nodes <- nodes[, c('id', 'value', 'central_color', 'between', 'between_color',
                    'color.border', 'color.highlight.background',
                    'color.hover.background', 'color.hover.border')]
 # End of centrality---------------------------------------
@@ -175,8 +176,8 @@ cnames[cnames=='group_id'] <- 'id'
 cnames[cnames=='group_name'] <- 'label'
 cnames[cnames=='description'] <- 'title'
 cnames[cnames=='startyear'] <- 'level'
-cnames[cnames=='lat'] <- 'latitude'
-cnames[cnames=='long'] <- 'longitude'
+# cnames[cnames=='lat'] <- 'latitude'
+# cnames[cnames=='long'] <- 'longitude'
 colnames(df_nodes) <- cnames
 
 #------------------------------------------------------------------------------
@@ -192,8 +193,8 @@ status_dict <- unique(df[, c('status', 'status_id')])
 status_dict <- status_dict[status_dict$status=='Mergers' | 
                              status_dict$status=='Splinters',]
 
-
-
+coords <- read.csv('data/maps_coord.csv', header=T)
+colnames(coords) <- c('map_name', 'latitude', 'longitude')
 
 
 
