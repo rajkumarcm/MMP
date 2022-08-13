@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>Zoom effect</title>
+<style>
+  .zoom
+  {
+    height:100vh;
+    width:100%;
+    display:grid;
+    place-items:center;
+    position:fixed;
+    top:0;
+    left:0;
+  }
+</style>
+
+</head>
+<body onmouseover="mouseover(event);">
+  <div id="txt"></div>
+  <div class='zoom'>
+     <h1>Zoom me</h1>
+  </div>
+<script>
+   const zoomElement = document.querySelector('.zoom');
+   let zoom = 1;
+
+   const ZOOM_SPEED = 0.1;
+   
+   document.addEventListener('wheel', function(e){
+	 //alert(zoomElement);
+	 if(e.deltaY > 0)
+	 {
+		zoomElement.style.transform = `scale(${zoom += ZOOM_SPEED})`;
+	 }
+	 else
+		zoomElement.style.transform = `scale(${zoom -= ZOOM_SPEED})`;
+      });
+   
+   
+   let txtElem = document.getElementById("txt");
+   function mouseover(e){
+		let xPos = event.pageX;
+		let yPos = event.pageY;
+		let posStr = xPos.toString() + ", " + yPos.toString();
+		console.log(posStr);
+		txtElem.innerHTML = posStr;
+   }
+   
+	
+</script>
+  
+</body>
+</html>
