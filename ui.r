@@ -140,6 +140,22 @@ u <- shinyUI(fluidPage(
                                                       height="1000px",
                                                       width="100%"),
                                      
+                                     tags$script("
+                                                 
+                                      var h_legend_sub = document.getElementById('h_legend_sub');
+                                      h_legend_sub.style.marginTop = '0px';
+                                      var original_cy = 397;
+                                      
+                                      function moveLegend(c_y){
+                                        let diff_y = c_y - original_cy;
+                                        let mTop = parseInt(h_legend_sub.style.marginTop);
+                                        h_legend_sub.style.marginTop = (mTop + diff_y) + 'px';
+                                      }
+                                      
+                                      Shiny.addCustomMessageHandler('moveLegend', moveLegend);
+                                    
+                                    "),
+                                     
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Sankey", 

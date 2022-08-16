@@ -1086,12 +1086,11 @@ s <- shinyServer(function(input, output, session){
         visEvents(zoom = "function(properties){
                             Shiny.setInputValue('zoomDel', properties);
                           }",
-                  dragging = "function(properties)
+                  dragEnd = "function(properties)
                               {
                                 Shiny.setInputValue('dragDel', properties);
                               }"
-                  ) %>%
-        visInteraction(navigationButtons=T)
+                  )
     })
     
     output$h_legend_sub <- renderUI({
@@ -1121,12 +1120,14 @@ s <- shinyServer(function(input, output, session){
     observeEvent(input$zoomDel, {
       if(input$zoomDel[['scale']] < 0.4)
       {
-        # browser()
+        browser()
       }
     })
     
     observeEvent(input$dragDel, {
       # browser()
+      centerY <- ((input$dragDel[['event']])$center)$y
+      session$sendCustomMessage('moveLegend', centerY)
     })
     
 })

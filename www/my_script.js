@@ -44,7 +44,7 @@ function showDesc(label)
 
 function hideDesc()
 {
-  var popDiv = document.getElementById("popDiv");
+  let popDiv = document.getElementById("popDiv");
   popDiv.style.display ='none';
 }
 
