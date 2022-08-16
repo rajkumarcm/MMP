@@ -126,11 +126,15 @@ u <- shinyUI(fluidPage(
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Hierarchical", 
+                                     
                                      selectInput("h_map_name",
                                                  "Select map:",
                                                  # For debugging purposes change to maps[1] once finished
                                                  selected = 'Iraq',
                                                  choices = unique(df$map_name)),
+                                     
+                                     div(id="h_legend", 
+                                         uiOutput("h_legend_sub")),
                                      
                                      visNetworkOutput("visnetworktimeline",
                                                       height="1000px",

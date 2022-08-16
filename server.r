@@ -587,12 +587,12 @@ get_all_done <- function(nodes, edges)
   }
   # centralise_all()
   
+  y.node_spacing <- 150
   estimate_ycoord <- function(nodes)
   {
-    y.node_spacing <- 150
     years <- unique(nodes$year)
     years <- data.frame(year=years) %>% arrange(year)
-    years$y <- seq(0, by=150, length.out=nrow(years))
+    years$y <- seq(0, by=y.node_spacing, length.out=nrow(years))
     nodes <- nodes %>% inner_join(years, by="year")
     return(nodes)
   }
@@ -620,6 +620,44 @@ get_legend <- function(ledges)
      y <- y + 50
    }
    html_content
+}
+
+get_h_legend <- function(levels)
+{
+  # Here the levels is a dataframe that should contain both
+  # the years and y-coordinate associated to the edge pertaining to that level
+  
+  new_levels <- NULL
+  for(i in 1:(nrow(levels)-1))
+  {
+    prev_y <- levels[i, 'y']
+    next_y <- levels[i+1, 'y']
+    edge_y <- prev_y + ((next_y - prev_y)/2)
+    row <- data.frame(y=edge_y, year=levels[i+1, 'year'])
+    
+    if(is.null(new_levels))
+    {
+      new_levels <- row
+    }
+    else
+    {
+      new_levels <- rbind(new_levels, row)
+    }
+  }
+  # browser()
+  levels <- new_levels
+  html_content <- ""
+  for(i in 1:nrow(levels))
+  {
+    year <- levels[i, 'year']
+    y <- levels[i, 'y']
+    label <- as.character(year)
+    line <- sprintf("<line x1='0' y1='%dpx' x2='90px' y2='%dpx' stroke='black' stroke-width='3px' />", y, y)
+    text <- sprintf("<text x='100px' y='%dpx' class='legend_label'>%s</text>", y, label)
+    sub_html <- paste0(line, text)
+    html_content <- paste(html_content, sub_html)
+  }
+  html_content
 }
 
 s <- shinyServer(function(input, output, session){
@@ -697,7 +735,8 @@ s <- shinyServer(function(input, output, session){
                edges(),
                width = "100%")  %>%
       visEvents(select = "function(properties) {
-     Shiny.setInputValue('link_nid', properties.nodes);}") %>%
+     Shiny.setInputValue('link_nid', properties.nodes);}"
+                ) %>%
       visPhysics(solver = "forceAtlas2Based",
                  forceAtlas2Based = list(avoidOverlap=0.7,
                                          gravitationalConstant=-100,
@@ -1027,11 +1066,67 @@ s <- shinyServer(function(input, output, session){
     
     output$visnetworktimeline <- renderVisNetwork({
       
+      tmp.nodes <- dfs()[[1]]
+      root_nodes <- tmp.nodes[tmp.nodes$root==T,]
+      root_nodes <- root_nodes %>% arrange(year)
+      initial_node <- root_nodes[1,]
+      initial_id <- initial_node[, c('id')]
+      
       visNetwork(dfs()[[1]], dfs()[[2]]) %>%
         visEdges(
           arrows=list(to=list(enabled=T))) %>%
-        visPhysics(enabled = F)
+        visPhysics(enabled = F) %>% 
+        visEvents(type='once',
+                  beforeDrawing=sprintf("function(){
+                                          this.moveTo({scale:0.9,
+                                                       position: {x:750, y:500},
+                                                       });
+                                          
+                                         }")) %>%
+        visEvents(zoom = "function(properties){
+                            Shiny.setInputValue('zoomDel', properties);
+                          }",
+                  dragging = "function(properties)
+                              {
+                                Shiny.setInputValue('dragDel', properties);
+                              }"
+                  ) %>%
+        visInteraction(navigationButtons=T)
     })
     
+    output$h_legend_sub <- renderUI({
+      
+      # browser()
+      tmp.nodes <- dfs()[[1]]
+      
+      tmp.levels <- unique(tmp.nodes[, c('year', 'y')])
+      tmp.levels <- tmp.levels %>% arrange(year)
+      svg_content <- get_h_legend(tmp.levels)
+      HTML(
+        paste0("
+        <style>
+          .legend_label
+          {
+            font-size:15pt;
+          }
+        </style>
+        <!--<h2 style='width:100px;'>Legend</h2>-->
+        </br>
+        <svg viewBox='0 0 264 950' xmlns='http://www.w3.org/2000/svg'>",
+               paste0(
+                 svg_content, "</svg>"))
+      )
+    })
+    
+    observeEvent(input$zoomDel, {
+      if(input$zoomDel[['scale']] < 0.4)
+      {
+        # browser()
+      }
+    })
+    
+    observeEvent(input$dragDel, {
+      # browser()
+    })
     
 })
