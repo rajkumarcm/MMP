@@ -652,8 +652,8 @@ get_h_legend <- function(levels)
     year <- levels[i, 'year']
     y <- levels[i, 'y']
     label <- as.character(year)
-    line <- sprintf("<line x1='0' y1='%dpx' x2='90px' y2='%dpx' stroke='black' stroke-width='3px' />", y, y)
-    text <- sprintf("<text x='100px' y='%dpx' class='legend_label'>%s</text>", y, label)
+    line <- sprintf("<line x1='0' y1='%dpx' x2='40px' y2='%dpx' stroke='black' stroke-width='3px' />", y, y)
+    text <- sprintf("<text x='50px' y='%dpx' class='legend_label'>%s</text>", y, label)
     sub_html <- paste0(line, text)
     html_content <- paste(html_content, sub_html)
   }
@@ -931,7 +931,7 @@ s <- shinyServer(function(input, output, session){
         </style>
         </br></br></br></br>
         <h2 style='width:100px;'>Legend</h2>
-        <svg viewBox='0 0 301 500' xmlns='http://www.w3.org/2000/svg'>",
+        <svg viewBox='0 0 373 500' xmlns='http://www.w3.org/2000/svg'>",
         paste0(
            svg_content, "</svg>"))
       )
@@ -1096,8 +1096,12 @@ s <- shinyServer(function(input, output, session){
                               {
                                 Shiny.setInputValue('dragDel', properties);
                               }"
-                  )
+                  ) %>%
+        visInteraction(zoomView = F) %>%
+        visOptions(autoResize=F)
     })
+    
+    h_networkProxy <- visNetworkProxy("visnetworktimeline")
     
     output$h_legend_sub <- renderUI({
       
@@ -1117,17 +1121,17 @@ s <- shinyServer(function(input, output, session){
         </style>
         <!--<h2 style='width:100px;'>Legend</h2>-->
         </br>
-        <svg viewBox='0 0 264 3000' xmlns='http://www.w3.org/2000/svg'>",
+        <svg viewBox='0 0 130 3000' xmlns='http://www.w3.org/2000/svg'>",
                paste0(
                  svg_content, "</svg>"))
       )
     })
     
     observeEvent(input$zoomDel, {
-      if(input$zoomDel[['scale']] < 0.4)
-      {
-        browser()
-      }
+      # browser()
+      direction <- input$zoomDel[['direction']]
+      
+      session$sendCustomMessage('scaleLegend', direction)
     })
     
     observeEvent(input$dragDel, {

@@ -88,6 +88,7 @@ u <- shinyUI(fluidPage(
                                                                         "Rivals"=1,
                                                                         "Splinters"=4)
                                          ),
+                                         HTML('</br>'),
                                          selectInput("selectStatus",
                                                      "Highlight one status",
                                                      selected = 0,
@@ -98,16 +99,18 @@ u <- shinyUI(fluidPage(
                                                                  "Rivals"=1,
                                                                  "Splinters"=4
                                                      )),
-                                         
+                                         HTML('</br>'),
                                          sliderInput("range", 
                                                      label = "Choose a start and end year:",
                                                      min = min(df$year), max = max(df$year), 
                                                      value = c(min(df$year), max(df$year)), 
                                                      sep = "",
-                                                     width=360),
-                                                     animate=T),
+                                                     width=360, animate=T),
                                          
-                                         uiOutput("nvf_legend_sub"),
+                                         uiOutput("nvf_legend_sub")
+                                         
+                                        ),
+                                         
 
                                          div(id="nvf_mp",
                                              div(id="popDiv"),
@@ -127,18 +130,23 @@ u <- shinyUI(fluidPage(
                             
                             tabPanel("Hierarchical", 
                                      
-                                     selectInput("h_map_name",
-                                                 "Select map:",
-                                                 # For debugging purposes change to maps[1] once finished
-                                                 selected = 'Iraq',
-                                                 choices = unique(df$map_name)),
+                                     div(id='h_select_map', 
+                                       selectInput("h_map_name",
+                                                   "Select map:",
+                                                   # For debugging purposes change to maps[1] once finished
+                                                   selected = 'Iraq',
+                                                   choices = unique(df$map_name),
+                                                   width = '200px') 
+                                       ),
                                      
-                                     div(id="h_legend", 
-                                         uiOutput("h_legend_sub")),
-                                     
-                                     visNetworkOutput("visnetworktimeline",
-                                                      height="1000px",
-                                                      width="100%"),
+                                     div(id='h_subcontainer', 
+                                         div(id="h_legend", 
+                                             uiOutput("h_legend_sub")),
+                                         
+                                         visNetworkOutput("visnetworktimeline", 
+                                                          width="1312px",
+                                                          height="1000px")
+                                       ),
                                      
                                      tags$script("
                                                  
@@ -155,6 +163,17 @@ u <- shinyUI(fluidPage(
                                       }
                                       
                                       Shiny.addCustomMessageHandler('moveLegend', moveLegend);
+                                      const ZOOM_SPEED = 0.01;
+                                      let zoom = 1;
+                                      function scaleLegend(direction)
+                                      {
+                                        if(direction == '+')
+                                          h_legend_sub.style.transform = `scale(${zoom += ZOOM_SPEED})`;
+                                        else
+                                          h_legend_sub.style.transform = `scale(${zoom -= ZOOM_SPEED})`;
+                                      }
+                                      
+                                      Shiny.addCustomMessageHandler('scaleLegend', scaleLegend);
                                     
                                     "),
                                      
