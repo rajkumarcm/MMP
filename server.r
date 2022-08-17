@@ -1078,11 +1078,17 @@ s <- shinyServer(function(input, output, session){
         visPhysics(enabled = F) %>% 
         visEvents(type='once',
                   beforeDrawing=sprintf("function(){
-                                          this.moveTo({scale:0.9,
-                                                       position: {x:750, y:500},
+                                          this.moveTo({scale:1,
+                                                       position: {x:650, y:450},
                                                        });
                                           
-                                         }")) %>%
+                                         }")#,
+                  # afterDrawing="function(){
+                  #                           let pos = this.getViewPosition();
+                  #                           let posY = pos.y;
+                  #                           alert(posY);
+                  #                       }"
+                  ) %>%
         visEvents(zoom = "function(properties){
                             Shiny.setInputValue('zoomDel', properties);
                           }",
@@ -1111,7 +1117,7 @@ s <- shinyServer(function(input, output, session){
         </style>
         <!--<h2 style='width:100px;'>Legend</h2>-->
         </br>
-        <svg viewBox='0 0 264 950' xmlns='http://www.w3.org/2000/svg'>",
+        <svg viewBox='0 0 264 3000' xmlns='http://www.w3.org/2000/svg'>",
                paste0(
                  svg_content, "</svg>"))
       )
@@ -1126,8 +1132,33 @@ s <- shinyServer(function(input, output, session){
     
     observeEvent(input$dragDel, {
       # browser()
-      centerY <- ((input$dragDel[['event']])$center)$y
-      session$sendCustomMessage('moveLegend', centerY)
+      # logging::loginfo(input$dragDel)
+      deltaY <- (input$dragDel[['event']])$deltaY
+      # angle <- ((input$dragDel[['event']])$center)$y
+      session$sendCustomMessage('moveLegend', deltaY)
     })
     
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

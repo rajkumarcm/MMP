@@ -144,12 +144,14 @@ u <- shinyUI(fluidPage(
                                                  
                                       var h_legend_sub = document.getElementById('h_legend_sub');
                                       h_legend_sub.style.marginTop = '0px';
-                                      var original_cy = 397;
+                                      //var original_cy = 500;
                                       
-                                      function moveLegend(c_y){
-                                        let diff_y = c_y - original_cy;
+                                      function moveLegend(d_y){
+                                        //alert(c_y);
+                                        //let diff_y = c_y - original_cy;
                                         let mTop = parseInt(h_legend_sub.style.marginTop);
-                                        h_legend_sub.style.marginTop = (mTop + diff_y) + 'px';
+                                        let new_mTop = mTop + d_y;
+                                        h_legend_sub.style.marginTop = new_mTop + 'px';
                                       }
                                       
                                       Shiny.addCustomMessageHandler('moveLegend', moveLegend);
