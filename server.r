@@ -632,7 +632,7 @@ get_h_legend <- function(levels)
   {
     prev_y <- levels[i, 'y']
     next_y <- levels[i+1, 'y']
-    edge_y <- prev_y + ((next_y - prev_y)/2)
+    edge_y <- prev_y + ((next_y - prev_y)/2) + 20 # 20 = offset
     row <- data.frame(y=edge_y, year=levels[i+1, 'year'])
     
     if(is.null(new_levels))
@@ -1079,7 +1079,7 @@ s <- shinyServer(function(input, output, session){
         visEvents(type='once',
                   beforeDrawing=sprintf("function(){
                                           this.moveTo({scale:1,
-                                                       position: {x:650, y:450},
+                                                       position: {x:1150, y:450},
                                                        });
                                           
                                          }")#,
@@ -1103,7 +1103,7 @@ s <- shinyServer(function(input, output, session){
     
     h_networkProxy <- visNetworkProxy("visnetworktimeline")
     
-    output$h_legend_sub <- renderUI({
+    output$year_ruler_sub <- renderUI({
       
       # browser()
       tmp.nodes <- dfs()[[1]]
@@ -1122,6 +1122,37 @@ s <- shinyServer(function(input, output, session){
         <!--<h2 style='width:100px;'>Legend</h2>-->
         </br>
         <svg viewBox='0 0 130 3000' xmlns='http://www.w3.org/2000/svg'>",
+               paste0(
+                 svg_content, "</svg>"))
+      )
+    })
+    
+    output$h_legend_sub <- renderUI({
+      # browser()
+      ledges <- dfs()[[2]]
+      ledges <- unique(ledges[, c('status', 'color')])
+      cnames <- colnames(ledges)
+      cnames[cnames=='status'] <- 'label'
+      colnames(ledges) <- cnames
+      svg_content1 <- get_legend(ledges)
+      svg_content2 <- "
+            <circle cx='20' cy='200' r='20' fill='#97C2FC' />
+            <text x='60px' y='200' class='legend_label'>Original Node</text>
+            <circle cx='20' cy='260' r='20' fill='#FB7E81' />
+            <text x='60px' y='260' class='legend_label'>Clone Node</text>
+      "
+      svg_content <- paste(svg_content1, svg_content2)
+      HTML(
+        paste0("
+        <style>
+          .legend_label
+          {
+            font-size:15pt;
+          }
+        </style>
+        <h2 style='width:100px;'>Legend</h2>
+        </br>
+        <svg viewBox='0 0 300 1000' xmlns='http://www.w3.org/2000/svg'>",
                paste0(
                  svg_content, "</svg>"))
       )

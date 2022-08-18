@@ -140,26 +140,28 @@ u <- shinyUI(fluidPage(
                                        ),
                                      
                                      div(id='h_subcontainer', 
-                                         div(id="h_legend", 
-                                             uiOutput("h_legend_sub")),
+                                         div(id="year_ruler", 
+                                             uiOutput("year_ruler_sub")),
                                          
                                          visNetworkOutput("visnetworktimeline", 
-                                                          width="1312px",
-                                                          height="1000px")
+                                                          width="2377px",
+                                                          height="1000px"),
+                                         
+                                         div(id="h_legend", uiOutput("h_legend_sub"))
                                        ),
                                      
                                      tags$script("
                                                  
-                                      var h_legend_sub = document.getElementById('h_legend_sub');
-                                      h_legend_sub.style.marginTop = '0px';
+                                      var year_ruler_sub = document.getElementById('year_ruler_sub');
+                                      year_ruler_sub.style.marginTop = '0px';
                                       //var original_cy = 500;
                                       
                                       function moveLegend(d_y){
                                         //alert(c_y);
                                         //let diff_y = c_y - original_cy;
-                                        let mTop = parseInt(h_legend_sub.style.marginTop);
+                                        let mTop = parseInt(year_ruler_sub.style.marginTop);
                                         let new_mTop = mTop + d_y;
-                                        h_legend_sub.style.marginTop = new_mTop + 'px';
+                                        year_ruler_sub.style.marginTop = new_mTop + 'px';
                                       }
                                       
                                       Shiny.addCustomMessageHandler('moveLegend', moveLegend);
@@ -168,9 +170,9 @@ u <- shinyUI(fluidPage(
                                       function scaleLegend(direction)
                                       {
                                         if(direction == '+')
-                                          h_legend_sub.style.transform = `scale(${zoom += ZOOM_SPEED})`;
+                                          year_ruler_sub.style.transform = `scale(${zoom += ZOOM_SPEED})`;
                                         else
-                                          h_legend_sub.style.transform = `scale(${zoom -= ZOOM_SPEED})`;
+                                          year_ruler_sub.style.transform = `scale(${zoom -= ZOOM_SPEED})`;
                                       }
                                       
                                       Shiny.addCustomMessageHandler('scaleLegend', scaleLegend);
@@ -182,7 +184,7 @@ u <- shinyUI(fluidPage(
                             tabPanel("Sankey", 
                                      sankeyNetworkOutput("diagram",
                                                          height="500px"),
-                                     style = "background-color: #eeeeee;"),
+                                     style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Geographical",
                                      selectInput("g_map_name", 
@@ -190,7 +192,15 @@ u <- shinyUI(fluidPage(
                                                  choices = unique(df$map_name),
                                                  selected = "Iraq"),
                                      plotOutput("geoMap"),
-                                     style = "background-color: #eeeeee;")
+                                     style = "background-color: #FCFCF3;"),
+                            
+                            tabPanel("Geographical",
+                                     selectInput("g_map_name", 
+                                                 label="Select Map:", 
+                                                 choices = unique(df$map_name),
+                                                 selected = "Iraq"),
+                                     plotOutput("geoMap"),
+                                     style = "background-color: #FCFCF3;"),
                             
                           )
                           
