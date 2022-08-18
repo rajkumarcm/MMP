@@ -1173,8 +1173,23 @@ s <- shinyServer(function(input, output, session){
       session$sendCustomMessage('moveLegend', deltaY)
     })
     
+    #-------------------------Statistical Plot--------------------------------------
+    
+    observeEvent(input$s_map_name, {
+      map_name <- input$s_map_name
+      tmp.df <- df[df$map_name==map_name, c('group1_name', 'group2_name', 'year', 
+                                            'label')]
+      
+      output$statistical_plot <- renderPlot({
+        ggplot(tmp.df, aes(x=year, fill=label)) + 
+          geom_bar(position='dodge', stat='count')
+      })
+      
+      
+      
+    })
+    
 })
-
 
 
 
