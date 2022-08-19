@@ -144,7 +144,7 @@ u <- shinyUI(fluidPage(
                                              uiOutput("year_ruler_sub")),
                                          
                                          visNetworkOutput("visnetworktimeline", 
-                                                          width="2377px",
+                                                          width="2477px",
                                                           height="1000px"),
                                          
                                          div(id="h_legend", uiOutput("h_legend_sub"))

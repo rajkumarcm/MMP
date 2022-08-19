@@ -603,7 +603,7 @@ get_all_done <- function(nodes, edges)
 }
 
 #---------------End of hierarchical code----------------------------------------
-get_legend <- function(ledges)
+get_legend <- function(ledges, include_second_line=T)
 {
    html_content <- ""
    y <- 30
@@ -614,7 +614,11 @@ get_legend <- function(ledges)
      line1 <- sprintf("<line x1='0' y1='%dpx' x2='90px' y2='%dpx' stroke='%s' stroke-width='3px' />", y, y, color)
      text <- sprintf("<text x='100px' y='%dpx' class='legend_label'><a href='javascript:showDesc(\"%s\");'>%s</a></text>", y, label, label)
      line2 <- sprintf("<line x1='190px' y1='%dpx' x2='280px' y2='%dpx' stroke='%s' stroke-width='3px' />", y, y, color)
-     sub_html <- paste0(line1, paste0(text, line2))
+     sub_html <- ""
+     if(include_second_line==T)
+       sub_html <- paste0(line1, paste0(text, line2))
+     else
+       sub_html <- paste0(line1, text) 
      
      html_content <- paste(html_content, sub_html)
      y <- y + 50
@@ -944,15 +948,7 @@ s <- shinyServer(function(input, output, session){
         </script>"
       )
     })
-    #---------------------Geography map code-----------------------
-    
-    
-    # nodes_geo <- reactive({
-    #   
-    #   tmp_df <- data.frame(id = unique(c(df$from, df$to)))
-    #   tmp_df <- tmp_df %>% inner_join(unique(df_nodes),
-    #                                   by="id", keep=F)
-    # })
+    #---------------------Geography map code----------------------------------
     
     nodes_geo <- reactive({
       unique_mn <- unique(df$map_name)
@@ -969,8 +965,8 @@ s <- shinyServer(function(input, output, session){
         tmp.edges <- df[df$map_name==mn, c('from', 'to')]
         tmp.nodes <- unique(c(tmp.edges$from, tmp.edges$to))
         tmp.nodes <- data.frame(id=tmp.nodes) %>% 
-                        inner_join(nodes[, c('id', 'between')], by='id')
-        avg_betweenness <- mean(tmp.nodes$between)
+                        inner_join(nodes[, c('id', 'value')], by='id')
+        avg_degree <- mean(tmp.nodes$value)
         
         coord <- coords[coords$map_name==mn,]
         
@@ -979,12 +975,12 @@ s <- shinyServer(function(input, output, session){
         
         # Use betweenness centrality to color the nodes
         # browser()
-        mp_coords[mp_coords$map_name==mn, 'betweenness'] <- avg_betweenness
+        mp_coords[mp_coords$map_name==mn, 'degree'] <- avg_degree
         # mp_coords[mp_coords$map_name==mn, 'count'] <- n_edges
       }
       # browser()
       tmp.colorPalette <- colorRampPalette(c('blue', 'red'))(7)
-      counts_cut <- cut(mp_coords$betweenness, 7)
+      counts_cut <- cut(mp_coords$degree, 7)
       node.color <- tmp.colorPalette[as.numeric(counts_cut)]
       mp_coords$color <- node.color
       
@@ -1027,13 +1023,45 @@ s <- shinyServer(function(input, output, session){
       cnames[cnames=='longitude'] <- 'longitude2'
       colnames(tmp.edges) <- cnames
       
+      # Color the edges
+      
+      # I wish to clone df as I would need to have access to the map_name for
+      # both group1 and group2 that has to be joined with df_nodes
+      tmp.df <- df[, c('from', 'to', 'group1_name', 'group2_name')]
+      tmp.df <- tmp.df %>% left_join(df_nodes[, c('id', 'map_name')], 
+                                     by=c('from'='id'))
+      cnames <- colnames(tmp.df)
+      cnames[cnames=='map_name'] <- 'map_name1'
+      colnames(tmp.df) <- cnames
+      tmp.df <- tmp.df %>% left_join(df_nodes[, c('id', 'map_name')], 
+                                     by=c('to'='id'))
+      cnames <- colnames(tmp.df)
+      cnames[cnames=='map_name'] <- 'map_name2'
+      colnames(tmp.df) <- cnames
+      unique.map1_map2 <- unique(tmp.df[, c('map_name1', 'map_name2')])
       unique.edges <- unique(tmp.edges)
+      unique.edges$count <- 0
+      for(i in 1:nrow(unique.map1_map2))
+      {
+        m1_m2 <- unique.map1_map2[i,]
+        count <- nrow(tmp.df[tmp.df$map_name1==m1_m2$map_name1 &
+                             tmp.df$map_name2==m1_m2$map_name2,])
+        # browser()
+        unique.edges[unique.edges$g1_map==m1_m2$map_name1 & 
+                     unique.edges$g2_map==m1_m2$map_name2, 'count'] <- count
+      }
+      
+      tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
+      count_binned <- cut(unique.edges$count, 7)
+      unique.edges$color <- tmp.colorPalette[as.numeric(count_binned)]
+      
       for(mn_idx in 1:nrow(unique.edges))
       {
         coord1 <- unique.edges[mn_idx, c('latitude1', 'longitude1')]
         coord2 <- unique.edges[mn_idx, c('latitude2', 'longitude2')]
+        color <- unique.edges[mn_idx, 'color']
         intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
-        lines(intEdges, col='orange', lwd=2)
+        lines(intEdges, col=color, lwd=2)
       }
     })
     
@@ -1105,7 +1133,7 @@ s <- shinyServer(function(input, output, session){
     
     output$year_ruler_sub <- renderUI({
       
-      # browser()
+      #--------------------Timeline ruler---------------------------------------
       tmp.nodes <- dfs()[[1]]
       
       tmp.levels <- unique(tmp.nodes[, c('year', 'y')])
@@ -1134,7 +1162,7 @@ s <- shinyServer(function(input, output, session){
       cnames <- colnames(ledges)
       cnames[cnames=='status'] <- 'label'
       colnames(ledges) <- cnames
-      svg_content1 <- get_legend(ledges)
+      svg_content1 <- get_legend(ledges, include_second_line=F)
       svg_content2 <- "
             <circle cx='20' cy='200' r='20' fill='#97C2FC' />
             <text x='60px' y='200' class='legend_label'>Original Node</text>
@@ -1152,7 +1180,7 @@ s <- shinyServer(function(input, output, session){
         </style>
         <h2 style='width:100px;'>Legend</h2>
         </br>
-        <svg viewBox='0 0 300 1000' xmlns='http://www.w3.org/2000/svg'>",
+        <svg viewBox='0 0 200 1000' xmlns='http://www.w3.org/2000/svg'>",
                paste0(
                  svg_content, "</svg>"))
       )

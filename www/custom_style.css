@@ -249,6 +249,7 @@ div:fullscreen
 #h_subcontainer
 {
   width:100%;
+  min-width:2880px;
   min-height:1000px;
   height:100%;
   margin-top:10px;
@@ -260,7 +261,6 @@ div:fullscreen
 {
   height:950px;
   width:130px;
-  position:absolute;
   overflow-y:clip;
   position:relative;
 }
@@ -275,7 +275,7 @@ div:fullscreen
 #h_legend
 {
   height:100%;
-  width:373px;
+  width:273px;
   position:relative;
   border-left-style:solid;
   border-left-color:#ddd;
@@ -283,7 +283,7 @@ div:fullscreen
 
 #h_legend_sub
 {
-  width:353px;
+  width:153px;
   margin-left:20px;
 }
 
