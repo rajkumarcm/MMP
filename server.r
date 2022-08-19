@@ -733,8 +733,8 @@ s <- shinyServer(function(input, output, session){
                        label = tmp_df$status
   )
 
- 
   output$networkvisfinal <- renderVisNetwork({
+    
     visNetwork(nodes2(),
                edges(),
                width = "100%")  %>%
@@ -770,7 +770,9 @@ s <- shinyServer(function(input, output, session){
                                 algorithm="hierarchical",
                                 degree=list(from=0, to=2)),
         nodesIdSelection = TRUE,
-        autoResize = T)
+        autoResize = T) %>%
+      visExport()
+    
   })
   
   observeEvent(input$link_nid, {
@@ -877,6 +879,20 @@ s <- shinyServer(function(input, output, session){
       }
     )
   })
+    
+    # observeEvent('export_btn', {
+    #   output$export_btn <- downloadHandler(
+    #     filename <- function(){
+    #       paste0('network-', Sys.Date(), '.png', sep='')
+    #     },
+    #     
+    #     content <- function(con){
+    #       browser()
+    #       spatial_graph %>%
+    #         visExport(type='png')
+    #     }
+    #   )
+    # })
     
     #------------------Sankey graph----------------------------------
     

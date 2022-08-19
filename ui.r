@@ -120,7 +120,7 @@ u <- shinyUI(fluidPage(
                                                       height="1000px"
                                                       ),
                                              div(id='footer', 
-                                                 uiOutput(outputId="link"),
+                                               uiOutput(outputId="link"),
                                                HTML("<img src='fullscreen.png' width='30px' height='30px' onmouseover='this.src=\"fullscreen_hover.png\";' onmouseout='this.src=\"fullscreen.png\";' onclick='toggleFS();' >")
                                              )
                                      )
