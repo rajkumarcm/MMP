@@ -119,6 +119,59 @@ u <- shinyUI(fluidPage(
                                                       width="100%", 
                                                       height="1000px"
                                                       ),
+                                     HTML('
+                                           <div id="loadingBar">
+                                             <div class="outerBorder">
+                                             <div id="lb_text">0%</div>
+                                             <div id="border">
+                                             <div id="bar"></div>
+                                             </div>
+                                             </div>
+                                             </div>'
+                                          ),
+                                     
+                                     tags$script(
+                                       '
+                                       var lb = document.getElementById("bar"); // inner part of the loading bar
+                                        var txt = document.getElementById("lb_text");
+                                        var loadingBar = document.getElementById("loadingBar");
+                                        function updatePB(params)
+                                        {
+                                        loadingBar.style.display="block";
+                                          var maxWidth = 496;
+                                          var minWidth = 20;
+                                          //alert(params.iterations + "" + params.total);
+                                          let iterations = params.iterations;
+                                          if(typeof params.iterations != "number"){
+                                            iterations = 1000;
+                                          }
+                                          var widthFactor = iterations / 1000;
+                                          var width = Math.max(minWidth, maxWidth * widthFactor);
+                                          
+                                          lb.style.width = width + "px";
+                                          //alert(widthFactor + " " + params.iterations + " " + typeof iterations);
+                                          txt.innerText = Math.round(widthFactor * 100) + "%";
+                                          
+                                          if(widthFactor==1)
+                                            loadingBar.style.display="none";
+                               
+                                        }
+                                        
+                                        Shiny.addCustomMessageHandler("updatePB", updatePB);
+                                        
+                                        function completePB(dummy)
+                                        {
+                                          alert("completePB called");
+                                          let maxWidth = 496;
+                                          let minWidth = 20;
+                                          lb.style.width = maxWidth + "px";
+                                          //txt.innerText = "100%";
+                                          //loadingBar.style.display = "none";
+                                        }
+                                        Shiny.addCustomMessageHandler("completePB", updatePB);
+                                       '
+                                     ),
+                                       
                                              div(id='footer', 
                                                uiOutput(outputId="link"),
                                                HTML("<img src='fullscreen.png' width='30px' height='30px' onmouseover='this.src=\"fullscreen_hover.png\";' onmouseout='this.src=\"fullscreen.png\";' onclick='toggleFS();' >")

@@ -738,8 +738,15 @@ s <- shinyServer(function(input, output, session){
     visNetwork(nodes2(),
                edges(),
                width = "100%")  %>%
-      visEvents(select = "function(properties) {
-     Shiny.setInputValue('link_nid', properties.nodes);}"
+      visEvents(type='on',
+              select = "function(properties) {
+     Shiny.setInputValue('link_nid', properties.nodes);}",
+                stabilizationProgress = "function(params){
+                    Shiny.setInputValue('updatePB', params);
+                }",
+                stabilized = "function(){
+                    Shiny.setInputValue('completePB', '');
+                }"
                 ) %>%
       visPhysics(solver = "forceAtlas2Based",
                  forceAtlas2Based = list(avoidOverlap=0.7,
@@ -773,6 +780,14 @@ s <- shinyServer(function(input, output, session){
         autoResize = T) %>%
       visExport()
     
+  })
+  
+  observeEvent(input$updatePB, {
+    session$sendCustomMessage('updatePB', input$updatePB)
+  })
+  
+  observeEvent(input$completePB, {
+    session$sendCustomMessage('completePB', '')
   })
   
   observeEvent(input$link_nid, {
