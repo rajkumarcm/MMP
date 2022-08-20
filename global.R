@@ -221,12 +221,19 @@ get_clusters <- function()
     for(i in 1:nrow(edges))
     {
       edge <- edges[i,]
-      reverse_edge_id <- nrow(edges[edges$from==edge$to &
-                              edges$to==edge$from, 'id'])
+      if(edge$from==2 & edge$to==3)
+      {
+        # print('debug...')
+        # browser()
+      }
+      
+      reverse_edge_id <- edges[edges$from==edge$to &
+                               edges$to==edge$from, 'id']
       count <- length(reverse_edge_id)
       if(count == 1)
       {
-        if(!id %in% accepted_list)
+        # browser()
+        if(!reverse_edge_id %in% accepted_list)
         {
           accepted_list <- c(accepted_list, edge$id)
         }
@@ -270,12 +277,13 @@ get_clusters <- function()
   colnames(unique.edges) <- cnames
   
   unique.edges$id <- 1:nrow(unique.edges)
-  browser()
+  # browser()
   unique.edges <- remove_loop(tmp.nodes, unique.edges)
   unique.edges <- remove_bidirection(unique.edges)
   
-  tmp.nodes$shape <- 'square'
-  
+  tmp.nodes$shape <- 'database'
+  tmp.nodes$color <- 'orange'
+  tmp.nodes$font.size <- '28'
   return(list(tmp.nodes, unique.edges))
 }
 

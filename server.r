@@ -797,18 +797,17 @@ s <- shinyServer(function(input, output, session){
   
   alreadyClustered <- F
   observeEvent(input$clusterNodes, {
-    browser()
-    if(input$clusterNodes[['scale']] < 0.3 & alreadyClustered==F & 
+    if(input$clusterNodes[['scale']] < 0.08 & alreadyClustered==F & 
        input$map_name=='All')
     {
-      browser()
+      # browser()
       alreadyClustered <<- T
       visRemoveEdges(myVisNetworkProxy, edges()$id)
       visRemoveNodes(myVisNetworkProxy, nodes2()$id)
       visUpdateNodes(myVisNetworkProxy, clustered_nodes)
       visUpdateEdges(myVisNetworkProxy, clustered_edges)
     }
-    else if(input$clusterNodes[['scale']] >= 0.5 & alreadyClustered==T & 
+    else if(input$clusterNodes[['scale']] >= 0.8 & alreadyClustered==T & 
             input$map_name=='All')
     {
       alreadyClustered <<- F
@@ -1044,6 +1043,9 @@ s <- shinyServer(function(input, output, session){
       
       points(x=nodes_geo()$lat, y=nodes_geo()$long, pch=19, 
              col=nodes_geo()$color, cex=2)
+      
+      # Encode map information to both first and the second groups in the 
+      # edges dataframe.
      
       tmp.edges <- unique(df[, c('from', 'to')] )
       tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
