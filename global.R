@@ -196,5 +196,89 @@ status_dict <- status_dict[status_dict$status=='Mergers' |
 coords <- read.csv('data/maps_coord.csv', header=T)
 colnames(coords) <- c('map_name', 'latitude', 'longitude')
 
+get_clusters <- function()
+{
+  remove_loop <- function(nodes, edges)
+  {
+    map_names <- nodes$label
+    rejection_list <- c()
+    for(i in 1:length(map_names))
+    {
+      map_name <- map_names[i]
+      indices <- which(edges$g1_map==map_name & edges$g2_map==map_name)
+      # We do not want these edges
+      if(length(indices) > 0)
+      {
+        rejection_list <- c(rejection_list, indices)
+      }
+    }
+    edges <- edges[-rejection_list,]
+  }
+  
+  remove_bidirection <- function(edges)
+  {
+    accepted_list <- c()
+    for(i in 1:nrow(edges))
+    {
+      edge <- edges[i,]
+      reverse_edge_id <- nrow(edges[edges$from==edge$to &
+                              edges$to==edge$from, 'id'])
+      count <- length(reverse_edge_id)
+      if(count == 1)
+      {
+        if(!id %in% accepted_list)
+        {
+          accepted_list <- c(accepted_list, edge$id)
+        }
+      }
+      else if(count > 1)
+      {
+        print('catch me... this should not happen...')
+      }
+      else
+        accepted_list <- c(accepted_list, edge$id)
+    }
+    
+    edges <- edges[edges$id %in% accepted_list,]
+  }
+  
+  tmp.edges <- unique(df[, c('from', 'to')] )
+  tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
+                                        by=c('from'='id'), copy=T)
+  cnames <- colnames(tmp.edges)
+  cnames[cnames=='map_name'] <- 'g1_map'
+  colnames(tmp.edges) <- cnames
+  
+  tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
+                                        by=c('to'='id'), copy=T)
+  cnames <- colnames(tmp.edges)
+  cnames[cnames=='map_name'] <- 'g2_map'
+  colnames(tmp.edges) <- cnames
+  
+  unique.edges <- unique(tmp.edges[, c('g1_map', 'g2_map')])
+  tmp.nodes <- unique(c(unique.edges$g1_map, unique.edges$g2_map))
+  tmp.nodes <- data.frame(id=seq(1, length(tmp.nodes)), label=tmp.nodes)
+  
+  unique.edges <- unique.edges %>% inner_join(tmp.nodes, by=c("g1_map"="label"))
+  cnames <- colnames(unique.edges)
+  cnames[cnames=='id'] <- 'from'
+  colnames(unique.edges) <- cnames
+  
+  unique.edges <- unique.edges %>% inner_join(tmp.nodes, by=c("g2_map"="label"))
+  cnames <- colnames(unique.edges)
+  cnames[cnames=='id'] <- 'to'
+  colnames(unique.edges) <- cnames
+  
+  unique.edges$id <- 1:nrow(unique.edges)
+  browser()
+  unique.edges <- remove_loop(tmp.nodes, unique.edges)
+  unique.edges <- remove_bidirection(unique.edges)
+  
+  tmp.nodes$shape <- 'square'
+  
+  return(list(tmp.nodes, unique.edges))
+}
 
-
+clustered_dfs <- get_clusters()
+clustered_nodes <- clustered_dfs[[1]]
+clustered_edges <- clustered_dfs[[2]]

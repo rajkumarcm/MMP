@@ -159,7 +159,7 @@ u <- shinyUI(fluidPage(
                                         
                                         Shiny.addCustomMessageHandler("updatePB", updatePB);
                                         
-                                        function completePB(dummy)
+                                        /*function completePB(dummy)
                                         {
                                           alert("completePB called");
                                           let maxWidth = 496;
@@ -167,8 +167,9 @@ u <- shinyUI(fluidPage(
                                           lb.style.width = maxWidth + "px";
                                           //txt.innerText = "100%";
                                           //loadingBar.style.display = "none";
-                                        }
+                                        }*/
                                         Shiny.addCustomMessageHandler("completePB", updatePB);
+                                        
                                        '
                                      ),
                                        

@@ -746,6 +746,9 @@ s <- shinyServer(function(input, output, session){
                 }",
                 stabilized = "function(){
                     Shiny.setInputValue('completePB', '');
+                }",
+                zoom = "function(properties){
+                    Shiny.setInputValue('clusterNodes', properties);
                 }"
                 ) %>%
       visPhysics(solver = "forceAtlas2Based",
@@ -782,12 +785,38 @@ s <- shinyServer(function(input, output, session){
     
   })
   
+  myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+  
   observeEvent(input$updatePB, {
     session$sendCustomMessage('updatePB', input$updatePB)
   })
   
   observeEvent(input$completePB, {
     session$sendCustomMessage('completePB', '')
+  })
+  
+  alreadyClustered <- F
+  observeEvent(input$clusterNodes, {
+    browser()
+    if(input$clusterNodes[['scale']] < 0.3 & alreadyClustered==F & 
+       input$map_name=='All')
+    {
+      browser()
+      alreadyClustered <<- T
+      visRemoveEdges(myVisNetworkProxy, edges()$id)
+      visRemoveNodes(myVisNetworkProxy, nodes2()$id)
+      visUpdateNodes(myVisNetworkProxy, clustered_nodes)
+      visUpdateEdges(myVisNetworkProxy, clustered_edges)
+    }
+    else if(input$clusterNodes[['scale']] >= 0.5 & alreadyClustered==T & 
+            input$map_name=='All')
+    {
+      alreadyClustered <<- F
+      visRemoveEdges(myVisNetworkProxy, clustered_nodes$id)
+      visRemoveNodes(myVisNetworkProxy, clustered_edges$id)
+      visUpdateNodes(myVisNetworkProxy, nodes2())
+      visUpdateEdges(myVisNetworkProxy, edges())
+    }
   })
   
   observeEvent(input$link_nid, {
@@ -803,7 +832,7 @@ s <- shinyServer(function(input, output, session){
     })
   })
   
-  myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+  
   
   # This observe updates the nodes and edges on visnetworkfinal - the main
   # spatial graph
@@ -894,20 +923,7 @@ s <- shinyServer(function(input, output, session){
       }
     )
   })
-    
-    # observeEvent('export_btn', {
-    #   output$export_btn <- downloadHandler(
-    #     filename <- function(){
-    #       paste0('network-', Sys.Date(), '.png', sep='')
-    #     },
-    #     
-    #     content <- function(con){
-    #       browser()
-    #       spatial_graph %>%
-    #         visExport(type='png')
-    #     }
-    #   )
-    # })
+
     
     #------------------Sankey graph----------------------------------
     
