@@ -194,60 +194,61 @@ status_dict <- status_dict[status_dict$status=='Mergers' |
                              status_dict$status=='Splinters',]
 
 coords <- read.csv('data/maps_coord.csv', header=T)
-colnames(coords) <- c('map_name', 'latitude', 'longitude')
+colnames(coords) <- c('hq_country', 'latitude', 'longitude')
+
+remove_loop <- function(nodes, edges)
+{
+  map_names <- nodes$label
+  rejection_list <- c()
+  for(i in 1:length(map_names))
+  {
+    map_name <- map_names[i]
+    indices <- which(edges$g1_map==map_name & edges$g2_map==map_name)
+    # We do not want these edges
+    if(length(indices) > 0)
+    {
+      rejection_list <- c(rejection_list, indices)
+    }
+  }
+  edges <- edges[-rejection_list,]
+}
+
+remove_bidirection <- function(edges)
+{
+  accepted_list <- c()
+  for(i in 1:nrow(edges))
+  {
+    edge <- edges[i,]
+    if(edge$from==2 & edge$to==3)
+    {
+      # print('debug...')
+      # browser()
+    }
+    
+    reverse_edge_id <- edges[edges$from==edge$to &
+                               edges$to==edge$from, 'id']
+    count <- length(reverse_edge_id)
+    if(count == 1)
+    {
+      # browser()
+      if(!reverse_edge_id %in% accepted_list)
+      {
+        accepted_list <- c(accepted_list, edge$id)
+      }
+    }
+    else if(count > 1)
+    {
+      print('catch me... this should not happen...')
+    }
+    else
+      accepted_list <- c(accepted_list, edge$id)
+  }
+  
+  edges <- edges[edges$id %in% accepted_list,]
+}
 
 get_clusters <- function()
 {
-  remove_loop <- function(nodes, edges)
-  {
-    map_names <- nodes$label
-    rejection_list <- c()
-    for(i in 1:length(map_names))
-    {
-      map_name <- map_names[i]
-      indices <- which(edges$g1_map==map_name & edges$g2_map==map_name)
-      # We do not want these edges
-      if(length(indices) > 0)
-      {
-        rejection_list <- c(rejection_list, indices)
-      }
-    }
-    edges <- edges[-rejection_list,]
-  }
-  
-  remove_bidirection <- function(edges)
-  {
-    accepted_list <- c()
-    for(i in 1:nrow(edges))
-    {
-      edge <- edges[i,]
-      if(edge$from==2 & edge$to==3)
-      {
-        # print('debug...')
-        # browser()
-      }
-      
-      reverse_edge_id <- edges[edges$from==edge$to &
-                               edges$to==edge$from, 'id']
-      count <- length(reverse_edge_id)
-      if(count == 1)
-      {
-        # browser()
-        if(!reverse_edge_id %in% accepted_list)
-        {
-          accepted_list <- c(accepted_list, edge$id)
-        }
-      }
-      else if(count > 1)
-      {
-        print('catch me... this should not happen...')
-      }
-      else
-        accepted_list <- c(accepted_list, edge$id)
-    }
-    
-    edges <- edges[edges$id %in% accepted_list,]
-  }
   
   tmp.edges <- unique(df[, c('from', 'to')] )
   tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
