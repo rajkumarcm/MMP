@@ -10,6 +10,7 @@ library(logging)
 library(dplyr)
 library(fuzzyjoin)
 source('handle_data.R', local=T)
+map_idx <- 2
 #---------------------------------------------------
 
 # Variables definition------------------------------
@@ -179,6 +180,8 @@ cnames[cnames=='startyear'] <- 'level'
 # cnames[cnames=='lat'] <- 'latitude'
 # cnames[cnames=='long'] <- 'longitude'
 colnames(df_nodes) <- cnames
+
+maps <- c("All", unique(df$map_name))
 
 #------------------------------------------------------------------------------
 # Since this is not a relationship dataframe, instead a database of nodes itself

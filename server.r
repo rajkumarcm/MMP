@@ -664,15 +664,62 @@ get_h_legend <- function(levels)
   html_content
 }
 
+
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
   shinyjs::onclick('closeSp', shinyjs::toggle(id='sp', anim=T, animType='fade'))
   
+  # cloned version of the original df
+  # This was done in order to faciliate the process of stopping the progress bar
+  # from loading when the timeline slider is tweaked. Because stabilized event
+  # by as a bug is failing to fire when the network reaches the stabilized point.  
+  avoidLB <- F
+  minYr <- min(df$year)
+  maxYr <- max(df$year)
+  
+  tmp.df <- reactive({
+    if(input$range[1] != minYr | input$range[2] != maxYr)
+    {
+      avoidLB <<- T
+    }
+    else
+      avoidLB <<- F
+    df %>% filter(year >= input$range[1] & year <= input$range[2])
+  })
+  
+  observeEvent(input$animateBtn, {
+    browser()
+    logging::loginfo(input$animate_spatial)
+    if(input$animate_spatial==T)
+    {
+      years <- unique(df$year)
+      years <- data.frame(x = years) %>% arrange(x)
+      years <- years$x
+      for(i in 1:2)
+      {
+        # browser()
+        updateSliderInput(session, 'range', value=c(min(years), years[i+1]))
+        Sys.sleep(3)
+      }
+      browser()
+    }
+    browser()
+  })
+  
   filtered_df <- reactive({
-    tmp_df <- df %>% 
-      dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) %>%
-      dplyr::filter(year >= input$range[1] & year <= input$range[2])
+    prev.map_name <- maps[map_idx]
+    if(prev.map_name == input$map_name)
+      avoidLB <<- T
+    else
+    {
+      avoidLB <<- F
+      prev.map_name <<- input$map_name
+      updateSliderInput(session, 'range', value=c(min(df$years), max(df$years)))
+    }
+    tmp_df <- tmp.df() %>% 
+      filter(input$map_name  == 'All' | map_name == input$map_name) #%>%
+      # dplyr::filter(year >= input$range[1] & year <= input$range[2])
     tmp_df <- filter_edges_mmap(tmp_df)
     tmp_df
   })
@@ -744,8 +791,8 @@ s <- shinyServer(function(input, output, session){
                 stabilizationProgress = "function(params){
                     Shiny.setInputValue('updatePB', params);
                 }",
-                stabilized = "function(){
-                    Shiny.setInputValue('completePB', '');
+                stabilized = "function(params){
+                    Shiny.setInputValue('completePB', params);
                 }",
                 zoom = "function(properties){
                     Shiny.setInputValue('clusterNodes', properties);
@@ -755,7 +802,8 @@ s <- shinyServer(function(input, output, session){
                  forceAtlas2Based = list(avoidOverlap=0.7,
                                          gravitationalConstant=-100,
                                          damping=1,
-                                         springLength=100)
+                                         springLength=100,
+                                         minVelocity=0.1)
                  ) %>%
       visNodes(shadow=T, borderWidth = 2,
                borderWidthSelected = 3,
@@ -788,11 +836,17 @@ s <- shinyServer(function(input, output, session){
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
   
   observeEvent(input$updatePB, {
-    session$sendCustomMessage('updatePB', input$updatePB)
+    if(!avoidLB)
+      session$sendCustomMessage('updatePB', input$updatePB)
   })
   
   observeEvent(input$completePB, {
-    session$sendCustomMessage('completePB', '')
+    if(!avoidLB)
+    {
+      params <- NULL
+      params$iterations <- 1000
+      session$sendCustomMessage('completePB', params)
+    }
   })
   
   alreadyClustered <- F
@@ -801,18 +855,20 @@ s <- shinyServer(function(input, output, session){
        input$map_name=='All')
     {
       # browser()
+      session$sendCustomMessage('toggleSL', '')
       alreadyClustered <<- T
       visRemoveEdges(myVisNetworkProxy, edges()$id)
       visRemoveNodes(myVisNetworkProxy, nodes2()$id)
       visUpdateNodes(myVisNetworkProxy, clustered_nodes)
       visUpdateEdges(myVisNetworkProxy, clustered_edges)
     }
-    else if(input$clusterNodes[['scale']] >= 0.8 & alreadyClustered==T & 
+    else if(input$clusterNodes[['scale']] >= 0.6 & alreadyClustered==T & 
             input$map_name=='All')
     {
       alreadyClustered <<- F
-      visRemoveEdges(myVisNetworkProxy, clustered_nodes$id)
-      visRemoveNodes(myVisNetworkProxy, clustered_edges$id)
+      session$sendCustomMessage('toggleSL', '')
+      visRemoveEdges(myVisNetworkProxy, clustered_edges$id)
+      visRemoveNodes(myVisNetworkProxy, clustered_nodes$id)
       visUpdateNodes(myVisNetworkProxy, nodes2())
       visUpdateEdges(myVisNetworkProxy, edges())
     }

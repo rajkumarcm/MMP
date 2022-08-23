@@ -7,7 +7,6 @@ source('global.R', local=F)
 
 # These variables are not used by server. Hence these can be local
 # For the input controls
-maps <- c("All", unique(df$map_name))
 status_names <- as.character(unique(df$status))
 #------------------------------------------------------------------
 
@@ -72,43 +71,50 @@ u <- shinyUI(fluidPage(
                             tabPanel("Spatial",
                                      div(id="nvf_body",
                                          div(id="nvf_legend",
-                                         h2("Options"),
-                                         selectInput("map_name",
-                                                     "Select map:",
-                                                     # For debugging purposes change to maps[1] once finished
-                                                     selected = maps[2],
-                                                     choices = maps),
-                                         
-                                         checkboxGroupInput("filterEdges",
-                                                            "Filter relationship:",
-                                                            selected = unique(df$status_id),
-                                                            choices = c("Affiliates"=5, 
-                                                                        "Allies"=2, 
-                                                                        "Mergers"=3,
-                                                                        "Rivals"=1,
-                                                                        "Splinters"=4)
-                                         ),
-                                         HTML('</br>'),
-                                         selectInput("selectStatus",
-                                                     "Highlight one status",
-                                                     selected = 0,
-                                                     choices = c("None"=0,
-                                                                 "Affiliates"=5, 
-                                                                 "Allies"=2, 
-                                                                 "Mergers"=3,
-                                                                 "Rivals"=1,
-                                                                 "Splinters"=4
-                                                     )),
-                                         HTML('</br>'),
-                                         sliderInput("range", 
-                                                     label = "Choose a start and end year:",
-                                                     min = min(df$year), max = max(df$year), 
-                                                     value = c(min(df$year), max(df$year)), 
-                                                     sep = "",
-                                                     width=360, animate=T),
-                                         
-                                         uiOutput("nvf_legend_sub")
-                                         
+                                            
+                                           div(id="spatial_legend",
+                                               h2("Options"),
+                                               selectInput("map_name",
+                                                           "Select map:",
+                                                           # For debugging purposes change to maps[1] once finished
+                                                           selected = maps[map_idx],
+                                                           choices = maps),
+                                               
+                                               checkboxGroupInput("filterEdges",
+                                                                  "Filter relationship:",
+                                                                  selected = unique(df$status_id),
+                                                                  choices = c("Affiliates"=5, 
+                                                                              "Allies"=2, 
+                                                                              "Mergers"=3,
+                                                                              "Rivals"=1,
+                                                                              "Splinters"=4)
+                                               ),
+                                               HTML('</br>'),
+                                               selectInput("selectStatus",
+                                                           "Highlight one status",
+                                                           selected = 0,
+                                                           choices = c("None"=0,
+                                                                       "Affiliates"=5, 
+                                                                       "Allies"=2, 
+                                                                       "Mergers"=3,
+                                                                       "Rivals"=1,
+                                                                       "Splinters"=4
+                                                           )),
+                                               HTML('</br>'),
+                                               sliderInput("range", 
+                                                           label = "Choose a start and end year:",
+                                                           min = min(df$year), max = max(df$year), 
+                                                           value = c(min(df$year), max(df$year)), 
+                                                           sep = "",
+                                                           width=360),
+                                               checkboxInput(inputId='animate_spatial',
+                                                             label='Animate'),
+                                               
+                                               actionButton(inputId="animateBtn", 
+                                                            label="Play/Pause"),
+                                               
+                                               uiOutput("nvf_legend_sub")
+                                         ) # End for conditionalPanel
                                         ),
                                          
 
@@ -132,6 +138,8 @@ u <- shinyUI(fluidPage(
                                      
                                      tags$script(
                                        '
+                                       document.getElementById("spatial_legend").style.display = "block";
+                                       
                                        var lb = document.getElementById("bar"); // inner part of the loading bar
                                         var txt = document.getElementById("lb_text");
                                         var loadingBar = document.getElementById("loadingBar");
