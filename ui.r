@@ -80,6 +80,13 @@ u <- shinyUI(fluidPage(
                                                            selected = maps[map_idx],
                                                            choices = maps),
                                                
+                                               HTML('</br>'),
+                                               
+                                               # input group name
+                                               textInput(inputId = 'inputGN', label='Search profile'),
+                                               conditionalPanel(condition='input.inputGN != ""',
+                                                                htmlOutput(outputId='gn_list')),
+                                               
                                                checkboxGroupInput("filterEdges",
                                                                   "Filter relationship:",
                                                                   selected = unique(df$status_id),

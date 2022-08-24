@@ -414,3 +414,28 @@ div.outerBorder {
 {
   display:None;
 }
+
+#gn_list
+{
+  background-color:white;
+  height:130px;
+  overflow-y:scroll;
+  border-style:solid;
+  border-color:lightgray;
+  border-radius: 6px;
+}
+
+#gn_list_sub
+{
+  width:90%;
+  height:90%;
+  margin:auto;
+  overflow-y:visible;
+}
+
+.gn_item
+{
+  border-bottom-color:gray;
+  border-bottom-style:solid;
+  margin-top:9px;
+}

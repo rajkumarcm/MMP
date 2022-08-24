@@ -895,6 +895,34 @@ s <- shinyServer(function(input, output, session){
     session$sendCustomMessage('animateBtn1', years)
   })
   
+  observeEvent(input$inputGN, {
+    # logging::loginfo(input$inputGN)
+    # browser()
+    debugPrint <- ""
+    output$gn_list <- renderPrint({
+      groups <- unique(nodes2()$label)
+      groups <- data.frame(group=groups) %>% arrange(group)
+      groups <- groups$group
+      boolean_mask <- str_detect(groups, sprintf('\\w*%s\\w*', input$inputGN))
+      matching_groups <- groups[boolean_mask]
+
+      if(sum(boolean_mask) > 0)
+      {
+        html_wrapper_start <- "<div id='gn_list_sub'>"
+        html_list <- ""
+        for(i in 1:length(matching_groups))
+        {
+          group.name <- matching_groups[i]
+          html_list <- paste0(html_list, HTML(sprintf("<div class='gn_item'>%s</div>", group.name)))
+        }
+        html_wrapper_end <- "</div>"
+        group_list.html <- paste0(html_wrapper_start, paste0(html_list,
+                                                              html_wrapper_end))
+        cat(group_list.html)
+      }
+    })
+  })
+  
   
   # This observe updates the nodes and edges on visnetworkfinal - the main
   # spatial graph
