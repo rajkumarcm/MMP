@@ -689,22 +689,16 @@ s <- shinyServer(function(input, output, session){
   })
   
   observeEvent(input$animateBtn, {
-    browser()
+    years <- unique(df$year)
+    years <- data.frame(x = years) %>% arrange(x)
+    years <- years$x
     logging::loginfo(input$animate_spatial)
+    # browser()
     if(input$animate_spatial==T)
     {
-      years <- unique(df$year)
-      years <- data.frame(x = years) %>% arrange(x)
-      years <- years$x
-      for(i in 1:2)
-      {
-        # browser()
-        updateSliderInput(session, 'range', value=c(min(years), years[i+1]))
-        Sys.sleep(3)
-      }
-      browser()
+      updateSliderInput(session, 'range', value=c(min(years), input$animateBtn))
+      Sys.sleep(3)
     }
-    browser()
   })
   
   filtered_df <- reactive({
@@ -751,7 +745,11 @@ s <- shinyServer(function(input, output, session){
   # perhaps erase the order. There are chances that one relationship is
   # given label of another relationship.
   nodes2 <- reactive({
-    
+    node.size.offset <- 0
+    # if(input$map_name=='All')
+    # {
+    #   node.size.offset <- 20
+    # }
     tmp_df <- data.frame(id = unique(c(filtered_df()$from,
                                      filtered_df()$to)))
     tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 
@@ -767,6 +765,7 @@ s <- shinyServer(function(input, output, session){
     cnames <- colnames(tmp_df)
     cnames[cnames == 'between_color'] <- 'color.background'
     colnames(tmp_df) <- cnames
+    tmp_df$value <- tmp_df$value + node.size.offset
     tmp_df
   })
 
@@ -804,7 +803,8 @@ s <- shinyServer(function(input, output, session){
                                          damping=1,
                                          springLength=100,
                                          minVelocity=0.1)
-                 ) %>%
+      ) %>%
+      
       visNodes(shadow=T, borderWidth = 2,
                borderWidthSelected = 3,
                color=list(hover=list(border='black',
@@ -887,6 +887,13 @@ s <- shinyServer(function(input, output, session){
     })
   })
   
+  observeEvent(input$animateBtn1, {
+    logging::loginfo('animateBtn1 called')
+    years <- unique(filtered_df()$year)
+    years <- data.frame(year=years) %>% arrange(year)
+    years <- years$year
+    session$sendCustomMessage('animateBtn1', years)
+  })
   
   
   # This observe updates the nodes and edges on visnetworkfinal - the main
@@ -978,6 +985,7 @@ s <- shinyServer(function(input, output, session){
       }
     )
   })
+    
 
     
     #------------------Sankey graph----------------------------------

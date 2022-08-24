@@ -107,11 +107,23 @@ u <- shinyUI(fluidPage(
                                                            value = c(min(df$year), max(df$year)), 
                                                            sep = "",
                                                            width=360),
-                                               checkboxInput(inputId='animate_spatial',
-                                                             label='Animate'),
                                                
-                                               actionButton(inputId="animateBtn", 
-                                                            label="Play/Pause"),
+                                               HTML('</br></br></br>'),
+                                               div(id="animate_opts", 
+                                                   div(id="animateChkbox",
+                                                   checkboxInput(inputId='animate_spatial',
+                                                                 label='Animate') ),
+                                                   div(id="animateBtnDiv",
+                                                   
+                                                   #primary button    
+                                                   actionButton(inputId="animateBtn1", 
+                                                                label="Play/Pause"),
+                                                   
+                                                   # responsible for calling animateBtn1
+                                                   # multiple times
+                                                   actionButton(inputId="animateBtn", 
+                                                                label="Play/Pause"))
+                                               ),
                                                
                                                uiOutput("nvf_legend_sub")
                                          ) # End for conditionalPanel

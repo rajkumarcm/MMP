@@ -133,7 +133,7 @@ body
 {
   /*height:500px;
   width:280px;*/
-  height:942px;
+  height:1200px;
   width:373px;
   position:relative;
 }
@@ -386,4 +386,31 @@ div.outerBorder {
   border: 2px solid rgba(30, 30, 30, 0.05);
   background: rgb(0, 173, 246); /* Old browsers */
   box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
+}
+
+#spatial_legend
+{
+  display:block;
+}
+
+#animate_opts
+{
+  display:flex;
+  flex-direction:row;
+}
+
+#animateChkbox
+{
+  position:relative;
+  width:100px;
+}
+
+#animateBtnDiv
+{
+  position:relative;
+}
+
+#animateBtn
+{
+  display:None;
 }

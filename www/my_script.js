@@ -57,3 +57,44 @@ function toggleFS(){
   else
     document.exitFullscreen();
 }
+
+function toggleSL(dummy) // show spatial legend
+{
+  let spatial_legend = document.getElementById('spatial_legend');
+  if(spatial_legend.style.display == 'block')
+  {
+    spatial_legend.style.display = 'None';
+  }
+  else
+    spatial_legend.style.display = 'block';
+}
+
+Shiny.addCustomMessageHandler("toggleSL", toggleSL);
+
+function animateBtn1(years)
+{
+  alert(years);
+  for(let i=0; i < 2; i++ )
+  {
+    Shiny.setInputValue('animateBtn', years[i]);
+  }
+}
+Shiny.addCustomMessageHandler('animateBtn1', animateBtn1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
