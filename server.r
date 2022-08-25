@@ -900,11 +900,12 @@ s <- shinyServer(function(input, output, session){
     # browser()
     debugPrint <- ""
     output$gn_list <- renderPrint({
-      groups <- unique(nodes2()$label)
-      groups <- data.frame(group=groups) %>% arrange(group)
-      groups <- groups$group
-      boolean_mask <- str_detect(groups, sprintf('\\w*%s\\w*', input$inputGN))
-      matching_groups <- groups[boolean_mask]
+      groups <- unique(nodes2()[, c('id', 'label')])
+      # groups <- data.frame(group=groups) %>% arrange(group)
+      # groups <- groups$group
+      groups <- groups %>% arrange(label)
+      boolean_mask <- str_detect(groups$label, sprintf('\\w*%s\\w*', input$inputGN))
+      matching_groups <- groups[boolean_mask, ]
 
       if(sum(boolean_mask) > 0)
       {
@@ -912,8 +913,9 @@ s <- shinyServer(function(input, output, session){
         html_list <- ""
         for(i in 1:length(matching_groups))
         {
-          group.name <- matching_groups[i]
-          html_list <- paste0(html_list, HTML(sprintf("<div class='gn_item'>%s</div>", group.name)))
+          group.name <- matching_groups[i, 'label']
+          group.id <- matching_groups[i, 'id']
+          html_list <- paste0(html_list, HTML(sprintf("<div class='gn_item'><a href=\"javascript:Shiny.setInputValue('sNFromList', %d);\">%s</a></div>", group.id, group.name)))
         }
         html_wrapper_end <- "</div>"
         group_list.html <- paste0(html_wrapper_start, paste0(html_list,
@@ -923,6 +925,10 @@ s <- shinyServer(function(input, output, session){
     })
   })
   
+  
+  observeEvent(input$sNFromList, {
+    visSelectNodes(myVisNetworkProxy, input$sNFromList)
+  })
   
   # This observe updates the nodes and edges on visnetworkfinal - the main
   # spatial graph
