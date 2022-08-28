@@ -664,7 +664,7 @@ get_h_legend <- function(levels)
   html_content
 }
 
-
+mm_map_name <- ''
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
@@ -897,8 +897,6 @@ s <- shinyServer(function(input, output, session){
   
   observeEvent(input$inputGN, {
     # logging::loginfo(input$inputGN)
-    # browser()
-    debugPrint <- ""
     output$gn_list <- renderPrint({
       groups <- unique(nodes2()[, c('id', 'label')])
       # groups <- data.frame(group=groups) %>% arrange(group)
@@ -911,7 +909,7 @@ s <- shinyServer(function(input, output, session){
       {
         html_wrapper_start <- "<div id='gn_list_sub'>"
         html_list <- ""
-        for(i in 1:length(matching_groups))
+        for(i in 1:nrow(matching_groups))
         {
           group.name <- matching_groups[i, 'label']
           group.id <- matching_groups[i, 'id']
@@ -1077,7 +1075,7 @@ s <- shinyServer(function(input, output, session){
           font-size:15pt;
         }
         </style>
-        </br></br></br></br>
+        </br>
         <h2 style='width:100px;'>Legend</h2>
         <svg viewBox='0 0 373 500' xmlns='http://www.w3.org/2000/svg'>",
         paste0(
@@ -1416,10 +1414,109 @@ s <- shinyServer(function(input, output, session){
           geom_bar(position='dodge', stat='count')
       })
       
-      
+    })
+    
+    #------------------------Administration------------------------------------
+    
+    # Edit Maps
+    admin.maps <- reactive({
+      data.frame(name=unique(df_nodes$map_name),
+                 edit_links=sprintf('<a href=\"javascript:Shiny.setInputValue(\'editMap\', \'%s\');\"><i class=\"fa fa-link\"></i></a>', 
+                                  unique(df_nodes$map_name)),
+                 manage=sprintf('<a href=\"javascript:Shiny.setInputValue(\'manageMap\', \'%s\');\">Manage</i></a>',
+                                unique(df_nodes$map_name))
+                 )
+    })
+    
+    admin.profiles <- reactive({
+      tmp.df <- unique(df_nodes[, c('id', 'label')])
+      data.frame(Name=tmp.df$label, id=tmp.df$id)
+    })
+    
+    output$em_profiles <- renderUI({
+      # browser()
+      html.table <- "<table id='admin_emaps'><tr><th>Map Name</th><th>Edit Links</th><th>Manage</th></tr>"
+      html.inner <- ""
+        for(i in 1:nrow(admin.maps()))
+        {
+          tmp.label <- admin.maps()[i, 'name']
+          tmp.url <- admin.maps()[i, 'edit_links']
+          tmp.manage <- admin.maps()[i, 'manage']
+          
+          html.inner <- paste0(html.inner, sprintf("<tr><td>%s</td>
+                                                        <td>%s</td>
+                                                        <td>%s</td></tr>",
+                                                   tmp.label, tmp.url, tmp.manage
+                                                   ))
+        }
+      html.table <- paste0(html.table, paste0(html.inner, '</table>'))
+      html.table <- HTML(html.table)
+      html.table
+    })
+    
+    observeEvent(input$editMap, {
       
     })
     
+    # Open manage a map div with information about the map populated
+    observeEvent(input$manageMap, {
+      browser()
+      mm_map_name <<- input$manageMap
+      map_info <- unique(df_nodes[df_nodes$map_name==input$manageMap, 
+                                                               c('map_name',
+                                                                 'new_description',
+                                                                 'URL',
+                                                                 'level',
+                                                                 'endyear')])[1,]
+      session$sendCustomMessage('showEditMap', map_info)
+    })
+    
+    # Close manage a map div
+    observeEvent(input$em_mp_back, {
+      session$sendCustomMessage('closeEditMap', '')
+    })
+    
+    observeEvent(input$em_mp_save, {
+      session$sendCustomMessage('saveMapChanges', mm_map_name)
+    })
+    
+    admin.profiles <- reactive({
+      unique(df_nodes[, c('label', 'level', 'active', 'map_name', 'URL')])
+    })
+
+    # output$em_profiles <- renderUI({
+    #   
+    #   profiles <- admin.profiles()
+    #   html.table <- "<table id='admin_em'>
+    #                   <tr>
+    #                     <th>Name</th>
+    #                     <th>Founded</th>
+    #                     <th>Dislanded</th>
+    #                     <th>Publish</th>
+    #                     <th>View</th>
+    #                     <th>Backup</th>
+    #                     <th>Delete</th>
+    #                   </tr>"
+    #   
+    #   html.inner <- ""
+    #   for(i in 1:nrow(profiles))
+    #   {
+    #     profile <- profiles[i,]
+    #     name <- profile$label
+    # 
+    #     html.inner <- paste0(html.inner, sprintf("<tr>
+    #                                                 <td>%s</td>
+    #                                                 <td></td>
+    #                                                 <td></td>
+    #                                                 <td></td>
+    #                                                 <td></td>
+    #                                                 <td></td>
+    #                                                 <td></td>
+    #                                              </tr>", name))
+    #   }
+    #   html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
+    #   html.inner
+    # })
 })
 
 

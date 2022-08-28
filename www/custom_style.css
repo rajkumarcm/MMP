@@ -439,3 +439,121 @@ div.outerBorder {
   border-bottom-style:solid;
   margin-top:9px;
 }
+
+#admin_mp
+{
+  height:100%;
+  width:100%;
+  background-color:#FCFCF3;
+}
+
+#admin_emaps {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#admin_emaps td, #admin_emaps th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#admin_emaps tr:nth-child(even){background-color: #f2f2f2;}
+
+#admin_emaps tr:hover {background-color: #ddd;}
+
+#admin_emaps th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #04AA6D;
+  color: white;
+}
+
+.em_field
+{
+  width: 900px;
+  height: 100px;
+  display:flex;
+  flex-direction:row;
+}
+
+.emfield > h3
+{
+  width: 100px;
+  height: 28px;
+}
+
+.emfield_input
+{
+  width: 700px;
+  margin-left: 100px;
+  position: relative;
+  height: 41px;
+  border-radius: 4px;
+  border-color: silver;
+  border-style: solid;
+  margin-top:10px;
+}
+
+#save_button_container
+{
+  display:flex;
+  flex-direction:row;
+}
+
+#save_button_container > button:nth-of-type(2){
+  margin-left:50px;
+}
+
+#admin_em_mm_node_details > table
+{
+  border-collapse:separate; 
+  border-spacing: 0 1em;
+}
+
+td > h4
+{
+  margin-top:24px;
+}
+
+#em_mp_desc
+{
+  height:300px;
+}
+
+#em_mp_sy, #em_mp_ey
+{
+  width:200px;
+}
+
+#em_mp_pub
+{
+  margin-left:100px;
+  height:20px;
+  width:20px;
+}
+
+#admin_em_sm
+{
+  display:block;
+}
+
+#admin_em_mm
+{
+  display:None;
+}
+
+.admin_em_mm_container
+{
+  width: 100%;
+  height: 100%;
+  border-bottom-color: silver;
+  border-bottom-style: solid;
+  border-bottom-width: thin;
+}
+
+.admin_em_mm_container > h2
+{
+  color:maroon;
+}

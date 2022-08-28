@@ -82,12 +82,53 @@ function animateBtn1(years)
 Shiny.addCustomMessageHandler('animateBtn1', animateBtn1);
 
 
+function showEditMap(map_info)
+{
+  let em_sm = document.getElementById('admin_em_sm');
+  em_sm.style.display = 'None';
+  
+    // Before you display the manage map container, load the information
+  let name = document.getElementById('em_mp_name');
+  name.value = map_info.map_name;
+  name.disabled = 'disabled';
+  
+  let url = document.getElementById('em_mp_url');
+  url.value = map_info.URL;
+  
+  let desc = document.getElementById('em_mp_desc');
+  desc.value = map_info.new_description;
+  
+  let syear = document.getElementById('em_mp_sy');
+  syear.value = map_info.level;
+  
+  let eyear = document.getElementById('em_mp_ey');
+  eyear.value = map_info.endyear;
+  
+  let em_mm = document.getElementById('admin_em_mm');
+  em_mm.style.display = 'block';
+}
+Shiny.addCustomMessageHandler('showEditMap', showEditMap);
 
+function closeEditMap(_)
+{
+  let em_mm = document.getElementById('admin_em_mm');
+  em_mm.style.display = 'None';
+  
+  let em_sm = document.getElementById('admin_em_sm');
+  em_sm.style.display = 'block';
+}
+Shiny.addCustomMessageHandler('closeEditMap', closeEditMap);
 
+function checkMapChanges(map_info)
+{
+  
+}
 
-
-
-
+function saveMapChanges(map_info)
+{
+  // Can't write anything until the new dataframe is merged
+}
+Shiny.addCustomMessageHandler('saveMapChanges', saveMapChanges);
 
 
 

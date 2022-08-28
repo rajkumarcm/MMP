@@ -294,3 +294,17 @@ get_clusters <- function()
 clustered_dfs <- get_clusters()
 clustered_nodes <- clustered_dfs[[1]]
 clustered_edges <- clustered_dfs[[2]]
+
+
+# For Edit map UI conditional panel that is also shared with the server.
+# 0 = edit maps, 1 = edit links, 2 = Manage Groups and Zoom levels
+em_panel_sm <- T # edit maps
+em_panel_mm <- F
+
+
+
+
+
+
+
+
