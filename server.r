@@ -1435,7 +1435,7 @@ s <- shinyServer(function(input, output, session){
     
     output$em_profiles <- renderUI({
       # browser()
-      html.table <- "<table id='admin_emaps'><tr><th>Map Name</th><th>Edit Links</th><th>Manage</th></tr>"
+      html.table <- "<table class='admin_table'><tr><th>Map Name</th><th>Edit Links</th><th>Manage</th></tr>"
       html.inner <- ""
         for(i in 1:nrow(admin.maps()))
         {
@@ -1460,7 +1460,6 @@ s <- shinyServer(function(input, output, session){
     
     # Open manage a map div with information about the map populated
     observeEvent(input$manageMap, {
-      browser()
       mm_map_name <<- input$manageMap
       map_info <- unique(df_nodes[df_nodes$map_name==input$manageMap, 
                                                                c('map_name',
@@ -1481,42 +1480,67 @@ s <- shinyServer(function(input, output, session){
     })
     
     admin.profiles <- reactive({
-      unique(df_nodes[, c('label', 'level', 'active', 'map_name', 'URL')])
+      tmp.profiles <- unique(df_nodes[, c('label', 'level', 'active', 'map_name', 
+                                          'URL', 'endyear')]) %>%
+                              arrange(label) %>% filter(label != "")
+      tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
+                                     tmp.profiles$endyear)
+      tmp.profiles
     })
 
-    # output$em_profiles <- renderUI({
-    #   
-    #   profiles <- admin.profiles()
-    #   html.table <- "<table id='admin_em'>
-    #                   <tr>
-    #                     <th>Name</th>
-    #                     <th>Founded</th>
-    #                     <th>Dislanded</th>
-    #                     <th>Publish</th>
-    #                     <th>View</th>
-    #                     <th>Backup</th>
-    #                     <th>Delete</th>
-    #                   </tr>"
-    #   
-    #   html.inner <- ""
-    #   for(i in 1:nrow(profiles))
-    #   {
-    #     profile <- profiles[i,]
-    #     name <- profile$label
-    # 
-    #     html.inner <- paste0(html.inner, sprintf("<tr>
-    #                                                 <td>%s</td>
-    #                                                 <td></td>
-    #                                                 <td></td>
-    #                                                 <td></td>
-    #                                                 <td></td>
-    #                                                 <td></td>
-    #                                                 <td></td>
-    #                                              </tr>", name))
-    #   }
-    #   html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
-    #   html.inner
-    # })
+    output$ep_profiles <- renderPrint({
+
+      profiles <- admin.profiles()
+      html.table <- "<table class='admin_table'>
+                      <tr>
+                        <th>Name</th>
+                        <th>Founded</th>
+                        <th>Dislanded</th>
+                        <th>Publish</th>
+                        <th>View</th>
+                        <th>Backup</th>
+                        <th>Delete</th>
+                      </tr>"
+
+      html.inner <- ""
+      for(i in 1:nrow(profiles))
+      {
+        profile <- profiles[i,]
+        name <- profile$label
+        active <- profile$activeC
+
+        html.inner <- paste0(html.inner, sprintf("<tr>
+                                                    <td>%s</td>
+                                                    <td></td>
+                                                    <td>%s</td>
+                                                    <td><button type='button' onclick=\'javascript:Shiny.setInputValue('publish_changes', \"%s\");\'>Publish</button></td>
+                                                    <td><a href='javascript:Shiny.setInputValue('view_profile', \"%s\");'><i class=\"fa fa-eye\"></i></a></td>
+                                                    <td><a href='javascript:Shiny.setInputValue('backup_profile', \"%s\");'>Backup</a></td>
+                                                    <td><button type='button' onclick=\'javascript:Shiny.setInputValue('delete_profile', \"%s\");\'>Delete</button></td>
+                                                 </tr>", name, active, 
+                                                 name, name, name, name))
+      }
+      html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
+      # browser()
+      cat(html.inner)
+    })
+    
+    observeEvent(input$delete_profile, {
+      node_ids <- df_nodes[df_nodes$label==input$delete_profile, 'id']
+      
+      # Delete edges before deleting the nodes
+      indices <- which(df[df$from %in% node_ids | to %in% node_ids, ])
+      df <<- df[-indices,]
+      
+      # Delete nodes
+      indices <- which(df_nodes$id %in% node_ids)
+      df_nodes <<- df_nodes[-indices,]
+      
+    })
+    
+    observeEvent(input$view_profile, {
+      
+    })
 })
 
 

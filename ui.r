@@ -34,7 +34,7 @@ u <- shinyUI(fluidPage(
                           tags$br(),
                           tags$p("From 2009 to 2012, MMP was funded by an award from the Social and Behavioral Dimensions of National Security, Conflict, and Cooperation competition, a joint venture between the National Science Foundation and the Department of Defense. From 2012 to 2019 the research was supported by Stanford University, including the Freeman Spogli Institute for International Studies Policy Implementation Lab. In 2019, the project received funding from the", tags$a(href = "https://www.unomaha.edu/ncite/index.php", "National Counterterrorism, Innovation, Technology, and Education Center (NCITE)", .noWS = "outside"), " a U.S. Department of Homeland Security Center of Excellence.  The project relies primarily on research assistance from Stanford undergraduate and graduate students.", '!', .noWS = c("after-begin", "before-end"))
                           )
-             ),
+                      ),
              
              tabPanel(title='Download the data', id='downloadNM', value="downloadNM",
                       div(id="dd_body",
@@ -61,7 +61,7 @@ u <- shinyUI(fluidPage(
                             dataTableOutput('dataTable')
                           )
                       ) # dd_body
-             ), # tabpanel
+                      ), # tabpanel
              
              tabPanel(title='Visualize the Data', id='vizNM', value='vizNM',
                     mainPanel(
@@ -284,11 +284,11 @@ u <- shinyUI(fluidPage(
                                      plotOutput("statistical_plot"),
                                      style = "background-color: #FCFCF3;")
                             
-                          ) # End of visualization tabset panel
+                          ) # End of tabset panel that covers all types of viz
                           
-                      ),
-                    )
-             ),
+                      ), # End of div that covers div
+                    ) # End of mainPanel for visualize the data 
+             ), # End of tabPanel for visualiZe the data
              
              tabPanel(title='Admin', id='admin', value="admin", 
                       mainPanel(
@@ -351,7 +351,7 @@ u <- shinyUI(fluidPage(
                                                      <div id="admin_em_mm_groups" class="admin_em_mm_container">
                                                        <h2>INCLUDED GROUPS</h2>
                                                        <div id="included_groups" class="admin_em_mm_container">
-                                                         
+                                                          
                                                        </div>
                                                      </div>
                                                      ')
@@ -360,15 +360,48 @@ u <- shinyUI(fluidPage(
                                                 )
                                                 
                                                 ),
-                                     tabPanel(title='Edit Profiles', value='admin_ep',
-                                              div(id='admin_ep_sp', uiOutput(outputId='em_profiles')))
+                                     tabPanel(title='Edit Profiles1', value='admin_ep1',
+                                              div(id='admin_ep_sp1',
+                                                  
+                                                htmlOutput(outputId='ep_profiles'))
+                                              )
                                               )
                          
                                      )
-                         )),
+                         ),
              tabPanel(title="Profile Links", id="plNM", value="plNM")
-  )
+  ))
   
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

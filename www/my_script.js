@@ -130,6 +130,34 @@ function saveMapChanges(map_info)
 }
 Shiny.addCustomMessageHandler('saveMapChanges', saveMapChanges);
 
+function drag(e){
+  e.dataTransfer.setData(“text”,e.target.id);
+}
+
+function allowDrop(e){
+  // default browser behavior prevents dragging. Hence we need to disable this..
+  e.preventDefault();
+}
+
+function drop(e)
+{
+  e.preventDefault();
+  clone = e.target.cloneNode(target);
+  let data = e.dataTransfer.getData('text');
+  if(clone.id != data)
+  {
+    
+  }
+}
+
+
+
+
+
+
+
+
+
 
 
 
