@@ -118,7 +118,7 @@ function closeEditMap(_)
   em_sm.style.display = 'block';
 }
 Shiny.addCustomMessageHandler('closeEditMap', closeEditMap);
-
+/*
 function checkMapChanges(map_info)
 {
   
@@ -137,8 +137,8 @@ function drag(e){
 function allowDrop(e){
   // default browser behavior prevents dragging. Hence we need to disable this..
   e.preventDefault();
-}
-
+} */
+/*
 function drop(e)
 {
   e.preventDefault();
@@ -149,8 +149,14 @@ function drop(e)
     
   }
 }
+*/
 
-
+function removeRow(rowID)
+{
+  table = document.getElementById('edit_profiles');
+  table.deleteRow(rowID);
+}
+Shiny.addCustomMessageHandler('removeRow', removeRow);
 
 
 

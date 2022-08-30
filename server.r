@@ -665,6 +665,10 @@ get_h_legend <- function(levels)
 }
 
 mm_map_name <- ''
+df_nodes.original <- unique(df_nodes[, c('label', 'level', 'active', 
+                                         'URL', 'endyear')]) %>%
+                      arrange(label) %>% filter(label != "")
+df_nodes$id <- seq(1, nrow(df_nodes))
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
@@ -1428,11 +1432,6 @@ s <- shinyServer(function(input, output, session){
                  )
     })
     
-    admin.profiles <- reactive({
-      tmp.df <- unique(df_nodes[, c('id', 'label')])
-      data.frame(Name=tmp.df$label, id=tmp.df$id)
-    })
-    
     output$em_profiles <- renderUI({
       # browser()
       html.table <- "<table class='admin_table'><tr><th>Map Name</th><th>Edit Links</th><th>Manage</th></tr>"
@@ -1480,7 +1479,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     admin.profiles <- reactive({
-      tmp.profiles <- unique(df_nodes[, c('label', 'level', 'active', 'map_name', 
+      tmp.profiles <- unique(df_nodes[, c('label', 'level', 'active', 
                                           'URL', 'endyear')]) %>%
                               arrange(label) %>% filter(label != "")
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
@@ -1491,7 +1490,7 @@ s <- shinyServer(function(input, output, session){
     output$ep_profiles <- renderPrint({
 
       profiles <- admin.profiles()
-      html.table <- "<table class='admin_table'>
+      html.table <- "<table class='admin_table' id='edit_profiles'>
                       <tr>
                         <th>Name</th>
                         <th>Founded</th>
@@ -1513,29 +1512,33 @@ s <- shinyServer(function(input, output, session){
                                                     <td>%s</td>
                                                     <td></td>
                                                     <td>%s</td>
-                                                    <td><button type='button' onclick=\'javascript:Shiny.setInputValue('publish_changes', \"%s\");\'>Publish</button></td>
-                                                    <td><a href='javascript:Shiny.setInputValue('view_profile', \"%s\");'><i class=\"fa fa-eye\"></i></a></td>
-                                                    <td><a href='javascript:Shiny.setInputValue('backup_profile', \"%s\");'>Backup</a></td>
-                                                    <td><button type='button' onclick=\'javascript:Shiny.setInputValue('delete_profile', \"%s\");\'>Delete</button></td>
+                                                    <td><button type='button' onclick=\"javascript:Shiny.setInputValue('publish_changes', '%s');\">Publish</button></td>
+                                                    <td><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');'><i class=\"fa fa-eye\"></i></a></td>
+                                                    <td><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
+                                                    <td><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
                                                  </tr>", name, active, 
                                                  name, name, name, name))
       }
       html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
-      # browser()
       cat(html.inner)
     })
     
     observeEvent(input$delete_profile, {
-      node_ids <- df_nodes[df_nodes$label==input$delete_profile, 'id']
+      # browser()
+      
+      profile_name <- input$delete_profile
+      row.id <- which(df_nodes.original$label == profile_name)
+      session$sendCustomMessage('removeRow', row.id)
+      index <- which(df_nodes.original$label==profile_name)
+      df_nodes.original <<- df_nodes.original[-index,]
       
       # Delete edges before deleting the nodes
-      indices <- which(df[df$from %in% node_ids | to %in% node_ids, ])
+      indices <- which(df$group1_name == profile_name | df$group2_name == profile_name)
       df <<- df[-indices,]
       
       # Delete nodes
-      indices <- which(df_nodes$id %in% node_ids)
+      indices <- which(df_nodes$label == profile_name)
       df_nodes <<- df_nodes[-indices,]
-      
     })
     
     observeEvent(input$view_profile, {
