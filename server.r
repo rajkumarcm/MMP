@@ -668,7 +668,6 @@ mm_map_name <- ''
 df_nodes.original <- unique(df_nodes[, c('label', 'level', 'active', 
                                          'URL', 'endyear')]) %>%
                       arrange(label) %>% filter(label != "")
-df_nodes$id <- seq(1, nrow(df_nodes))
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
