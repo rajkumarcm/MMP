@@ -1433,7 +1433,7 @@ s <- shinyServer(function(input, output, session){
     
     output$em_profiles <- renderUI({
       # browser()
-      html.table <- "<table class='admin_table'><tr><th>Map Name</th><th>Edit Links</th><th>Manage</th></tr>"
+      html.table <- "<table class='admin_table'><tr class='tr_class'><th class='th_class'>Map Name</th><th class='th_class'>Edit Links</th><th class='th_class'>Manage</th></tr>"
       html.inner <- ""
         for(i in 1:nrow(admin.maps()))
         {
@@ -1441,9 +1441,9 @@ s <- shinyServer(function(input, output, session){
           tmp.url <- admin.maps()[i, 'edit_links']
           tmp.manage <- admin.maps()[i, 'manage']
           
-          html.inner <- paste0(html.inner, sprintf("<tr><td>%s</td>
-                                                        <td>%s</td>
-                                                        <td>%s</td></tr>",
+          html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'><td class='td_class'>%s</td>
+                                                        <td class='td_class'>%s</td>
+                                                        <td class='td_class'>%s</td></tr>",
                                                    tmp.label, tmp.url, tmp.manage
                                                    ))
         }
@@ -1490,14 +1490,14 @@ s <- shinyServer(function(input, output, session){
 
       profiles <- admin.profiles()
       html.table <- "<table class='admin_table' id='edit_profiles'>
-                      <tr>
-                        <th>Name</th>
-                        <th>Founded</th>
-                        <th>Dislanded</th>
-                        <th>Publish</th>
-                        <th>View</th>
-                        <th>Backup</th>
-                        <th>Delete</th>
+                      <tr class='tr_class'>
+                        <th class='th_class'>Name</th>
+                        <th class='th_class'>Founded</th>
+                        <th class='th_class'>Dislanded</th>
+                        <th class='th_class'>Publish</th>
+                        <th class='th_class'>View</th>
+                        <th class='th_class'>Backup</th>
+                        <th class='th_class'>Delete</th>
                       </tr>"
 
       html.inner <- ""
@@ -1507,14 +1507,14 @@ s <- shinyServer(function(input, output, session){
         name <- profile$label
         active <- profile$activeC
 
-        html.inner <- paste0(html.inner, sprintf("<tr>
-                                                    <td>%s</td>
-                                                    <td></td>
-                                                    <td>%s</td>
-                                                    <td><button type='button' onclick=\"javascript:Shiny.setInputValue('publish_changes', '%s');\">Publish</button></td>
-                                                    <td><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');'><i class=\"fa fa-eye\"></i></a></td>
-                                                    <td><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
-                                                    <td><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
+        html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
+                                                    <td class='td_class'>%s</td>
+                                                    <td class='td_class'></td>
+                                                    <td class='td_class'>%s</td>
+                                                    <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('publish_changes', '%s');\">Publish</button></td>
+                                                    <td class='td_class'><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');\"><i class=\"fa fa-eye\"></i></a></td>
+                                                    <td class='td_class'><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
+                                                    <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
                                                  </tr>", name, active, 
                                                  name, name, name, name))
       }

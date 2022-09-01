@@ -449,25 +449,32 @@ div.outerBorder {
 
 .admin_table {
   font-family: Arial, Helvetica, sans-serif;
-  border-collapse: collapse;
+  border-collapse: separate;
   width: 100%;
 }
 
-td, th {
+.admin_table > tr > td > h4
+{
+  margin-top:24px;
+}
+
+.td_class, .th_class{
   border: 1px solid #ddd;
   padding: 8px;
 }
 
-tr:nth-child(even){background-color: #f2f2f2;}
+.tr_class:nth-child(even){background-color: #f2f2f2;}
 
-tr:hover {background-color: #ddd;}
+.tr_class:hover :not(.em_mm_table > tr){background-color: #ddd;}
 
-th {
+.th_class {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
   background-color: #04AA6D;
   color: white;
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 
 .em_field
@@ -504,17 +511,6 @@ th {
 
 #save_button_container > button:nth-of-type(2){
   margin-left:50px;
-}
-
-table
-{
-  border-collapse:separate; 
-  border-spacing: 0 1em;
-}
-
-td > h4
-{
-  margin-top:24px;
 }
 
 #em_mp_desc

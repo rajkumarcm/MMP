@@ -307,7 +307,7 @@ u <- shinyUI(fluidPage(
                                                                    label='Back')),
                                                 
                                                 HTML('<div id="admin_em_mm_node_details" class="admin_em_mm_container">
-                                                     <table>
+                                                     <table class="em_mm_table">
                                                      <tr>
                                                      <td><h4>Name</h4></td>
                                                      <td><input type="text" id="em_mp_name"  name="em_mp_name" class="emfield_input" /></td>
