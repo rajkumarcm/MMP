@@ -410,11 +410,6 @@ div.outerBorder {
   position:relative;
 }
 
-#animateBtn
-{
-  display:None;
-}
-
 #gn_list
 {
   background-color:white;
@@ -553,4 +548,70 @@ div.outerBorder {
 {
   color:maroon;
 }
+
+
+#years_list_container
+{
+  height:50px;
+  width:200px;
+  overflow-y:hidden;
+}
+
+#year_list_sub_container
+{
+  height:1000px;
+  width:200px;
+  margin-top:9px;
+  transition-property: margin-top;
+  transition-duration: 2s;
+}
+
+.year_field
+{
+  height:50px;
+  width:200px;
+  font-size:20pt;
+  text-align:center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

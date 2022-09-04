@@ -15,9 +15,9 @@ u <- shinyUI(fluidPage(
   
   shinyjs::useShinyjs(),
   tags$head(
+    tags$script(src='my_script.js'),
     tags$link(rel = "stylesheet", type = "text/css", href = "custom_style.css"),
-    tags$link(rel = "stylesheet", type = "text/css", href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css"),
-    tags$script(src="my_script.js")
+    tags$link(rel = "stylesheet", type = "text/css", href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css")
   ),
   navbarPage('MMP Prototype 2', selected="vizNM", id="nbp", 
              tabPanel(title='About the App', id='aboutNM',
@@ -117,20 +117,20 @@ u <- shinyUI(fluidPage(
                                                            width=360),
                                                
                                                HTML('</br></br></br>'),
+                                               htmlOutput(outputId='year_slider'), # year slider for animation
+                                               HTML('</br>'),
                                                div(id="animate_opts", 
                                                    div(id="animateChkbox",
-                                                   checkboxInput(inputId='animate_spatial',
-                                                                 label='Animate') ),
+                                                     checkboxInput(inputId='animate_spatial',
+                                                                   label='Animate') 
+                                                   ),
                                                    div(id="animateBtnDiv",
                                                    
                                                    #primary button    
-                                                   actionButton(inputId="animateBtn1", 
+                                                   actionButton(inputId="animateBtn", 
                                                                 label="Play/Pause"),
                                                    
-                                                   # responsible for calling animateBtn1
-                                                   # multiple times
-                                                   actionButton(inputId="animateBtn", 
-                                                                label="Play/Pause"))
+                                                   )
                                                ),
                                                
                                                uiOutput("nvf_legend_sub")
@@ -355,8 +355,6 @@ u <- shinyUI(fluidPage(
                                                        </div>
                                                      </div>
                                                      ')
-                                                
-                                                
                                                 )
                                                 
                                                 ),

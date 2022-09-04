@@ -664,7 +664,94 @@ get_h_legend <- function(levels)
   html_content
 }
 
+#-----------------Code that used to be inside nodes reactive block--------------
+
+get_nodes <- function(edges.df)
+{
+  node.size.offset <- 0
+  tmp_df <- data.frame(id = unique(c(edges.df$from,
+                                     edges.df$to)))
+  tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 
+                                                      'level')]),
+                                  by="id", keep=F)
+  
+  # nodes dataframe is created using correct inner join
+  tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value', 
+                                    'color.border', 'color.highlight.background',
+                                    'color.hover.background',
+                                    'color.hover.border')], 
+                  by='id')
+  cnames <- colnames(tmp_df)
+  cnames[cnames == 'between_color'] <- 'color.background'
+  colnames(tmp_df) <- cnames
+  tmp_df$value <- tmp_df$value + node.size.offset
+  tmp_df
+}
+
+#----------------Code that inside renderVisNetwork for Spatial graph------------
+
+get_spatial_visNetwork <- function(nodes, edges)
+{
+  visNetwork(nodes,
+             edges,
+             width = "100%")  %>%
+    visEvents(type='on',
+              select = "function(properties) {
+     Shiny.setInputValue('link_nid', properties.nodes);}",
+              stabilizationProgress = "function(params){
+                    Shiny.setInputValue('updatePB', params);
+                }",
+              stabilized = "function(params){
+                    Shiny.setInputValue('completePB', params);
+                }",
+              zoom = "function(properties){
+                    Shiny.setInputValue('clusterNodes', properties);
+                }"
+    ) %>%
+    visPhysics(solver = "forceAtlas2Based",
+               forceAtlas2Based = list(avoidOverlap=0.7,
+                                       gravitationalConstant=-100,
+                                       damping=1,
+                                       springLength=100)
+    ) %>%
+    
+    #-------------------TEMPORARILY DISABLED AS JS IS BREAKING----------------      
+  visNodes(shadow=T,
+           # borderWidth = 2,TEMPORARILY DISABLED
+           # borderWidthSelected = 3, TEMPORARILY DISABLED
+           color=list(hover=list(border='black'#,
+                                 # borderWidth=3
+           )))  %>%
+    visEdges(
+      label=edges()$title,
+      font = list(size = 1)) %>%
+    visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
+                font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
+                -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
+                 border: 1px solid #808074;white-space: wrap;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+                 max-width:300px',
+                   hover = TRUE,
+                   keyboard = TRUE,
+                   dragNodes = T,
+                   dragView = T,
+                   zoomView = T,
+                   multiselect = T) %>%   # explicit edge options
+    visOptions(
+      highlightNearest = list(enabled=T, #hover=T,
+                              algorithm="hierarchical",
+                              degree=list(from=0, to=2)),
+      nodesIdSelection = TRUE,
+      autoResize = T) %>%
+    visExport()
+}
+
+#---------------------------SERVER CODE-----------------------------------------
+
+# House Keeping Parameters---------------
 mm_map_name <- ''
+animate <- F
+#----------------------------------------
+
 df_nodes.original <- unique(df_nodes[, c('label', 'level', 'active', 
                                          'URL', 'endyear')]) %>%
                       arrange(label) %>% filter(label != "")
@@ -691,17 +778,32 @@ s <- shinyServer(function(input, output, session){
     df %>% filter(year >= input$range[1] & year <= input$range[2])
   })
   
-  observeEvent(input$animateBtn, {
-    years <- unique(df$year)
-    years <- data.frame(x = years) %>% arrange(x)
-    years <- years$x
-    logging::loginfo(input$animate_spatial)
-    # browser()
-    if(input$animate_spatial==T)
+  # output$year_slider <- renderPrint({
+  #  
+  #   html.outer <- sprintf("<input type='range' name='year_tmp' list='year_options' step='1' min='%d' max='%d'><datalist id='year_options'>", min(years), max(years))
+  #   html.inner <- ""
+  #   for(i in 1:length(years))
+  #   {
+  #     html.inner <- paste0(html.inner, sprintf("<option value='%d' label='%d'></option>", years[i], years[i], years[i]))
+  #   }
+  #   htmlComplete <- paste0(html.outer, paste0(html.inner, "</datalist>"))
+  #   cat(htmlComplete)
+  # })
+  
+  output$year_slider <- renderPrint({
+    html.outer <- "<div id='years_list_container'><div id='year_list_sub_container'>"
+    html.inner <- ""
+    for(i in 1:length(years))
     {
-      updateSliderInput(session, 'range', value=c(min(years), input$animateBtn))
-      Sys.sleep(3)
+      html.inner <- paste0(html.inner, sprintf("<div class='year_field'>%d</div>", years[i]))
     }
+    scriptContent <- "<script>
+                       let yrsc = document.getElementById('year_list_sub_container');
+                       yrsc.style.marginTop = '9px';
+                      </script>"
+    htmlComplete <- paste0(html.outer, paste0(html.inner, paste0("</div></div>", scriptContent)))
+    
+    cat(htmlComplete)
   })
   
   filtered_df <- reactive({
@@ -712,11 +814,12 @@ s <- shinyServer(function(input, output, session){
     {
       avoidLB <<- F
       prev.map_name <<- input$map_name
-      updateSliderInput(session, 'range', value=c(min(df$years), max(df$years)))
     }
     tmp_df <- tmp.df() %>% 
       filter(input$map_name  == 'All' | map_name == input$map_name) #%>%
       # dplyr::filter(year >= input$range[1] & year <= input$range[2])
+    updateSliderInput(session, 'range', value=c(min(tmp_df$years), 
+                                                max(tmp_df$years)))
     tmp_df <- filter_edges_mmap(tmp_df)
     tmp_df
   })
@@ -748,33 +851,20 @@ s <- shinyServer(function(input, output, session){
   # perhaps erase the order. There are chances that one relationship is
   # given label of another relationship.
   nodes2 <- reactive({
-    node.size.offset <- 0
-    # if(input$map_name=='All')
-    # {
-    #   node.size.offset <- 20
-    # }
-    tmp_df <- data.frame(id = unique(c(filtered_df()$from,
-                                     filtered_df()$to)))
-    tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 
-                                                        'level')]),
-                                    by="id", keep=F)
-    
-    # nodes dataframe is created using correct inner join
-    tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value', 
-                                      'color.border', 'color.highlight.background',
-                                      'color.hover.background',
-                                      'color.hover.border')], 
-                     by='id')
-    cnames <- colnames(tmp_df)
-    cnames[cnames == 'between_color'] <- 'color.background'
-    colnames(tmp_df) <- cnames
-    tmp_df$value <- tmp_df$value + node.size.offset
-    tmp_df
+    get_nodes(filtered_df())
   })
 
   # edges data.frame for legend
   # browser()
   tmp_df <- unique(df[, c('status', 'color')])
+  
+  f_years <- reactive({
+    years <- unique(edges()$year)
+    years <- data.frame(year=years) %>% arrange(year)
+    years <- years$year
+    years
+  })
+  
   
   # ledges is created & used for the sake of displaying legend
   # that aid in understanding the edges
@@ -783,60 +873,46 @@ s <- shinyServer(function(input, output, session){
   )
 
   output$networkvisfinal <- renderVisNetwork({
-    
-    visNetwork(nodes2(),
-               edges(),
-               width = "100%")  %>%
-      visEvents(type='on',
-              select = "function(properties) {
-     Shiny.setInputValue('link_nid', properties.nodes);}",
-                stabilizationProgress = "function(params){
-                    Shiny.setInputValue('updatePB', params);
-                }",
-                stabilized = "function(params){
-                    Shiny.setInputValue('completePB', params);
-                }",
-                zoom = "function(properties){
-                    Shiny.setInputValue('clusterNodes', properties);
-                }"
-                ) %>%
-      visPhysics(solver = "forceAtlas2Based",
-                 forceAtlas2Based = list(avoidOverlap=0.7,
-                                         gravitationalConstant=-100,
-                                         damping=1,
-                                         springLength=100,
-                                         minVelocity=0.1)
-      ) %>%
-      
-      visNodes(shadow=T, borderWidth = 2,
-               borderWidthSelected = 3,
-               color=list(hover=list(border='black',
-                                     borderWidth=3)))  %>%
-      visEdges(
-        label=edges()$title,
-        font = list(size = 1)) %>%
-      visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
-                font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
-                -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
-                 border: 1px solid #808074;white-space: wrap;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-                 max-width:300px',
-                     hover = TRUE,
-                     keyboard = TRUE,
-                     dragNodes = T,
-                     dragView = T,
-                     zoomView = T,
-                     multiselect = T) %>%   # explicit edge options
-      visOptions(
-        highlightNearest = list(enabled=T, #hover=T,
-                                algorithm="hierarchical",
-                                degree=list(from=0, to=2)),
-        nodesIdSelection = TRUE,
-        autoResize = T) %>%
-      visExport()
-    
+    get_spatial_visNetwork(nodes2(), edges())
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+  
+  #------------Have to duplicate call to visNetwork for Animation---------------
+  observeEvent(input$animateBtn, {
+    
+    logging::loginfo(input$animate_spatial)
+    
+    # browser()
+    tmp.edges <- edges()
+    tmp.edges <- tmp.edges %>% filter(year <= f_years()[1])
+    tmp.nodes <- get_nodes(tmp.edges)
+    if(input$animate_spatial==T)
+    {
+      # browser()
+      visRemoveEdges(myVisNetworkProxy, edges()$id)
+      visRemoveNodes(myVisNetworkProxy, nodes2()$id)
+      visUpdateNodes(myVisNetworkProxy, tmp.nodes)
+      visUpdateEdges(myVisNetworkProxy, tmp.edges)
+      # Sys.sleep(7)
+      
+      for(i in 2:length(f_years()))
+      {
+        # browser()
+        session$sendCustomMessage('tmpAnimate', i)
+        tmp.edges <- edges()
+        tmp.edges <- tmp.edges %>% filter(year <= f_years()[i])
+        tmp.nodes <- get_nodes(tmp.edges)
+        visUpdateNodes(myVisNetworkProxy, tmp.nodes)
+        visUpdateEdges(myVisNetworkProxy, tmp.edges)
+        Sys.sleep(7) # Year transition delay
+      }
+    }
+  })
+  
+  #-----------------------------------------------------------------------------
+  
+  
   
   observeEvent(input$updatePB, {
     if(!avoidLB)
@@ -888,14 +964,6 @@ s <- shinyServer(function(input, output, session){
     output$link <- renderUI({
       HTML(sprintf("<a href='%s'>%s</a>", url, gname))
     })
-  })
-  
-  observeEvent(input$animateBtn1, {
-    logging::loginfo('animateBtn1 called')
-    years <- unique(filtered_df()$year)
-    years <- data.frame(year=years) %>% arrange(year)
-    years <- years$year
-    session$sendCustomMessage('animateBtn1', years)
   })
   
   observeEvent(input$inputGN, {
@@ -1474,7 +1542,11 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$em_mp_save, {
-      session$sendCustomMessage('saveMapChanges', mm_map_name)
+      # session$sendCustomMessage('saveMapChanges', mm_map_name)
+      #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+      # Make sure to update this when Zoom levels and Included groups are implemented------------------
+      #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
     })
     
     admin.profiles <- reactive({

@@ -301,7 +301,9 @@ clustered_edges <- clustered_dfs[[2]]
 em_panel_sm <- T # edit maps
 em_panel_mm <- F
 
-
+years <- unique(df$year)
+years <- data.frame(x = years) %>% arrange(x)
+years <- years$x
 
 
 

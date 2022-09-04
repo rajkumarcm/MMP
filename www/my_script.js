@@ -74,7 +74,7 @@ Shiny.addCustomMessageHandler("toggleSL", toggleSL);
 function animateBtn1(years)
 {
   alert(years);
-  for(let i=0; i < 2; i++ )
+  for(let i=0; i < 3; i++ )
   {
     Shiny.setInputValue('animateBtn', years[i]);
   }
@@ -158,7 +158,12 @@ function removeRow(rowID)
 }
 Shiny.addCustomMessageHandler('removeRow', removeRow);
 
-
+function tmpAnimate(i)
+{
+  let mt = -((i-1) * 50 - 9);
+  yrsc.style.marginTop = mt + 'px';
+}
+Shiny.addCustomMessageHandler('tmpAnimate', tmpAnimate);
 
 
 
