@@ -755,6 +755,7 @@ animate <- F
 df_nodes.original <- unique(df_nodes[, c('label', 'level', 'active', 
                                          'URL', 'endyear')]) %>%
                       arrange(label) %>% filter(label != "")
+avoidLB <- F
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
@@ -764,68 +765,51 @@ s <- shinyServer(function(input, output, session){
   # This was done in order to faciliate the process of stopping the progress bar
   # from loading when the timeline slider is tweaked. Because stabilized event
   # by as a bug is failing to fire when the network reaches the stabilized point.  
-  avoidLB <- F
+  initial_run <- T
   minYr <- min(df$year)
   maxYr <- max(df$year)
   
-  tmp.df <- reactive({
-    if(input$range[1] != minYr | input$range[2] != maxYr)
-    {
-      avoidLB <<- T
-    }
-    else
-      avoidLB <<- F
-    df %>% filter(year >= input$range[1] & year <= input$range[2])
-  })
-  
-  # output$year_slider <- renderPrint({
-  #  
-  #   html.outer <- sprintf("<input type='range' name='year_tmp' list='year_options' step='1' min='%d' max='%d'><datalist id='year_options'>", min(years), max(years))
-  #   html.inner <- ""
-  #   for(i in 1:length(years))
+  # DISABLING FOR THE TIME-BEING-----THIS IS NOT ALLOWING THE YEAR SLIDER TO BE UPDATED....
+  # tmp.df <- reactive({
+  #   if(input$range[1] != minYr | input$range[2] != maxYr)
   #   {
-  #     html.inner <- paste0(html.inner, sprintf("<option value='%d' label='%d'></option>", years[i], years[i], years[i]))
+  #     avoidLB <<- T
   #   }
-  #   htmlComplete <- paste0(html.outer, paste0(html.inner, "</datalist>"))
-  #   cat(htmlComplete)
+  #   else
+  #     avoidLB <<- F
+  #   df %>% filter(year >= input$range[1] & year <= input$range[2])
   # })
-  
-  output$year_slider <- renderPrint({
-    html.outer <- "<div id='years_list_container'><div id='year_list_sub_container'>"
-    html.inner <- ""
-    for(i in 1:length(years))
-    {
-      html.inner <- paste0(html.inner, sprintf("<div class='year_field'>%d</div>", years[i]))
-    }
-    scriptContent <- "<script>
-                       let yrsc = document.getElementById('year_list_sub_container');
-                       yrsc.style.marginTop = '9px';
-                      </script>"
-    htmlComplete <- paste0(html.outer, paste0(html.inner, paste0("</div></div>", scriptContent)))
-    
-    cat(htmlComplete)
-  })
-  
+
+
   filtered_df <- reactive({
     prev.map_name <- maps[map_idx]
-    if(prev.map_name == input$map_name)
+    if(prev.map_name == input$map_name & initial_run == F)
+    {
       avoidLB <<- T
+    }
     else
     {
       avoidLB <<- F
+      initial_run <<- F
       prev.map_name <<- input$map_name
     }
-    tmp_df <- tmp.df() %>% 
+    tmp_df <- df %>% 
       filter(input$map_name  == 'All' | map_name == input$map_name) #%>%
       # dplyr::filter(year >= input$range[1] & year <= input$range[2])
-    updateSliderInput(session, 'range', value=c(min(tmp_df$years), 
-                                                max(tmp_df$years)))
+    # browser()
     tmp_df <- filter_edges_mmap(tmp_df)
     tmp_df
   })
   
+  # observe({
+  #   updateSliderInput(session, 'range',
+  #                     min=min(filtered_df()$year), max=max(filtered_df()$year),
+  #                     value=c(min(filtered_df()$year), max(filtered_df()$year))
+  #   )
+  # })
   
   edges <- reactive({
+    
     # When edges do not have a unique identifier, then visnetwork
     # cannot be asked to remove or add them back to the network. Any form
     # of manipulation that happens without unique ID will be erroneous. 
@@ -873,10 +857,53 @@ s <- shinyServer(function(input, output, session){
   )
 
   output$networkvisfinal <- renderVisNetwork({
+      updateSliderInput(session, 'range',
+                        min=min(edges()$year), max=max(edges()$year),
+                        value=c(min(edges()$year), max(edges()$year))
+      )
     get_spatial_visNetwork(nodes2(), edges())
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+  
+  # observeEvent(input$map_name, {
+  #   # When a map is changed, update the year range
+  #   updateSliderInput(session, 'range', value=c(min(edges()$year), 
+  #                                               max(edges()$year)),
+  #                     min=min(edges()$year), max=max(edges()$year))
+  # })
+  
+  output$year_slider <- renderPrint({
+    html.outer <- "<div id='years_list_container'><div id='year_list_sub_container'>"
+    html.inner <- ""
+    for(i in 1:length(f_years()))
+    {
+      html.inner <- paste0(html.inner, sprintf("<div class='year_field'>%d</div>", f_years()[i]))
+    }
+    scriptContent <- "<script>
+                       yrsc = document.getElementById('year_list_sub_container');
+                       yrsc.style.marginTop = '9px';
+                      </script>"
+    htmlComplete <- paste0(html.outer, paste0(html.inner, paste0("</div></div>", scriptContent)))
+    
+    cat(htmlComplete)
+  })
+  
+  observeEvent(input$range, {
+    filtered.edges <- edges() %>% filter(year >= input$range[1] & 
+                                         year <= input$range[2])
+    filtered.nodes <- get_nodes(filtered.edges)
+    complement.edges <- edges() %>% anti_join(filtered.edges, by='id')
+    complement.nodes <- get_nodes(complement.edges)
+    
+    # Update visNetwork once the MAIN year slider is updated
+    # Note: This has nothing to do with the animation or the year slider
+    # associated with animation.
+    visRemoveEdges(myVisNetworkProxy, complement.edges$id)
+    visRemoveNodes(myVisNetworkProxy, complement.nodes$id)
+    visUpdateNodes(myVisNetworkProxy, filtered.nodes)
+    visUpdateEdges(myVisNetworkProxy, filtered.edges)
+  })
   
   #------------Have to duplicate call to visNetwork for Animation---------------
   observeEvent(input$animateBtn, {
@@ -894,20 +921,26 @@ s <- shinyServer(function(input, output, session){
       visRemoveNodes(myVisNetworkProxy, nodes2()$id)
       visUpdateNodes(myVisNetworkProxy, tmp.nodes)
       visUpdateEdges(myVisNetworkProxy, tmp.edges)
-      # Sys.sleep(7)
+      Sys.sleep(7)
       
       for(i in 2:length(f_years()))
       {
         # browser()
         session$sendCustomMessage('tmpAnimate', i)
+        Sys.sleep(2)
         tmp.edges <- edges()
         tmp.edges <- tmp.edges %>% filter(year <= f_years()[i])
         tmp.nodes <- get_nodes(tmp.edges)
         visUpdateNodes(myVisNetworkProxy, tmp.nodes)
         visUpdateEdges(myVisNetworkProxy, tmp.edges)
-        Sys.sleep(7) # Year transition delay
+        if(i != length(f_years()))
+          Sys.sleep(7) # Year transition delay
+        else
+          Sys.sleep(4)
       }
     }
+    
+    session$sendCustomMessage('resetYearAnSlider', '')
   })
   
   #-----------------------------------------------------------------------------

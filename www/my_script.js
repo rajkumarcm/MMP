@@ -165,6 +165,12 @@ function tmpAnimate(i)
 }
 Shiny.addCustomMessageHandler('tmpAnimate', tmpAnimate);
 
+function resetYearAnSlider(_)
+{
+  yrsc.style.marginTop = '9px';
+}
+Shiny.addCustomMessageHandler('resetYearAnSlider', resetYearAnSlider);
+
 
 
 

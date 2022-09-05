@@ -109,7 +109,7 @@ u <- shinyUI(fluidPage(
                                                                        "Splinters"=4
                                                            )),
                                                HTML('</br>'),
-                                               sliderInput("range", 
+                                               sliderInput("range", round=T,
                                                            label = "Choose a start and end year:",
                                                            min = min(df$year), max = max(df$year), 
                                                            value = c(min(df$year), max(df$year)), 
