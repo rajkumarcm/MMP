@@ -1,18 +1,64 @@
+get_latest_file <- function(path, filename)
+{
+  # browser()
+  fnames <- list.files(path)
+  dates <- str_extract(fnames, '\\d{4}_\\d{2}_\\d{2}-')
+  dates <- str_extract(dates, '[\\d_]*')
+  ymd <- str_split(dates, "_")
+  dates <- NULL
+  for(i in 1:length(ymd))
+  {
+    tmp.date <- paste(ymd[[i]], collapse='')
+    dates <- c(dates, as.numeric(tmp.date))
+  }
+  max.date <- max(dates)
+  
+  year <- substr(max.date, 1, 4)
+  month <- substr(max.date, 5, 6)
+  date <- substr(max.date, 7, 8)
+  max.date <- paste0(year, paste0("_", paste0(month, paste0("_", date))))
+  
+  # Get the list of file names corresponding to the latest date
+  b.indices <- str_detect(fnames, sprintf('%s_%s_%s', year, month, date))
+  fnames <- fnames[b.indices]
+  
+  times <- str_extract(fnames, '-\\d{2}_\\d{2}_\\d{2}')
+  times <- str_extract(times, '[\\d_]+')
+  hms <- str_split(times, "_")
+  times <- NULL
+  for(i in 1:length(hms))
+  {
+    tmp.time <- paste(hms[[i]], collapse='')
+    times <- c(times, as.numeric(tmp.time))
+  }
+  max.time <- max(times)
+  hour <- substr(max.time, 1, 2)
+  mins <- substr(max.time, 3, 4)
+  secs <- substr(max.time, 5, 6)
+  max.time <- paste0(hour, paste0("_", paste0(mins, paste0("_", secs))))
+  
+  
+  new.fname <- paste0(filename, paste0(max.date, paste0("-", max.time)))
+  new.fname <- paste0(new.fname, '.csv')
+  return(new.fname)
+}
+
 load_data <- function()
 {
-  rel <- read.csv('data/relationshipsmmp.csv', sep=',', header=T, 
+  latest_fname <- get_latest_file('data/relationships', 'relationships')
+  rel <- read.csv(paste0('data/relationships/',latest_fname), sep=',', header=T, 
                  fileEncoding = 'UTF-8-BOM', check.names=T,
                  colClasses=c('multiple'='factor'))
+  # browser()
   ignore_row_idx <- which(rel$type == "")
-  rel <- rel[-ignore_row_idx,]
+  if(length(ignore_row_idx) >= 1)
+    rel <- rel[-ignore_row_idx,]
   rel$type <- factor(rel$type, levels=unique(rel$type))
   rel
 }
 
 preprocess <- function(df)
 {
-  
-  # df=subset(df, df$link_id != 1803)
   cnames <- colnames(df)
   
   # Instead of creating separate columns with same information

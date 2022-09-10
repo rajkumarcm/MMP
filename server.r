@@ -750,12 +750,16 @@ get_spatial_visNetwork <- function(nodes, edges)
 # House Keeping Parameters---------------
 mm_map_name <- ''
 animate <- F
-#----------------------------------------
-
-df_nodes.original <- unique(df_nodes[, c('label', 'level', 'active', 
+df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'active', 
                                          'URL', 'endyear')]) %>%
                       arrange(label) %>% filter(label != "")
+df_nodes.original <- df_nodes.copy
+df.copy <- df
 avoidLB <- F
+ep_changes_made <- F
+d.profile_names <- NULL
+#----------------------------------------
+
 s <- shinyServer(function(input, output, session){
   
   shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
@@ -1559,6 +1563,7 @@ s <- shinyServer(function(input, output, session){
     
     # Open manage a map div with information about the map populated
     observeEvent(input$manageMap, {
+      # browser()
       mm_map_name <<- input$manageMap
       map_info <- unique(df_nodes[df_nodes$map_name==input$manageMap, 
                                                                c('map_name',
@@ -1583,8 +1588,8 @@ s <- shinyServer(function(input, output, session){
     })
     
     admin.profiles <- reactive({
-      tmp.profiles <- unique(df_nodes[, c('label', 'level', 'active', 
-                                          'URL', 'endyear')]) %>%
+      tmp.profiles <- unique(df_nodes.copy[, c('id', 'label', 'level', 'active', 
+                                               'URL', 'endyear')]) %>%
                               arrange(label) %>% filter(label != "")
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
                                      tmp.profiles$endyear)
@@ -1610,17 +1615,18 @@ s <- shinyServer(function(input, output, session){
       {
         profile <- profiles[i,]
         name <- profile$label
+        level <- profile$level
         active <- profile$activeC
 
         html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
                                                     <td class='td_class'>%s</td>
-                                                    <td class='td_class'></td>
+                                                    <td class='td_class'>%d</td>
                                                     <td class='td_class'>%s</td>
                                                     <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('publish_changes', '%s');\">Publish</button></td>
                                                     <td class='td_class'><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');\"><i class=\"fa fa-eye\"></i></a></td>
                                                     <td class='td_class'><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
                                                     <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
-                                                 </tr>", name, active, 
+                                                 </tr>", name, level, active, 
                                                  name, name, name, name))
       }
       html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
@@ -1628,21 +1634,80 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$delete_profile, {
+      
       # browser()
-      
+      # Get the original index in the df_nodes corresponding to the deleted profile
+      # in order to remove the row from the table
       profile_name <- input$delete_profile
-      row.id <- which(df_nodes.original$label == profile_name)
+      
+      d.profile_names <<- c(d.profile_names, profile_name)
+      
+      # df_nodes.original is the sorted version of df_nodes
+      # so it picks the correct row.id
+      # The following snippet is for removing the record from the HTML table
+      row.id <- which(df_nodes.original$label %in% profile_name)
       session$sendCustomMessage('removeRow', row.id)
-      index <- which(df_nodes.original$label==profile_name)
-      df_nodes.original <<- df_nodes.original[-index,]
+      df_nodes.original <<- df_nodes.original[-row.id,]
       
-      # Delete edges before deleting the nodes
-      indices <- which(df$group1_name == profile_name | df$group2_name == profile_name)
-      df <<- df[-indices,]
+      ep_changes_made <<- T
+    })
+    
+    observeEvent(input$ep_save_changes, {
       
-      # Delete nodes
-      indices <- which(df_nodes$label == profile_name)
-      df_nodes <<- df_nodes[-indices,]
+      # Here before you apply the changes, get the anti-join between the
+      # df_nodes and df_nodes.copy so that you could get the ids of the profiles
+      # that you had deleted. This would enable you to retrieve the remaining
+      # columns instead of saving the file with just 4 or 5 selective columns
+      # and losing invaluable information.
+      
+      if(ep_changes_made==T)
+      {
+        # browser()
+        # Apply changes made to the .copy dataframes
+        df <<- df.copy
+        df_nodes <<- df_nodes.copy
+        df_nodes.original <<- df_nodes.copy
+        
+        # Restoring column names so that when we reload the file
+        # there wouldn't be any conflicts
+        
+        #-------Relationships dataframe
+        l_rel_fname <- get_latest_file('data/relationships', 'relationships')
+        tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', header=T, 
+                           fileEncoding = 'UTF-8-BOM', check.names=T,
+                           colClasses=c('multiple'='factor'))
+        indices <- which(tmp.df$group1_name %in% d.profile_names | 
+                         tmp.df$group2_name %in% d.profile_names)
+        tmp.df <- tmp.df[-indices,]
+        
+        #--------Nodes dataframe
+        latest_fname <- get_latest_file('data/groups/', 'groups')
+        tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
+        indices <- which(tmp.df_nodes$group_name %in% d.profile_names)
+        tmp.df_nodes <- tmp.df_nodes[-indices,]
+        
+        time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
+        time_str <- gsub(":", "_", time_str)
+        date_str <- gsub("-", "_", Sys.Date())
+        date_time <- paste0(date_str, paste0('-', time_str))
+        
+        g.fname <- paste0(paste0("groups", date_time), ".csv")
+        r.fname <- paste0(paste0("relationships", date_time), ".csv")
+        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
+        write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
+        
+        # Once changes are saved, then we can reset these parameters
+        ep_changes_made <<- F
+        d.profile_names <<- NULL
+        
+      }
+    })
+    
+    observeEvent(input$ep_discard_changes, {
+      d.profile_names <<- NULL
+      ep_changes_made <<- F
+      
+      # Append more code when more flexibility to customization is added
     })
     
     observeEvent(input$view_profile, {

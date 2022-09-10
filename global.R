@@ -1,5 +1,6 @@
 #---------------Load libraries-----------------------
 library(shiny)
+library(stringr)
 library(visNetwork)
 library(networkD3)
 library(RColorBrewer)
@@ -53,8 +54,8 @@ tmp_edges <- data.frame(from = df$from,
                         color=df$color)
 
 graph <- graph.data.frame(tmp_edges, directed = T)
-
 # This would certainly cause confusion if left alive
+
 rm('tmp_edges') 
 
 # Nodes data frame
@@ -81,8 +82,10 @@ extra_cnames <- data.frame(x=colnames(nodes_extra))
 
 
 # Nodes database-------------------------------------------------------------
+latest_fname <- get_latest_file('data/groups/', 'groups')
+df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
+df_nodes.original <- df_nodes
 
-df_nodes <- read.csv("data/mmpgroupsfull.csv", header=T,)
 # df_nodes <- df_nodes %>% regex_left_join(links[, c("URL", "Anchor")],
 #                                          by=c("group_name"="Anchor"))
 df_nodes <- df_nodes %>% left_join(links[, c("URL", "Anchor")],

@@ -361,7 +361,13 @@ u <- shinyUI(fluidPage(
                                      tabPanel(title='Edit Profiles1', value='admin_ep1',
                                               div(id='admin_ep_sp1',
                                                   
-                                                htmlOutput(outputId='ep_profiles'))
+                                                htmlOutput(outputId='ep_profiles'),
+                                                actionButton(inputId='ep_save_changes',
+                                                             label='Save Changes'),
+                                                actionButton(inputId='ep_discard_changes',
+                                                             label='Discard Changes'),
+                                                HTML('</br></br>')
+                                                )
                                               )
                                               )
                          
