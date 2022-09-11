@@ -745,6 +745,15 @@ get_spatial_visNetwork <- function(nodes, edges)
     visExport()
 }
 
+filter_profiles <- function(edges)
+{
+  indices <- which(edges$group1_name %in% h.profile_names | 
+                   edges$group2_name %in% h.profile_names)
+  edges <- edges[-indices,]
+  
+  edges
+}
+
 #---------------------------SERVER CODE-----------------------------------------
 
 # House Keeping Parameters---------------
@@ -772,18 +781,6 @@ s <- shinyServer(function(input, output, session){
   initial_run <- T
   minYr <- min(df$year)
   maxYr <- max(df$year)
-  
-  # DISABLING FOR THE TIME-BEING-----THIS IS NOT ALLOWING THE YEAR SLIDER TO BE UPDATED....
-  # tmp.df <- reactive({
-  #   if(input$range[1] != minYr | input$range[2] != maxYr)
-  #   {
-  #     avoidLB <<- T
-  #   }
-  #   else
-  #     avoidLB <<- F
-  #   df %>% filter(year >= input$range[1] & year <= input$range[2])
-  # })
-
 
   filtered_df <- reactive({
     prev.map_name <- maps[map_idx]
@@ -798,10 +795,13 @@ s <- shinyServer(function(input, output, session){
       prev.map_name <<- input$map_name
     }
     tmp_df <- df %>% 
-      filter(input$map_name  == 'All' | map_name == input$map_name) #%>%
-      # dplyr::filter(year >= input$range[1] & year <= input$range[2])
-    # browser()
-    tmp_df <- filter_edges_mmap(tmp_df)
+      filter(input$map_name  == 'All' | map_name == input$map_name)
+    
+    if(input$map_name=='All')
+      tmp_df <- filter_edges_mmap(tmp_df)
+    
+    # tmp_df <- filter_profiles(tmp_df)
+    
     tmp_df
   })
   
@@ -1604,7 +1604,7 @@ s <- shinyServer(function(input, output, session){
                         <th class='th_class'>Name</th>
                         <th class='th_class'>Founded</th>
                         <th class='th_class'>Dislanded</th>
-                        <th class='th_class'>Publish</th>
+                        <th class='th_class'>Hide</th>
                         <th class='th_class'>View</th>
                         <th class='th_class'>Backup</th>
                         <th class='th_class'>Delete</th>
@@ -1617,20 +1617,34 @@ s <- shinyServer(function(input, output, session){
         name <- profile$label
         level <- profile$level
         active <- profile$activeC
-
+        # browser()
+        hidden <- ifelse(name %in% h.profile_names, 1, 0)
+        
         html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
                                                     <td class='td_class'>%s</td>
                                                     <td class='td_class'>%d</td>
                                                     <td class='td_class'>%s</td>
-                                                    <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('publish_changes', '%s');\">Publish</button></td>
+                                                    <td class='td_class'><input type='checkbox' checked=%d, onload=\"javascript:console.log('Hello...');\" onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>
                                                     <td class='td_class'><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');\"><i class=\"fa fa-eye\"></i></a></td>
                                                     <td class='td_class'><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
                                                     <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
-                                                 </tr>", name, level, active, 
-                                                 name, name, name, name))
+                                                 </tr>", name, level, active, hidden,
+                                                 name, name, name, name, quote=F))
       }
       html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
       cat(html.inner)
+    })
+    
+    observeEvent(input$hide_profile, {
+      # I just assigned profile_name for brevity...
+      profile_name <- input$hide_profile
+      if(profile_name %in% h.profile_names)
+      {
+        index <- which(h.profile_names==profile_name)
+        h.profile_names <<- h.profile_names[-index]
+      }
+      else
+        h.profile_names <<- c(h.profile_names, profile_name)
     })
     
     observeEvent(input$delete_profile, {
@@ -1662,7 +1676,7 @@ s <- shinyServer(function(input, output, session){
       
       if(ep_changes_made==T)
       {
-        # browser()
+        # Delete profiles section-----------------------------------------------
         # Apply changes made to the .copy dataframes
         df <<- df.copy
         df_nodes <<- df_nodes.copy
@@ -1673,8 +1687,8 @@ s <- shinyServer(function(input, output, session){
         
         #-------Relationships dataframe
         l_rel_fname <- get_latest_file('data/relationships', 'relationships')
-        tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', header=T, 
-                           fileEncoding = 'UTF-8-BOM', check.names=T,
+        tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
+                           header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
                            colClasses=c('multiple'='factor'))
         indices <- which(tmp.df$group1_name %in% d.profile_names | 
                          tmp.df$group2_name %in% d.profile_names)
@@ -1685,6 +1699,10 @@ s <- shinyServer(function(input, output, session){
         tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
         indices <- which(tmp.df_nodes$group_name %in% d.profile_names)
         tmp.df_nodes <- tmp.df_nodes[-indices,]
+        
+        # Save hidden profile names changes--------------------------------------
+        save(file='data/hidden_profiles.RData', 'h.profile_names')
+        #-----------------------------------------------------------------------
         
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
         time_str <- gsub(":", "_", time_str)
@@ -1713,6 +1731,20 @@ s <- shinyServer(function(input, output, session){
     observeEvent(input$view_profile, {
       
     })
+    
+    
+    output$mapOutput <- renderLeaflet({
+      browser()
+      leaflet(nodes_geo()) %>%
+        addProviderTiles(providers$Esri.WorldTopoMap) %>%
+        addMarkers(~long, ~lat, 
+                   # icon = filteredIcon(), 
+                   # label = ~Player, 
+                   labelOptions = labelOptions(textsize = "12px"),
+                   popup = ~label
+                   )
+    })
+    
 })
 
 

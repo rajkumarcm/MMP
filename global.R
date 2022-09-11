@@ -10,26 +10,14 @@ library(shinyjs)
 library(logging)
 library(dplyr)
 library(fuzzyjoin)
+library(leaflet)
 source('handle_data.R', local=T)
 map_idx <- 2
 #---------------------------------------------------
 
 # Variables definition------------------------------
 # df -> edges data frame
-# 
-#---------------------------------------------------
-
-#----------For debugging purposes-------------------
-# 1. Check whether nodes$value is consumed - Fixed
-# 2. Check the degreePal line where the degree histogram
-# is discretized into 4 bins - Check the intervals of degree
-# 3. Take a look at D1
-# 4. Check why edges require information about node colors
-# at line where df = merge(df, nodes) is called
-#-- -- -- -- -- -- -- -- -- ---- -- -- -- ---- -- -- -- 
-#- - - - - - - - - - - - -  - - - - - - - - - - - - - - 
-# Update: I have commented line 126 for testing purposes.
-# If anything breaks uncomment 126 and comment 127
+# df_nodes -> nodes data frame
 #---------------------------------------------------
 
 # Load and preprocess data--------------------------
@@ -38,11 +26,7 @@ df <- preprocess(df)
 df <- remove_edges_rd(df)
 df <- remove_edges_ry(df)
 df <- make_undirected(df)
-#---------------------------------------------------
 
-# Check if this is needed-----------------------------------------
-# gg <- make_graph(df)
-#-----------------------------------------------------------------
 tmp_edges <- data.frame(from = df$from, 
                         to = df$to, 
                         title=df$label,
@@ -308,7 +292,11 @@ years <- unique(df$year)
 years <- data.frame(x = years) %>% arrange(x)
 years <- years$x
 
-
+data.files <- list.files('data/')
+h_prof_file_found <- str_detect(data.files, 'hidden_profiles.RData')
+h.profile_names <- NULL
+if(sum(h_prof_file_found) == 1)
+  load('data/hidden_profiles.RData')
 
 
 

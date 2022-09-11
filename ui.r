@@ -276,6 +276,14 @@ u <- shinyUI(fluidPage(
                                      plotOutput("geoMap"),
                                      style = "background-color: #FCFCF3;"),
                             
+                            tabPanel("Map",
+                                     selectInput(inputId='m_map_name', 
+                                                 label='Map Name',
+                                                 choices=maps,
+                                                 selected='Iraq'),
+                                     leafletOutput(outputId='mapOutput')
+                                     ),
+                            
                             tabPanel("Statistics",
                                      selectInput("s_map_name", 
                                                  label="Select Map:", 
