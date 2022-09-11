@@ -303,6 +303,19 @@ make_undirected <- function(df)
   df[df$link_id %in% accepted_list, ]
 }
 
+clean_size_members <- function(x)
+{
+  x.list <- str_extract_all(x, '[\\d]+')
+  x.new <- NULL
+  for(i in 1:length(x.list))
+  {
+    item <- x.list[i]
+    x.new <- c(x.new, paste0(item[1][[1]][1], ifelse(is.na(item[1][[1]][2]), "", 
+                                                item[1][[1]][2])))
+  }
+  x.new
+}
+
 # For debugging--------------------------
 # df <- load_data()
 # df <- preprocess(df)

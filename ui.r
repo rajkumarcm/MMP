@@ -285,11 +285,21 @@ u <- shinyUI(fluidPage(
                                      ),
                             
                             tabPanel("Statistics",
+                                     
+                                     div(id='generalStats',
+                                         sliderInput(inputId='stats_sample_size',
+                                                     label='Sample size',
+                                                     min=10, max=30, step=5,
+                                                     value=10),
+                                         HTML("</br>"),
+                                         plotOutput("membersGrowth")
+                                     ),
+                                     HTML("</br>"),
                                      selectInput("s_map_name", 
                                                  label="Select Map:", 
                                                  choices = unique(df$map_name),
                                                  selected = "Iraq"),
-                                     plotOutput("statistical_plot"),
+                                     plotOutput("basicStats_map"),
                                      style = "background-color: #FCFCF3;")
                             
                           ) # End of tabset panel that covers all types of viz

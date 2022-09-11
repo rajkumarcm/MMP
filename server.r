@@ -1517,7 +1517,50 @@ s <- shinyServer(function(input, output, session){
       tmp.df <- df[df$map_name==map_name, c('group1_name', 'group2_name', 'year', 
                                             'label')]
       
-      output$statistical_plot <- renderPlot({
+      growth_by_prof <- reactive({
+        tmp.df <- df_nodes %>% inner_join(nodes[, c('id', 'between')], by='id')
+        tmp.df <- unique(tmp.df[, c('label', 'init_size_members', 
+                                    'max_size_members', 'between', 
+                                    'level', 'endyear')])
+        tmp.df <- tmp.df[(!is.na(tmp.df$init_size_members)) & 
+                           (!is.na(tmp.df$max_size_members)),]
+        tmp.df <- tmp.df[tmp.df$init_size_members!="" & 
+                           tmp.df$max_size_members!="",]
+        # browser()
+        tmp.df$new.endyear <- ifelse(tmp.df$endyear==0, 
+                                     as.integer(format(Sys.Date(), "%Y")),
+                                     tmp.df$endyear)
+        tmp.df$period <- tmp.df$new.endyear - tmp.df$level
+        tmp.df$init_size_members <- clean_size_members(tmp.df$init_size_members)
+        tmp.df$init_size_members <- as.integer(tmp.df$init_size_members)
+        tmp.df$max_size_members <- clean_size_members(tmp.df$max_size_members)
+        tmp.df$max_size_members <- as.integer(tmp.df$max_size_members)
+        # browser()
+        growth_by_profile <- tmp.df %>%
+          group_by(label) %>% 
+          summarise(init_size=mean(init_size_members),
+                    max_size=mean(max_size_members),
+                    between=mean(between),
+                    period=mean(period))
+        attach(growth_by_profile)
+        growth_by_profile$growth <- (max_size-init_size)/period
+        detach(growth_by_profile)
+        growth_by_profile <- growth_by_profile %>% arrange(desc(growth))
+        growth_by_profile <- as.data.frame(growth_by_profile)
+        growth_by_profile[1:input$stats_sample_size,]
+      })
+      
+      output$membersGrowth <- renderPlot({
+        
+        ggplot(growth_by_prof(), aes(x=reorder(label, growth), 
+                                             y=growth, fill=between)) +
+        geom_bar(stat='identity') +
+        xlab('Profile Name') + ylab('Growth per year') + 
+        coord_flip() + 
+        guides(fill=guide_legend(title="Profile's influence"))
+      })
+      
+      output$basicStats_map <- renderPlot({
         ggplot(tmp.df, aes(x=year, fill=label)) + 
           geom_bar(position='dodge', stat='count')
       })
