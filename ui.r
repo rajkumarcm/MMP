@@ -264,6 +264,10 @@ u <- shinyUI(fluidPage(
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Sankey", 
+                                     selectInput(inputId="s_map_name",
+                                                 label="Map Name",
+                                                 choices=maps,
+                                                 selected='Iraq'),
                                      sankeyNetworkOutput("diagram",
                                                          height="500px"),
                                      style = "background-color: #FCFCF3;"),

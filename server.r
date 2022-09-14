@@ -1132,7 +1132,7 @@ s <- shinyServer(function(input, output, session){
     
     filtered_df_sankey <-reactive({
       df %>%
-        dplyr::filter(input$map_name  == 'All' | map_name == input$map_name) %>%
+        dplyr::filter(input$s_map_name  == 'All' | map_name == input$s_map_name) %>%
         dplyr::filter(year >= input$range[1] & year <= input$range[2] ) %>%
         dplyr::filter(status=="Splinters" | status == "Mergers")
     })
