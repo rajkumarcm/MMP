@@ -285,22 +285,57 @@ u <- shinyUI(fluidPage(
                                      ),
                             
                             tabPanel("Statistics",
+
+                                       sidebarLayout(
+                                         sidebarPanel(
+                                           selectInput(inputId='stat_level',
+                                                       label='Information',
+                                                       choices=c('General',
+                                                                 'Map'),
+                                                       selected='General'),
+                                           width=4
+                                         ),
+                                         mainPanel(
+                                           conditionalPanel('input.stat_level=="General"',
+                                               div(id='generalStats',
+                                                   div(id='generalStats_mapController',
+                                                       sliderInput(inputId='stats_sample_size',
+                                                                   label='Sample size',
+                                                                   min=10, max=30, step=5,
+                                                                   value=10),
+                                                       HTML("</br>")
+                                                   ),
+
+                                                   div(id='sub_generalStats1',
+                                                       plotOutput("membersGrowth"),
+                                                       HTML("
+                                                       <div class='fig_caption'>The average growth of members over the years the group had been active and the color represents the amount of influence a group can have on the entire extremist network</div>"
+                                                       )
+                                                   ),
+
+                                                   div(id='sub_generalStats2',
+                                                       dataTableOutput("showActiveProfiles")
+                                                   )
+                                               )
+                                           ),
+                                           
+                                           conditionalPanel('input.stat_level=="Map"',
+                                                            div(
+                                                              HTML("</br>"),
+                                                              selectInput("s_map_name",
+                                                                          label="Select Map:",
+                                                                          choices = unique(df$map_name),
+                                                                          selected = "Iraq"),
+                                                              plotOutput("basicStats_map"),
+                                                            )
+                                                          ),
+                                           width=8
+                                            ),
+                                         fluid=F
+                                         )
+                                         
+                                       ),
                                      
-                                     div(id='generalStats',
-                                         sliderInput(inputId='stats_sample_size',
-                                                     label='Sample size',
-                                                     min=10, max=30, step=5,
-                                                     value=10),
-                                         HTML("</br>"),
-                                         plotOutput("membersGrowth")
-                                     ),
-                                     HTML("</br>"),
-                                     selectInput("s_map_name", 
-                                                 label="Select Map:", 
-                                                 choices = unique(df$map_name),
-                                                 selected = "Iraq"),
-                                     plotOutput("basicStats_map"),
-                                     style = "background-color: #FCFCF3;")
                             
                           ) # End of tabset panel that covers all types of viz
                           

@@ -9,6 +9,7 @@
 library('maps')
 library('geosphere')
 library('ggplot2')
+library('gridExtra')
 library(tidyverse)
 
 source('filter_medges_all.R', local=T)
@@ -1526,7 +1527,7 @@ s <- shinyServer(function(input, output, session){
                            (!is.na(tmp.df$max_size_members)),]
         tmp.df <- tmp.df[tmp.df$init_size_members!="" & 
                            tmp.df$max_size_members!="",]
-        # browser()
+        
         tmp.df$new.endyear <- ifelse(tmp.df$endyear==0, 
                                      as.integer(format(Sys.Date(), "%Y")),
                                      tmp.df$endyear)
@@ -1535,7 +1536,7 @@ s <- shinyServer(function(input, output, session){
         tmp.df$init_size_members <- as.integer(tmp.df$init_size_members)
         tmp.df$max_size_members <- clean_size_members(tmp.df$max_size_members)
         tmp.df$max_size_members <- as.integer(tmp.df$max_size_members)
-        # browser()
+        
         growth_by_profile <- tmp.df %>%
           group_by(label) %>% 
           summarise(init_size=mean(init_size_members),
@@ -1556,9 +1557,28 @@ s <- shinyServer(function(input, output, session){
                                              y=growth, fill=between)) +
         geom_bar(stat='identity') +
         xlab('Profile Name') + ylab('Growth per year') + 
+          ggtitle('Growth in member size on average by Profile') +
         coord_flip() + 
-        guides(fill=guide_legend(title="Profile's influence"))
+        guides(fill=guide_legend(title="Profile's influence")) +
+          theme_minimal()
       })
+      
+      activeProfiles <- reactive({
+        sample.size <- input$stats_sample_size # temporarily disconnecting this
+        tmp.df <- admin.profiles()
+        tmp.df <- unique(tmp.df[, c('label', 'level', 'activeC')]) %>%
+                    filter(activeC == 'Active' & level != 0) %>%
+                    arrange(level)
+        cnames <- colnames(tmp.df)
+        cnames[cnames %in% c('level', 'activeC')] <- c('Start Year', 'Active')
+        colnames(tmp.df) <- cnames
+        tmp.df
+      })
+      
+      output$showActiveProfiles <- renderDataTable(activeProfiles(),
+                                                   options=list(pageLength=10,
+                                                                scrollY='430px')
+                                                  )
       
       output$basicStats_map <- renderPlot({
         ggplot(tmp.df, aes(x=year, fill=label)) + 
@@ -1637,6 +1657,7 @@ s <- shinyServer(function(input, output, session){
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
                                      tmp.profiles$endyear)
       tmp.profiles
+      # browser()
     })
 
     output$ep_profiles <- renderPrint({
