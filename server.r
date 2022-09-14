@@ -673,7 +673,7 @@ get_nodes <- function(edges.df)
   tmp_df <- data.frame(id = unique(c(edges.df$from,
                                      edges.df$to)))
   tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 
-                                                      'level')]),
+                                                      'level', 'shape')]),
                                   by="id", keep=F)
   
   # nodes dataframe is created using correct inner join
@@ -712,20 +712,19 @@ get_spatial_visNetwork <- function(nodes, edges)
     visPhysics(solver = "forceAtlas2Based",
                forceAtlas2Based = list(avoidOverlap=0.7,
                                        gravitationalConstant=-100,
-                                       damping=1,
-                                       springLength=100)
+                                       damping=1)
     ) %>%
     
     #-------------------TEMPORARILY DISABLED AS JS IS BREAKING----------------      
   visNodes(shadow=T,
-           # borderWidth = 2,TEMPORARILY DISABLED
+           borderWidth = 4,#TEMPORARILY DISABLED
            # borderWidthSelected = 3, TEMPORARILY DISABLED
-           color=list(hover=list(border='black'#,
+           color=list(hover=list(border='tango'#,
                                  # borderWidth=3
            )))  %>%
     visEdges(
       label=edges()$title,
-      font = list(size = 1)) %>%
+      font = list(size = 2)) %>%
     visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
                 -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
@@ -1403,7 +1402,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$visnetworktimeline <- renderVisNetwork({
-      
+      browser()
       tmp.nodes <- dfs()[[1]]
       root_nodes <- tmp.nodes[tmp.nodes$root==T,]
       root_nodes <- root_nodes %>% arrange(year)

@@ -298,6 +298,26 @@ h.profile_names <- NULL
 if(sum(h_prof_file_found) == 1)
   load('data/hidden_profiles.RData')
 
+# Define node shapes based on the sponsor type---------------------------------
+df_nodes$shape <- 'circle'
 
+# Replace NA's by 0
+df_nodes[is.na(df_nodes$us_designated), 'us_designated'] <- 0
+df_nodes[is.na(df_nodes$un_designated), 'un_designated'] <- 0
+df_nodes[is.na(df_nodes$state_sponsor), 'state_sponsor'] <- 0
+df_nodes[is.na(df_nodes$other_designated), 'other_designated'] <- 0
+
+df_nodes[(df_nodes$us_designated==1 |
+            df_nodes$un_designated==1) &
+           df_nodes$state_sponsor!=1, 'shape'] <- 'star'
+df_nodes[df_nodes$state_sponsor==1 &
+           df_nodes$un_designated!=1 &
+           df_nodes$us_designated!=1 & 
+           df_nodes$other_designated!=1, 'shape'] <- 'diamond'
+df_nodes[(df_nodes$us_designated==1 | 
+            df_nodes$un_designated==1) &
+           df_nodes$state_sponsor==1, 'shape'] <- 'triangle'
+
+# df$width <- 9
 
 
