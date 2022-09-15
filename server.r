@@ -717,7 +717,7 @@ get_spatial_visNetwork <- function(nodes, edges)
     
     #-------------------TEMPORARILY DISABLED AS JS IS BREAKING----------------      
   visNodes(shadow=T,
-           borderWidth = 4,#TEMPORARILY DISABLED
+           borderWidth = 2,#TEMPORARILY DISABLED
            # borderWidthSelected = 3, TEMPORARILY DISABLED
            color=list(hover=list(border='tango'#,
                                  # borderWidth=3
@@ -752,6 +752,40 @@ filter_profiles <- function(edges)
   edges <- edges[-indices,]
   
   edges
+}
+
+get_activeg_df <- function(df_nodes, map_name)
+{
+  tmp.nodes <- unique(df_nodes[df_nodes$map_name==map_name, 
+                               c('id', 'label', 'level', 'active')])
+  cnames <- colnames(tmp.nodes)
+  cnames[cnames == 'level'] <- 'year'
+  colnames(tmp.nodes) <- cnames
+  tmp.nodes <- tmp.nodes %>% filter(active == 1) %>% arrange(year)
+  tmp.nodes <- tmp.nodes %>% group_by(year) %>% 
+    summarise(n_active_groups=n())
+}
+
+fill_activeg_years <- function(tmp.df)
+{
+  min.year <- min(tmp.df$year)
+  max.year <- max(tmp.df$year)
+  years <- seq(min.year, max.year, 1)
+  for(i in 1:length(maps))
+  {
+    mname <- maps[i]
+    for(j in 1:length(years))
+    {
+      year <- years[j]
+      if(!exists(tmp.df[tmp.df$year==year & tmp.df$map_name==mname, 
+                       c('label')]))
+      {
+        tmp.df <- rbind(tmp.df, 
+                        data.frame(map_name=mname, year=year, n_active_groups=0))
+      }
+    }
+  }
+  tmp.df
 }
 
 #---------------------------SERVER CODE-----------------------------------------
@@ -1402,7 +1436,6 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$visnetworktimeline <- renderVisNetwork({
-      browser()
       tmp.nodes <- dfs()[[1]]
       root_nodes <- tmp.nodes[tmp.nodes$root==T,]
       root_nodes <- root_nodes %>% arrange(year)
@@ -1512,10 +1545,11 @@ s <- shinyServer(function(input, output, session){
     
     #-------------------------Statistical Plot--------------------------------------
     
-    observeEvent(input$s_map_name, {
+    stat_rel_df <- reactive({
       map_name <- input$s_map_name
       tmp.df <- df[df$map_name==map_name, c('group1_name', 'group2_name', 'year', 
                                             'label')]
+    })
       
       growth_by_prof <- reactive({
         tmp.df <- df_nodes %>% inner_join(nodes[, c('id', 'between')], by='id')
@@ -1580,11 +1614,39 @@ s <- shinyServer(function(input, output, session){
                                                   )
       
       output$basicStats_map <- renderPlot({
+        tmp.df <- df[, c('group1_name', 'group2_name', 'year', 'label', 'map_name')]
         ggplot(tmp.df, aes(x=year, fill=label)) + 
-          geom_bar(position='dodge', stat='count')
+          geom_bar(position='dodge', stat='count') +
+          facet_wrap(~map_name, scales='free')
       })
       
-    })
+      output$activeg_year <- renderPlot({
+        ag_df <- NULL
+        for(i in 1:length(maps))
+        {
+          map_name <- maps[i]
+          tmp.ag.df <- get_activeg_df(df_nodes, map_name)
+          tmp.ag.df$map_name <- map_name
+          if(is.null(tmp.ag.df))
+          {
+            ag_df <- tmp.ag.df
+          }
+          else
+            ag_df <- rbind(ag_df, tmp.ag.df)
+        }
+        
+        ag_df <- data.frame(ag_df) %>% filter(year != 0)
+        
+        ggplot(ag_df, aes(x=year, y=n_active_groups, color=n_active_groups)) +
+          geom_point(color='steelblue') +
+          geom_line() +
+          xlab('Year') + ylab('Number of active groups') +
+          ggtitle('Number of active groups each year') +
+          # theme(panel.background = element_rect(fill='transparent')) +
+          facet_wrap(~map_name, nrow = 6, scales='free')
+      })
+      
+    
     
     #------------------------Administration------------------------------------
     

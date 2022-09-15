@@ -295,7 +295,8 @@ u <- shinyUI(fluidPage(
                                            selectInput(inputId='stat_level',
                                                        label='Information',
                                                        choices=c('General',
-                                                                 'Map'),
+                                                                 'Map',
+                                                                 'ActiveGroups'),
                                                        selected='General'),
                                            width=4
                                          ),
@@ -318,6 +319,7 @@ u <- shinyUI(fluidPage(
                                                    ),
 
                                                    div(id='sub_generalStats2',
+                                                       h3("Active profiles"),
                                                        dataTableOutput("showActiveProfiles")
                                                    )
                                                )
@@ -326,13 +328,18 @@ u <- shinyUI(fluidPage(
                                            conditionalPanel('input.stat_level=="Map"',
                                                             div(
                                                               HTML("</br>"),
-                                                              selectInput("s_map_name",
-                                                                          label="Select Map:",
-                                                                          choices = unique(df$map_name),
-                                                                          selected = "Iraq"),
-                                                              plotOutput("basicStats_map"),
+                                                              plotOutput("basicStats_map", height='800px'),
                                                             )
                                                           ),
+                                           conditionalPanel('input.stat_level=="ActiveGroups"',
+                                                            
+                                                            div(
+                                                              plotOutput("activeg_year", height='800px')
+                                                            )
+                                                            
+                                                            ),
+                                           
+                                           
                                            width=8
                                             ),
                                          fluid=F
