@@ -712,7 +712,7 @@ get_spatial_visNetwork <- function(nodes, edges)
     visPhysics(solver = "forceAtlas2Based",
                forceAtlas2Based = list(avoidOverlap=0.7,
                                        gravitationalConstant=-100,
-                                       damping=1)
+                                       damping=3)
     ) %>%
     
     #-------------------TEMPORARILY DISABLED AS JS IS BREAKING----------------      
