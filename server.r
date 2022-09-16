@@ -1617,7 +1617,14 @@ s <- shinyServer(function(input, output, session){
         tmp.df <- df[, c('group1_name', 'group2_name', 'year', 'label', 'map_name')]
         ggplot(tmp.df, aes(x=year, fill=label)) + 
           geom_bar(position='dodge', stat='count') +
-          facet_wrap(~map_name, scales='free')
+          theme(axis.text = element_text(size = 20),
+                plot.title = element_text(size=30),
+                axis.title.x = element_text(size=20),
+                axis.title.y = element_text(size=20),
+                legend.text = element_text(size=20),
+                legend.title = element_text(size=20),
+                legend.position = 'top') +
+          facet_wrap(~map_name, scales='free', nrow=7)
       })
       
       output$activeg_year <- renderPlot({
@@ -1646,7 +1653,74 @@ s <- shinyServer(function(input, output, session){
           facet_wrap(~map_name, nrow = 6, scales='free')
       })
       
-    
+      output$nprofiles_map <- renderPlot({
+        tmp.df_nodes <- unique(df_nodes[, c('label', 'map_name')])
+        tmp.df_nodes <- tmp.df_nodes %>% group_by(map_name) %>%
+                                         summarise(count=n()) %>%
+                                         arrange(desc(count))
+        avg_n <- mean(tmp.df_nodes$count)
+        
+        ggplot(tmp.df_nodes, aes(x=reorder(map_name, -count), y=count, fill=count)) +
+          geom_bar(stat='identity', ) +
+          geom_hline(yintercept=avg_n, color='red') +
+            xlab('Map Name') +
+            ylab('Number of unique profiles') +
+            ggtitle('Number of unique profiles in each map') + 
+            theme(axis.text = element_text(size = 20, angle=90),
+                  plot.title = element_text(size=30),
+                  axis.title.x = element_text(size=20),
+                  axis.title.y = element_text(size=20))
+        
+        # ggplot(tmp.df_nodes, aes(x=map_name, y=count, color=count)) +
+        # geom_point(color='steelblue') +
+        #   geom_line() +
+        #   xlab('Map Name') +
+        #   ylab('Number of unique profiles') +
+        #   ggtitle('Number of unique profiles in each map')
+        
+      })
+      
+      output$top.profiles.most.edges <- renderPlot({
+        
+        top_profiles <- NULL
+        for(i in 2:length(maps))
+        {
+          mname <- maps[i]
+          unique.nodes <- unique(df_nodes[df_nodes$map_name==mname, 'label'])
+          tmp.profiles <- NULL
+          for(j in 1:length(unique.nodes))
+          {
+            node_label <- unique.nodes[j]
+            n <- nrow(unique(df[df$group1_name == node_label |
+                         df$group2_name == node_label,]))
+            # browser()
+            if(is.null(tmp.profiles))
+              tmp.profiles <- data.frame(map_name=mname, label=node_label, n=n)
+            else
+              tmp.profiles <- rbind(top_profiles, 
+                                    data.frame(map_name=mname, label=node_label, n=n))
+          }
+          tmp.profiles <- tmp.profiles %>% arrange(desc(n))
+          tmp.profiles <- tmp.profiles[1:5,]
+          
+          if(is.null(top_profiles))
+            top_profiles <- tmp.profiles
+          else
+            top_profiles <- rbind(top_profiles, tmp.profiles)
+        }
+        browser()
+        ggplot(top_profiles, aes(x=label, y=n)) +
+        geom_bar(stat='identity') +
+          xlab('Profile Name') +
+          ylab('Number of edges') +
+          ggtitle('Number of unique profiles in each map') + 
+          # theme(axis.text = element_text(size = 20, angle=90),
+          #       plot.title = element_text(size=30),
+          #       axis.title.x = element_text(size=20),
+          #       axis.title.y = element_text(size=20)) +
+          facet_wrap(~map_name, scales='free')
+        
+      })
     
     #------------------------Administration------------------------------------
     

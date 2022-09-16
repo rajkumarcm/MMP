@@ -294,9 +294,11 @@ u <- shinyUI(fluidPage(
                                          sidebarPanel(
                                            selectInput(inputId='stat_level',
                                                        label='Information',
-                                                       choices=c('General',
-                                                                 'Map',
-                                                                 'ActiveGroups'),
+                                                       choices=c('General'='General',
+                                                                 'Map'='Map',
+                                                                 'Active Groups'='ActiveGroups',
+                                                                 'Number of Profiles/Map'='NProfilesInMap',
+                                                                 'Top 5 Profiles'='top5profiles'),
                                                        selected='General'),
                                            width=4
                                          ),
@@ -328,17 +330,29 @@ u <- shinyUI(fluidPage(
                                            conditionalPanel('input.stat_level=="Map"',
                                                             div(
                                                               HTML("</br>"),
-                                                              plotOutput("basicStats_map", height='800px'),
+                                                              plotOutput("basicStats_map", height='1800px',
+                                                                         width='1800px'),
                                                             )
                                                           ),
                                            conditionalPanel('input.stat_level=="ActiveGroups"',
                                                             
                                                             div(
-                                                              plotOutput("activeg_year", height='800px')
+                                                              plotOutput("activeg_year", height='900px')
                                                             )
                                                             
                                                             ),
+                                           conditionalPanel('input.stat_level=="NProfilesInMap"',
+                                                            
+                                                            div(
+                                                              plotOutput("nprofiles_map", height='1200px',
+                                                                        width='1600px')
+                                                            )
+                                                            
+                                           ),
                                            
+                                           conditionalPanel('input.stat_level=="top5profiles"',
+                                                            plotOutput("top.profiles.most.edges")
+                                                            ),
                                            
                                            width=8
                                             ),
