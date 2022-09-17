@@ -669,10 +669,13 @@ get_h_legend <- function(levels)
 
 get_nodes <- function(edges.df)
 {
+  # browser()
   node.size.offset <- 0
+  map_name <- unique(edges.df$map_name) # This should return only 1 value
   tmp_df <- data.frame(id = unique(c(edges.df$from,
                                      edges.df$to)))
-  tmp_df <- tmp_df %>% inner_join(unique(df_nodes[, c('id', 'label', 'title', 
+  tmp_df <- tmp_df %>% inner_join(unique(df_nodes[df_nodes$map_name==map_name, 
+                                                  c('id', 'label', 'title', 
                                                       'level', 'shape')]),
                                   by="id", keep=F)
   

@@ -80,8 +80,10 @@ c_cnames <- extra_cnames %>% anti_join(df_nodes_cnames)
 # c_cnames = complement column names in the nodes_sample.csv
 c_cnames <- c_cnames$x
 
-df_nodes <- df_nodes %>% left_join(nodes_extra[, c('group_id', c_cnames)], 
-                                   by="group_id")
+df_nodes <- df_nodes %>% left_join(nodes_extra[, 
+                                               c(c('group_id', 'group_name', 'map_name'),
+                                                 c_cnames)], 
+                                   by=c('group_id', 'group_name', 'map_name'), keep=F)
 #------------------------------------------------------------------------------
 # I need information on what shape to include ---------------------------------
 # df_nodes$shape <- ifelse(df_nodes$us_designated==1 & df_nodes$state_sponsor)
@@ -174,7 +176,6 @@ maps <- c("All", unique(df$map_name))
 # Since this is not a relationship dataframe, instead a database of nodes itself
 # we want to ensure that there are no duplicates.
 #------------------------------------------------------------------------------
-
 df_nodes <- df_nodes[-which(df_nodes$map_name==""),]
 df_nodes <- unique(df_nodes)
 
@@ -300,7 +301,6 @@ if(sum(h_prof_file_found) == 1)
 
 # Define node shapes based on the sponsor type---------------------------------
 df_nodes$shape <- 'circle'
-
 # Replace NA's by 0
 df_nodes[is.na(df_nodes$us_designated), 'us_designated'] <- 0
 df_nodes[is.na(df_nodes$un_designated), 'un_designated'] <- 0
