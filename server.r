@@ -672,12 +672,17 @@ get_nodes <- function(edges.df)
   # browser()
   node.size.offset <- 0
   map_name <- unique(edges.df$map_name) # This should return only 1 value
+  if(length(map_name) > 1)
+  {
+    map_name <- 'All'
+  }
   tmp_df <- data.frame(id = unique(c(edges.df$from,
                                      edges.df$to)))
-  tmp_df <- tmp_df %>% inner_join(unique(df_nodes[df_nodes$map_name==map_name, 
+  tmp_df <- tmp_df %>% inner_join(unique(df_nodes[df_nodes$map_name==map_name | 
+                                                  map_name=='All', 
                                                   c('id', 'label', 'title', 
                                                       'level', 'shape')]),
-                                  by="id", keep=F)
+                                   by="id", keep=F)
   
   # nodes dataframe is created using correct inner join
   tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value', 

@@ -80,9 +80,9 @@ c_cnames <- extra_cnames %>% anti_join(df_nodes_cnames)
 # c_cnames = complement column names in the nodes_sample.csv
 c_cnames <- c_cnames$x
 
-df_nodes <- df_nodes %>% left_join(nodes_extra[, 
+df_nodes <- df_nodes %>% left_join(drop_na(nodes_extra[, 
                                                c(c('group_id', 'group_name', 'map_name'),
-                                                 c_cnames)], 
+                                                 c_cnames)]), 
                                    by=c('group_id', 'group_name', 'map_name'), keep=F)
 #------------------------------------------------------------------------------
 # I need information on what shape to include ---------------------------------
