@@ -720,7 +720,7 @@ get_spatial_visNetwork <- function(nodes, edges)
     visPhysics(solver = "forceAtlas2Based",
                forceAtlas2Based = list(avoidOverlap=0.7,
                                        gravitationalConstant=-100,
-                                       damping=3)
+                                       damping=1)
     ) %>%
     
     #-------------------TEMPORARILY DISABLED AS JS IS BREAKING----------------      
@@ -1033,13 +1033,19 @@ s <- shinyServer(function(input, output, session){
   })
   
   observeEvent(input$link_nid, {
-    # browser()
+
     url <- unique(df_nodes[df_nodes$id==input$link_nid & 
-                      df_nodes$map_name==input$map_name, "URL"])
+                      (df_nodes$map_name==input$map_name | input$map_name=='All'), "URL"])
+    # browser()
     gname <- unique(df_nodes[df_nodes$id==input$link_nid & 
-                        df_nodes$map_name==input$map_name, "label"])
+                        (df_nodes$map_name==input$map_name | input$map_name=='All'), "label"])
     if(is.na(url))
-      url <- '#'
+    {
+      url <- "#"
+    }else if (length(url)==0)
+    {
+      url <- "#"
+    }
     output$link <- renderUI({
       HTML(sprintf("<a href='%s'>%s</a>", url, gname))
     })

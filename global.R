@@ -300,7 +300,7 @@ if(sum(h_prof_file_found) == 1)
   load('data/hidden_profiles.RData')
 
 # Define node shapes based on the sponsor type---------------------------------
-df_nodes$shape <- 'circle'
+df_nodes$shape <- "square"
 # Replace NA's by 0
 df_nodes[is.na(df_nodes$us_designated), 'us_designated'] <- 0
 df_nodes[is.na(df_nodes$un_designated), 'un_designated'] <- 0
