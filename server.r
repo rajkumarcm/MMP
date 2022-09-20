@@ -1722,7 +1722,7 @@ s <- shinyServer(function(input, output, session){
           else
             top_profiles <- rbind(top_profiles, tmp.profiles)
         }
-        browser()
+        # browser()
         ggplot(top_profiles, aes(x=label, y=n)) +
         geom_bar(stat='identity') +
           xlab('Profile Name') +
@@ -1733,6 +1733,13 @@ s <- shinyServer(function(input, output, session){
           #       axis.title.x = element_text(size=20),
           #       axis.title.y = element_text(size=20)) +
           facet_wrap(~map_name, scales='free')
+        
+      })
+      
+      # For t-test
+      # browser()
+      # n_edges.map_name <- df %>% group_by(primary) %>% summarise(count=n())
+      output$showTtest <- renderText({
         
       })
     

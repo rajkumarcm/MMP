@@ -355,6 +355,10 @@ u <- shinyUI(fluidPage(
                                                             plotOutput("top.profiles.most.edges")
                                                             ),
                                            
+                                           conditionalPanel('input.stat_level="ttest"',
+                                                            textOutput("showTtest")
+                                                            ),
+                                           
                                            width=8
                                             ),
                                          fluid=F

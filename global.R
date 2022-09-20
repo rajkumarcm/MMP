@@ -11,6 +11,7 @@ library(logging)
 library(dplyr)
 library(fuzzyjoin)
 library(leaflet)
+library(tidyverse)
 source('handle_data.R', local=T)
 map_idx <- 2
 #---------------------------------------------------
@@ -58,10 +59,9 @@ links <- read.csv("data/GroupLinks.csv", header=T)
 
 # Coordinates information----------------------------------------------------
 nodes_extra <- read.csv("data/nodes_sample.csv", header=T,
-                        colClasses = c("us_designated"="factor",
-                                       "un_designated"="factor",
-                                       "other_designated"="factor",
-                                       "state_sponsor"="factor"))
+                        fill=T, blank.lines.skip=T, skipNul=T)
+nodes_extra[is.na(nodes_extra)] <- -1
+nodes_extra[is_empty(nodes_extra)] <- -1
 extra_cnames <- data.frame(x=colnames(nodes_extra))
 
 
@@ -79,11 +79,12 @@ df_nodes_cnames <- data.frame(x=colnames(df_nodes))
 c_cnames <- extra_cnames %>% anti_join(df_nodes_cnames)
 # c_cnames = complement column names in the nodes_sample.csv
 c_cnames <- c_cnames$x
-
-df_nodes <- df_nodes %>% left_join(drop_na(nodes_extra[, 
-                                               c(c('group_id', 'group_name', 'map_name'),
-                                                 c_cnames)]), 
-                                   by=c('group_id', 'group_name', 'map_name'), keep=F)
+# browser()
+df_nodes <- df_nodes %>% left_join(nodes_extra[, 
+                                               c(c('group_id'),
+                                                 c_cnames)], 
+                                   by=c('group_id'), keep=F)
+# browser()
 #------------------------------------------------------------------------------
 # I need information on what shape to include ---------------------------------
 # df_nodes$shape <- ifelse(df_nodes$us_designated==1 & df_nodes$state_sponsor)
@@ -300,24 +301,32 @@ if(sum(h_prof_file_found) == 1)
   load('data/hidden_profiles.RData')
 
 # Define node shapes based on the sponsor type---------------------------------
+# browser()
 df_nodes$shape <- "square"
 # Replace NA's by 0
+# browser()
+
 df_nodes[is.na(df_nodes$us_designated), 'us_designated'] <- 0
 df_nodes[is.na(df_nodes$un_designated), 'un_designated'] <- 0
 df_nodes[is.na(df_nodes$state_sponsor), 'state_sponsor'] <- 0
 df_nodes[is.na(df_nodes$other_designated), 'other_designated'] <- 0
+
+df_nodes[df_nodes$us_designated==-1, 'us_designated'] <- 0
+df_nodes[df_nodes$un_designated==-1, 'un_designated'] <- 0
+df_nodes[df_nodes$state_sponsor==-1, 'state_sponsor'] <- 0
+df_nodes[df_nodes$other_designated==-1, 'other_designated'] <- 0
+# browser()
 
 df_nodes[(df_nodes$us_designated==1 |
             df_nodes$un_designated==1) &
            df_nodes$state_sponsor!=1, 'shape'] <- 'star'
 df_nodes[df_nodes$state_sponsor==1 &
            df_nodes$un_designated!=1 &
-           df_nodes$us_designated!=1 & 
+           df_nodes$us_designated!=1 &
            df_nodes$other_designated!=1, 'shape'] <- 'diamond'
-df_nodes[(df_nodes$us_designated==1 | 
+df_nodes[(df_nodes$us_designated==1 |
             df_nodes$un_designated==1) &
            df_nodes$state_sponsor==1, 'shape'] <- 'triangle'
-
-# df$width <- 9
-
+df$width <- 9
+# browser()
 
