@@ -78,8 +78,7 @@ u <- shinyUI(fluidPage(
                                                selectInput("map_name",
                                                            "Select map:",
                                                            # For debugging purposes change to maps[1] once finished
-                                                           # selected = maps[map_idx],
-                                                           selected = 'All',
+                                                           selected = maps[map_idx],
                                                            choices = maps),
                                                
                                                HTML('</br>'),

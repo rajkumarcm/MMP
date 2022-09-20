@@ -796,6 +796,13 @@ fill_activeg_years <- function(tmp.df)
   tmp.df
 }
 
+filter_hidden_profiles <- function(edges)
+{
+    edges <- edges %>% filter((! group1_name %in% h.profile_names) & 
+                              (! group2_name %in% h.profile_names))
+    edges
+}
+
 #---------------------------SERVER CODE-----------------------------------------
 
 # House Keeping Parameters---------------
@@ -842,7 +849,7 @@ s <- shinyServer(function(input, output, session){
     if(input$map_name=='All')
       tmp_df <- filter_edges_mmap(tmp_df)
     
-    # tmp_df <- filter_profiles(tmp_df)
+    tmp_df <- filter_hidden_profiles(tmp_df)
     
     tmp_df
   })
@@ -1782,7 +1789,7 @@ s <- shinyServer(function(input, output, session){
     
     # Open manage a map div with information about the map populated
     observeEvent(input$manageMap, {
-      # browser()
+      browser()
       mm_map_name <<- input$manageMap
       map_info <- unique(df_nodes[df_nodes$map_name==input$manageMap, 
                                                                c('map_name',
@@ -1838,17 +1845,26 @@ s <- shinyServer(function(input, output, session){
         level <- profile$level
         active <- profile$activeC
         # browser()
-        hidden <- ifelse(name %in% h.profile_names, 1, 0)
+        hidden <- ifelse(name %in% h.profile_names, T, F)
+        hidden.html <- ""
+        if(hidden==T)
+        {
+          hidden.html <- sprintf("<td class='td_class'><input type='checkbox' onload=\"javascript:console.log('Hello...');\" onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\" checked></td>", name) 
+        }
+        else
+        {
+          hidden.html <- sprintf("<td class='td_class'><input type='checkbox' onload=\"javascript:console.log('Hello...');\" onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>", name) 
+        }
         
         html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
                                                     <td class='td_class'>%s</td>
                                                     <td class='td_class'>%d</td>
                                                     <td class='td_class'>%s</td>
-                                                    <td class='td_class'><input type='checkbox' checked=%d, onload=\"javascript:console.log('Hello...');\" onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>
+                                                    %s
                                                     <td class='td_class'><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');\"><i class=\"fa fa-eye\"></i></a></td>
                                                     <td class='td_class'><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
                                                     <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
-                                                 </tr>", name, level, active, hidden,
+                                                 </tr>", name, level, active, hidden.html,
                                                  name, name, name, name, quote=F))
       }
       html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
@@ -1865,6 +1881,8 @@ s <- shinyServer(function(input, output, session){
       }
       else
         h.profile_names <<- c(h.profile_names, profile_name)
+      
+      ep_changes_made <<- T
     })
     
     observeEvent(input$delete_profile, {
@@ -1893,7 +1911,7 @@ s <- shinyServer(function(input, output, session){
       # that you had deleted. This would enable you to retrieve the remaining
       # columns instead of saving the file with just 4 or 5 selective columns
       # and losing invaluable information.
-      
+      browser()
       if(ep_changes_made==T)
       {
         # Delete profiles section-----------------------------------------------
@@ -1910,15 +1928,21 @@ s <- shinyServer(function(input, output, session){
         tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
                            header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
                            colClasses=c('multiple'='factor'))
-        indices <- which(tmp.df$group1_name %in% d.profile_names | 
-                         tmp.df$group2_name %in% d.profile_names)
-        tmp.df <- tmp.df[-indices,]
+        if(length(d.profile_names) > 0)
+        {
+          indices <- which(tmp.df$group1_name %in% d.profile_names | 
+                             tmp.df$group2_name %in% d.profile_names)
+          tmp.df <- tmp.df[-indices,] 
+        }
         
         #--------Nodes dataframe
         latest_fname <- get_latest_file('data/groups/', 'groups')
         tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
-        indices <- which(tmp.df_nodes$group_name %in% d.profile_names)
-        tmp.df_nodes <- tmp.df_nodes[-indices,]
+        if(length(d.profile_names) > 0)
+        {
+          indices <- which(tmp.df_nodes$group_name %in% d.profile_names)
+          tmp.df_nodes <- tmp.df_nodes[-indices,]
+        }
         
         # Save hidden profile names changes--------------------------------------
         save(file='data/hidden_profiles.RData', 'h.profile_names')
