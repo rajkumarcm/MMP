@@ -701,9 +701,19 @@ get_nodes <- function(edges.df)
 
 get_spatial_visNetwork <- function(nodes, edges)
 {
+  legend.df <- data.frame(shape=unique(nodes$shape))
+  legend.df$label <- ""
+  legend.df[legend.df$shape=='star', 'label'] <- 'US or UN'
+  legend.df[legend.df$shape=='diamond', 'label'] <- 'Only US'
+  legend.df[legend.df$shape=='triangle', 'label'] <- 'US or UN, and State Sponsored'
+  legend.df[legend.df$shape=='square', 'label'] <- 'Others'
+  # browser()
+  
   visNetwork(nodes,
              edges,
              width = "100%")  %>%
+    visLegend(position='right', main='Legend', 
+              addNodes=legend.df, stepY=150, stepX=150) %>%
     visEvents(type='on',
               select = "function(properties) {
      Shiny.setInputValue('link_nid', properties.nodes);}",
@@ -803,6 +813,27 @@ filter_hidden_profiles <- function(edges)
     edges
 }
 
+filter_designation <- function(edges, selected_desig)
+{
+  desig_cnames <- c('id', 'us_designated', 'un_designated', 
+                    'state_sponsor', 'other_designated')
+  edges %>% inner_join(df_nodes[, desig_cnames], 
+                       by=c('from'='id'), keep=F)
+  cnames <- colnames(edges)
+  cnames[cnames==''] # Need to ask Iris about Island nodes issue------------
+  
+  us <- ifelse("US" %in% selected_desig, 1, 0)
+  un  <- ifelse("UN" %in% selected_desig, 1, 0)
+  state <- ifelse("State" %in% selected_desig, 1, 0)
+  others <- ifelse("Others" %in% selected_desig, 1, 0) # Need to implement this...
+  edges <- edges %>% filter(us_designated == us &
+                            un_designated == un &
+                            state_sponsor == state)
+  cnames <- cnames[!cnames %in% desig_cnames]
+  colnames(edges) <- cnames
+  edges
+}
+
 #---------------------------SERVER CODE-----------------------------------------
 
 # House Keeping Parameters---------------
@@ -851,15 +882,10 @@ s <- shinyServer(function(input, output, session){
     
     tmp_df <- filter_hidden_profiles(tmp_df)
     
+    tmp_df <- filter_designation(tmp_df, input$filterDesig)
+    
     tmp_df
   })
-  
-  # observe({
-  #   updateSliderInput(session, 'range',
-  #                     min=min(filtered_df()$year), max=max(filtered_df()$year),
-  #                     value=c(min(filtered_df()$year), max(filtered_df()$year))
-  #   )
-  # })
   
   edges <- reactive({
     

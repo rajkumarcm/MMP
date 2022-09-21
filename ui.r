@@ -141,20 +141,28 @@ u <- shinyUI(fluidPage(
                                          div(id="nvf_mp",
                                              div(id="popDiv"),
                                              uiOutput("reg_hideDesc"),
-                                     visNetworkOutput("networkvisfinal",
-                                                      width="100%", 
-                                                      height="1000px"
-                                                      ),
-                                     HTML('
-                                           <div id="loadingBar">
-                                             <div class="outerBorder">
-                                             <div id="lb_text">0%</div>
-                                             <div id="border">
-                                             <div id="bar"></div>
-                                             </div>
-                                             </div>
-                                             </div>'
-                                          ),
+                                             div(id="filterDesig_div", 
+                                                 checkboxGroupInput("filterDesig",
+                                                                    label='Filter Designation',
+                                                                    choices=c('US','UN', 'State', 'Others'),
+                                                                    selected=c('US','UN', 'State', 'Others'),
+                                                                    inline=T
+                                                                    )
+                                                 ),
+                                             visNetworkOutput("networkvisfinal",
+                                                              width="100%", 
+                                                              height="1000px"
+                                                              ),
+                                             HTML('
+                                                   <div id="loadingBar">
+                                                     <div class="outerBorder">
+                                                     <div id="lb_text">0%</div>
+                                                     <div id="border">
+                                                     <div id="bar"></div>
+                                                     </div>
+                                                     </div>
+                                                     </div>'
+                                                  ),
                                      
                                      tags$script(
                                        '
