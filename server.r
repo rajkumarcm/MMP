@@ -1457,13 +1457,13 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$visnetworktimeline <- renderVisNetwork({
-      tmp.nodes <- dfs()[[1]]
-      root_nodes <- tmp.nodes[tmp.nodes$root==T,]
-      root_nodes <- root_nodes %>% arrange(year)
-      initial_node <- root_nodes[1,]
-      initial_id <- initial_node[, c('id')]
+      tmp.edges <- dfs()[[2]]
+      cnames <- colnames(tmp.edges)
+      width_idx <- which(cnames=='width')
+      tmp.edges <- tmp.edges[, -width_idx]
+
       
-      visNetwork(dfs()[[1]], dfs()[[2]]) %>%
+      visNetwork(dfs()[[1]], tmp.edges) %>%
         visEdges(
           arrows=list(to=list(enabled=T))) %>%
         visPhysics(enabled = F) %>% 

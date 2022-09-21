@@ -232,8 +232,9 @@ preprocess_hdata <- function(edges, old_nodes)
                                   color=old_edge$color,
                                   actor_color=old_edge$actor_color,
                                   value=old_edge$value,
-                                  label=old_edge$label)
-
+                                  label=old_edge$label,
+                                  width=old_edge$width)
+        # browser()
         edges <- rbind(edges, second_edge)
       }
 
