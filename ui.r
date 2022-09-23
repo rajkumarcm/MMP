@@ -144,8 +144,8 @@ u <- shinyUI(fluidPage(
                                              div(id="filterDesig_div", 
                                                  checkboxGroupInput("filterDesig",
                                                                     label='Filter Designation',
-                                                                    choices=c('US','UN', 'State', 'Others'),
-                                                                    selected=c('US','UN', 'State', 'Others'),
+                                                                    choices=c('All','US','UN', 'State'),
+                                                                    selected=c('All','US','UN', 'State'),
                                                                     inline=T
                                                                     )
                                                  ),

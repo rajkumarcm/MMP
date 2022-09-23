@@ -681,7 +681,11 @@ get_nodes <- function(edges.df)
   tmp_df <- tmp_df %>% inner_join(unique(df_nodes[df_nodes$map_name==map_name | 
                                                   map_name=='All', 
                                                   c('id', 'label', 'title', 
-                                                      'level', 'shape')]),
+                                                      'level', 'shape', 
+                                                    'un_designated', 
+                                                    'us_designated',
+                                                    'state_sponsor',
+                                                    'other_designated')]),
                                    by="id", keep=F)
   
   # nodes dataframe is created using correct inner join
@@ -706,7 +710,7 @@ get_spatial_visNetwork <- function(nodes, edges)
   legend.df[legend.df$shape=='star', 'label'] <- 'US or UN'
   legend.df[legend.df$shape=='diamond', 'label'] <- 'Only US'
   legend.df[legend.df$shape=='triangle', 'label'] <- 'US or UN, and State Sponsored'
-  legend.df[legend.df$shape=='square', 'label'] <- 'Others'
+  legend.df[legend.df$shape=='square', 'label'] <- 'None'
   # browser()
   
   visNetwork(nodes,
@@ -813,25 +817,48 @@ filter_hidden_profiles <- function(edges)
     edges
 }
 
-filter_designation <- function(edges, selected_desig)
+filter_designation <- function(nodes, selected_desig)
 {
-  desig_cnames <- c('id', 'us_designated', 'un_designated', 
-                    'state_sponsor', 'other_designated')
-  edges %>% inner_join(df_nodes[, desig_cnames], 
-                       by=c('from'='id'), keep=F)
-  cnames <- colnames(edges)
-  cnames[cnames==''] # Need to ask Iris about Island nodes issue------------
-  
-  us <- ifelse("US" %in% selected_desig, 1, 0)
-  un  <- ifelse("UN" %in% selected_desig, 1, 0)
-  state <- ifelse("State" %in% selected_desig, 1, 0)
-  others <- ifelse("Others" %in% selected_desig, 1, 0) # Need to implement this...
-  edges <- edges %>% filter(us_designated == us &
-                            un_designated == un &
-                            state_sponsor == state)
-  cnames <- cnames[!cnames %in% desig_cnames]
-  colnames(edges) <- cnames
-  edges
+  filt.nodes <- nodes # DELETE AFTER DEBUGGING------\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+  # browser()
+  if((!"All" %in% selected_desig) | length(selected_desig)==0)
+  {
+    # browser()
+    filt.nodes <- NULL
+    if("US" %in% selected_desig)
+      filt.nodes <- rbind(filt.nodes, nodes %>% filter(us_designated==1))
+    if("UN" %in% selected_desig)
+      filt.nodes <- rbind(filt.nodes, nodes %>% filter(un_designated==1))
+    if("State" %in% selected_desig)
+      filt.nodes <- rbind(filt.nodes, nodes %>% filter(state_sponsor==1))
+    if("Others" %in% selected_desig)
+      filt.nodes <- rbind(filt.nodes, nodes %>% filter(other_designated==1))
+    
+    filt.nodes <- unique(filt.nodes)
+    
+    # desig_values <- c()
+    # col_indices <- c()
+    # for(i in 1:length(selected_desig))
+    # {
+    #   value <- switch(
+    #     selected_desig[i],
+    #     'US' = us,
+    #     'UN' = un,
+    #     'state' = state,
+    #     'others' = others # simply enabled it although disabled in other places.
+    #   )
+    #   desig_values <- c(desig_values, value)
+    #   
+    #   index <- switch(
+    #     'US' = 'us_designated',
+    #     'UN' = 'un_designated',
+    #     'state' = 'state_sponsor',
+    #     'others' = 'other_designated' # simply enabled it although disabled in other places.
+    #   )
+      
+
+  }
+  filt.nodes
 }
 
 #---------------------------SERVER CODE-----------------------------------------
@@ -881,9 +908,6 @@ s <- shinyServer(function(input, output, session){
       tmp_df <- filter_edges_mmap(tmp_df)
     
     tmp_df <- filter_hidden_profiles(tmp_df)
-    
-    tmp_df <- filter_designation(tmp_df, input$filterDesig)
-    
     tmp_df
   })
   
@@ -914,7 +938,8 @@ s <- shinyServer(function(input, output, session){
   # perhaps erase the order. There are chances that one relationship is
   # given label of another relationship.
   nodes2 <- reactive({
-    get_nodes(filtered_df())
+    tmp.nodes <- get_nodes(filtered_df())
+    # tmp.nodes <- filter_designation(tmp.nodes, input$filterDesig)
   })
 
   # edges data.frame for legend
@@ -940,10 +965,48 @@ s <- shinyServer(function(input, output, session){
                         min=min(edges()$year), max=max(edges()$year),
                         value=c(min(edges()$year), max(edges()$year))
       )
+      
+      # Also update the options under sponsor filter
+      tmp.nodes <- nodes2()
+      checkbox_choices <- c('All')
+      if(1 %in% unique(tmp.nodes$us_designated))
+        checkbox_choices <- c(checkbox_choices, 'US')
+      if(1 %in% unique(tmp.nodes$un_designated))
+        checkbox_choices <- c(checkbox_choices, 'UN')
+      if(1 %in% unique(tmp.nodes$state_sponsor))
+        checkbox_choices <- c(checkbox_choices, 'State')
+      # if(1 %in% unique(tmp.nodes$other_designated))
+      #   checkbox_choices <- c(checkbox_choices, 'Others')
+      
+      updateCheckboxGroupInput(session, inputId='filterDesig', 
+                               label='Filter Designation',
+                               choices=checkbox_choices,
+                               selected=checkbox_choices, inline=T
+                               )
+    
+    
     get_spatial_visNetwork(nodes2(), edges())
   })
   
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
+  
+  observeEvent(input$filterDesig, {
+    filt.nodes <- filter_designation(nodes2(), input$filterDesig)
+    removed.nodes <- nodes2() %>% anti_join(filt.nodes, by='id')
+    # removed.edges <- edges()[edges()$from %in% removed.nodes$id |
+    #                           edges()$to %in% removed.nodes$id, 'id']
+    
+    # visRemoveEdges(myVisNetworkProxy, removed.edges$id)
+    browser()
+    visRemoveNodes(myVisNetworkProxy, removed.nodes$id)
+    visUpdateNodes(myVisNetworkProxy, filt.nodes)
+    # effective.edges <- edges()[edges()$from %in% filt.nodes$id |
+    #                            edges()$to %in% filt.nodes$id, ]
+    # Want to ensure edges that still have entries with previously removed
+    # nodes now get activated, if included after the filter, by updating once
+    # again.
+    visUpdateEdges(myVisNetworkProxy, edges())
+  })
   
   # observeEvent(input$map_name, {
   #   # When a map is changed, update the year range
