@@ -835,28 +835,6 @@ filter_designation <- function(nodes, selected_desig)
       filt.nodes <- rbind(filt.nodes, nodes %>% filter(other_designated==1))
     
     filt.nodes <- unique(filt.nodes)
-    
-    # desig_values <- c()
-    # col_indices <- c()
-    # for(i in 1:length(selected_desig))
-    # {
-    #   value <- switch(
-    #     selected_desig[i],
-    #     'US' = us,
-    #     'UN' = un,
-    #     'state' = state,
-    #     'others' = others # simply enabled it although disabled in other places.
-    #   )
-    #   desig_values <- c(desig_values, value)
-    #   
-    #   index <- switch(
-    #     'US' = 'us_designated',
-    #     'UN' = 'un_designated',
-    #     'state' = 'state_sponsor',
-    #     'others' = 'other_designated' # simply enabled it although disabled in other places.
-    #   )
-      
-
   }
   filt.nodes
 }
@@ -975,8 +953,8 @@ s <- shinyServer(function(input, output, session){
         checkbox_choices <- c(checkbox_choices, 'UN')
       if(1 %in% unique(tmp.nodes$state_sponsor))
         checkbox_choices <- c(checkbox_choices, 'State')
-      # if(1 %in% unique(tmp.nodes$other_designated))
-      #   checkbox_choices <- c(checkbox_choices, 'Others')
+      if(1 %in% unique(tmp.nodes$other_designated))
+        checkbox_choices <- c(checkbox_choices, 'Others')
       
       updateCheckboxGroupInput(session, inputId='filterDesig', 
                                label='Filter Designation',
@@ -999,28 +977,15 @@ s <- shinyServer(function(input, output, session){
     {
       filt.nodes <- filter_designation(nodes2(), input$filterDesig)
       removed.nodes <- nodes2() %>% anti_join(filt.nodes, by='id')
-      # removed.edges <- edges()[edges()$from %in% removed.nodes$id |
-      #                           edges()$to %in% removed.nodes$id, 'id']
-      
-      # visRemoveEdges(myVisNetworkProxy, removed.edges$id)
-      # browser()
       visRemoveNodes(myVisNetworkProxy, removed.nodes$id)
       visUpdateNodes(myVisNetworkProxy, filt.nodes)
-      # effective.edges <- edges()[edges()$from %in% filt.nodes$id |
-      #                            edges()$to %in% filt.nodes$id, ]
+      
       # Want to ensure edges that still have entries with previously removed
       # nodes now get activated, if included after the filter, by updating once
       # again.
       visUpdateEdges(myVisNetworkProxy, edges())
     }
   }, ignoreNULL=F)
-  
-  # observeEvent(input$map_name, {
-  #   # When a map is changed, update the year range
-  #   updateSliderInput(session, 'range', value=c(min(edges()$year), 
-  #                                               max(edges()$year)),
-  #                     min=min(edges()$year), max=max(edges()$year))
-  # })
   
   output$year_slider <- renderPrint({
     html.outer <- "<div id='years_list_container'><div id='year_list_sub_container'>"
