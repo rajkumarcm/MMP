@@ -171,7 +171,11 @@ function resetYearAnSlider(_)
 }
 Shiny.addCustomMessageHandler('resetYearAnSlider', resetYearAnSlider);
 
-
+function invalid_operation(message)
+{
+  alert('You have triggered an event ' + message + '. This event will not take effect');
+}
+Shiny.addCustomMessageHandler('invalid_operation', invalid_operation);
 
 
 

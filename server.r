@@ -991,22 +991,29 @@ s <- shinyServer(function(input, output, session){
   myVisNetworkProxy <- visNetworkProxy("networkvisfinal")
   
   observeEvent(input$filterDesig, {
-    filt.nodes <- filter_designation(nodes2(), input$filterDesig)
-    removed.nodes <- nodes2() %>% anti_join(filt.nodes, by='id')
-    # removed.edges <- edges()[edges()$from %in% removed.nodes$id |
-    #                           edges()$to %in% removed.nodes$id, 'id']
-    
-    # visRemoveEdges(myVisNetworkProxy, removed.edges$id)
-    browser()
-    visRemoveNodes(myVisNetworkProxy, removed.nodes$id)
-    visUpdateNodes(myVisNetworkProxy, filt.nodes)
-    # effective.edges <- edges()[edges()$from %in% filt.nodes$id |
-    #                            edges()$to %in% filt.nodes$id, ]
-    # Want to ensure edges that still have entries with previously removed
-    # nodes now get activated, if included after the filter, by updating once
-    # again.
-    visUpdateEdges(myVisNetworkProxy, edges())
-  })
+    if(is.null(input$filterDesig))
+    {
+      session$sendCustomMessage('invalid_operation', 'empty graph')
+    }
+    else
+    {
+      filt.nodes <- filter_designation(nodes2(), input$filterDesig)
+      removed.nodes <- nodes2() %>% anti_join(filt.nodes, by='id')
+      # removed.edges <- edges()[edges()$from %in% removed.nodes$id |
+      #                           edges()$to %in% removed.nodes$id, 'id']
+      
+      # visRemoveEdges(myVisNetworkProxy, removed.edges$id)
+      # browser()
+      visRemoveNodes(myVisNetworkProxy, removed.nodes$id)
+      visUpdateNodes(myVisNetworkProxy, filt.nodes)
+      # effective.edges <- edges()[edges()$from %in% filt.nodes$id |
+      #                            edges()$to %in% filt.nodes$id, ]
+      # Want to ensure edges that still have entries with previously removed
+      # nodes now get activated, if included after the filter, by updating once
+      # again.
+      visUpdateEdges(myVisNetworkProxy, edges())
+    }
+  }, ignoreNULL=F)
   
   # observeEvent(input$map_name, {
   #   # When a map is changed, update the year range
