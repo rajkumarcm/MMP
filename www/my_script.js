@@ -177,8 +177,11 @@ function invalid_operation(message)
 }
 Shiny.addCustomMessageHandler('invalid_operation', invalid_operation);
 
-
-
+function refresh_page(_)
+{
+  document.location.reload();
+}
+Shiny.addCustomMessageHandler('refresh_page', refresh_page);
 
 
 

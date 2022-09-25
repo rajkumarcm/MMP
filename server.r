@@ -10,7 +10,8 @@ library('maps')
 library('geosphere')
 library('ggplot2')
 library('gridExtra')
-library(tidyverse)
+library('tidyverse')
+library('shinyjs')
 
 source('filter_medges_all.R', local=T)
 # source('generate_xoffset_template.R', local=T)
@@ -844,9 +845,10 @@ filter_designation <- function(nodes, selected_desig)
 # House Keeping Parameters---------------
 mm_map_name <- ''
 animate <- F
-df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'active', 
-                                         'URL', 'endyear')]) %>%
-                      arrange(label) %>% filter(label != "")
+# df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'title', 'active', 
+#                                      'shape', 'us_designated', 'URL', 'endyear')]) %>%
+#                       arrange(label) %>% filter(label != "")
+df_nodes.copy <- df_nodes
 df_nodes.original <- df_nodes.copy
 df.copy <- df
 avoidLB <- F
@@ -1972,7 +1974,7 @@ s <- shinyServer(function(input, output, session){
       # that you had deleted. This would enable you to retrieve the remaining
       # columns instead of saving the file with just 4 or 5 selective columns
       # and losing invaluable information.
-      browser()
+      # browser()
       if(ep_changes_made==T)
       {
         # Delete profiles section-----------------------------------------------
@@ -2022,7 +2024,7 @@ s <- shinyServer(function(input, output, session){
         # Once changes are saved, then we can reset these parameters
         ep_changes_made <<- F
         d.profile_names <<- NULL
-        
+        session$sendCustomMessage('refresh_page', '')
       }
     })
     
