@@ -104,6 +104,8 @@ function showEditMap(map_info)
   let eyear = document.getElementById('em_mp_ey');
   eyear.value = map_info.endyear;
   
+  Shiny.setInputValue('showIncludedGroups', map_info.map_name+'~@~'+Date.now());
+  
   let em_mm = document.getElementById('admin_em_mm');
   em_mm.style.display = 'block';
 }

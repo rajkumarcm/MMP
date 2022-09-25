@@ -440,8 +440,9 @@ u <- shinyUI(fluidPage(
                                                 HTML('
                                                      <div id="admin_em_mm_groups" class="admin_em_mm_container">
                                                        <h2>INCLUDED GROUPS</h2>
-                                                       <div id="included_groups" class="admin_em_mm_container">
-                                                          
+                                                       <div id="included_groups" class="admin_em_mm_container" style="width:600px;">'),
+                                                dataTableOutput(outputId='includedGroupsTable'),
+                                                HTML('            
                                                        </div>
                                                      </div>
                                                      ')
