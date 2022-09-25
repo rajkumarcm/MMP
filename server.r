@@ -1820,7 +1820,7 @@ s <- shinyServer(function(input, output, session){
       data.frame(name=unique(df_nodes$map_name),
                  edit_links=sprintf('<a href=\"javascript:Shiny.setInputValue(\'editMap\', \'%s\');\"><i class=\"fa fa-link\"></i></a>', 
                                   unique(df_nodes$map_name)),
-                 manage=sprintf('<a href=\"javascript:Shiny.setInputValue(\'manageMap\', \'%s\');\">Manage</i></a>',
+                 manage=sprintf('<a href=\"javascript:Shiny.setInputValue(\'manageMap\', \'%s~@~\'+Date.now());\">Manage</i></a>',
                                 unique(df_nodes$map_name))
                  )
     })
@@ -1853,7 +1853,7 @@ s <- shinyServer(function(input, output, session){
     # Open manage a map div with information about the map populated
     observeEvent(input$manageMap, {
       browser()
-      mm_map_name <<- input$manageMap
+      mm_map_name <<- str_split(input$manageMap, '~@~')[[1]][1]
       map_info <- unique(df_nodes[df_nodes$map_name==input$manageMap, 
                                                                c('map_name',
                                                                  'new_description',
