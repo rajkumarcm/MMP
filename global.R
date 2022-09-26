@@ -57,13 +57,13 @@ rm('tmp_edges')
 links <- read.csv("data/GroupLinks.csv", header=T)
 # links$Anchor <- paste0('.*', paste0(links$Anchor, '.*'))
 
-# Coordinates information----------------------------------------------------
+# Sponsorship information----------------------------------------------------
 nodes_extra <- read.csv("data/nodes_sample.csv", header=T,
                         fill=T, blank.lines.skip=T, skipNul=T)
 nodes_extra[is.na(nodes_extra)] <- -1
 nodes_extra[is_empty(nodes_extra)] <- -1
 extra_cnames <- data.frame(x=colnames(nodes_extra))
-
+browser()
 
 # Nodes database-------------------------------------------------------------
 latest_fname <- get_latest_file('data/groups/', 'groups')
@@ -84,7 +84,7 @@ df_nodes <- df_nodes %>% left_join(nodes_extra[,
                                                c(c('group_id'),
                                                  c_cnames)], 
                                    by=c('group_id'), keep=F)
-# browser()
+browser()
 #------------------------------------------------------------------------------
 # I need information on what shape to include ---------------------------------
 # df_nodes$shape <- ifelse(df_nodes$us_designated==1 & df_nodes$state_sponsor)
@@ -185,6 +185,7 @@ status_dict <- unique(df[, c('status', 'status_id')])
 status_dict <- status_dict[status_dict$status=='Mergers' | 
                              status_dict$status=='Splinters',]
 
+# Coordinates information for ggplot geography plot-----------------------------
 coords <- read.csv('data/maps_coord.csv', header=T)
 colnames(coords) <- c('hq_country', 'latitude', 'longitude')
 
@@ -328,5 +329,33 @@ df_nodes[(df_nodes$us_designated==1 |
             df_nodes$un_designated==1) &
            df_nodes$state_sponsor==1, 'shape'] <- 'triangle'
 df$width <- 9
-# browser()
+
+
+provinces <- unique(df_nodes$hq_province)
+provinces <- provinces[(!is.na(provinces)) & (provinces!="")]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

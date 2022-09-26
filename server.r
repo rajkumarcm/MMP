@@ -12,6 +12,12 @@ library('ggplot2')
 library('gridExtra')
 library('tidyverse')
 library('shinyjs')
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+library(sf)
+library(tmap)
+library(tmaptools)
 
 source('filter_medges_all.R', local=T)
 # source('generate_xoffset_template.R', local=T)
@@ -1391,7 +1397,7 @@ s <- shinyServer(function(input, output, session){
       
       tmp.edges <- tmp.edges %>% inner_join(coords, by=c('g2_hqc'='hq_country'))
       cnames <- colnames(tmp.edges)
-      cnames[cnames=='latitude'] <- 'latitude2'
+      cnames[cnames=='latitude'] <- 'latitude2' 
       cnames[cnames=='longitude'] <- 'longitude2'
       colnames(tmp.edges) <- cnames
       
@@ -1446,7 +1452,7 @@ s <- shinyServer(function(input, output, session){
       maps::map(database="world", 
                 border="gray10", fill=T, bg='black', col="grey20")
       # browser()
-      points(x=nodes_geo()$lat, y=nodes_geo()$long, pch=19, 
+      points(x=nodes_geo()$long, y=nodes_geo()$lat, pch=19, 
              col=nodes_geo()$color, cex=2)
       
       unique.edges <- geo.edges()[[1]]
@@ -1470,27 +1476,69 @@ s <- shinyServer(function(input, output, session){
       count_binned <- cut(unique.edges$count, 7)
       unique.edges$color <- tmp.colorPalette[as.numeric(count_binned)]
       
-      # for(mn_idx in 1:nrow(unique.edges))
-      # {
-      #   coord1 <- unique.edges[mn_idx, c('longitude1', 'latitude1')]
-      #   coord2 <- unique.edges[mn_idx, c('longitude2', 'latitude2')]
-      #   color <- unique.edges[mn_idx, 'color']
-      #   # browser()
-      #   intEdges <- gcIntermediate(coord1, coord2, n=2, addStartEnd=T)
-      #   lines(intEdges, col=color, lwd=2)
-      # }
-      longitudes <- c()
-      latitudes <- c()
-      # browser()
-      for(i in 1:nrow(unique.edges))
+      for(mn_idx in 1:nrow(unique.edges))
       {
-        lat <- c(unique.edges[i, 'latitude1'], unique.edges[i, 'latitude2'])
-        lon <- c(unique.edges[i, 'longitude1'],unique.edges[i, 'longitude2'])
-        lines(x=lat, y=lon, col=unique.edges[i, 'color'], lwd=2)
+        coord1 <- unique.edges[mn_idx, c('longitude1', 'latitude1')]
+        coord2 <- unique.edges[mn_idx, c('longitude2', 'latitude2')]
+        color <- unique.edges[mn_idx, 'color']
+        # browser()
+        intEdges <- gcIntermediate(coord1, coord2, n=2, addStartEnd=T)
+        lines(intEdges, col=color, lwd=2)
       }
+      # longitudes <- c()
+      # latitudes <- c()
       # browser()
-      # lines(x=longitudes, y=latitudes, col=unique.edges$color, lwd=2)
+      # for(i in 1:nrow(unique.edges))
+      # {
+      #   lat <- c(unique.edges[i, 'latitude1'], unique.edges[i, 'latitude2'])
+      #   lon <- c(unique.edges[i, 'longitude1'],unique.edges[i, 'longitude2'])
+      #   lines(x=lon, y=lat, col=unique.edges[i, 'color'], lwd=2)
+      # }
+      # browser()
+      
     })
+    
+    #---------------------tm_map plot-------------------------------------------
+    
+    tmplot.nodes <- reactive({
+      province <- input$geo_province
+      country <- df_nodes[df_nodes$hq_province==province, 'hq_country'][1]
+      province.nodes <- unique(df_nodes[df_nodes$hq_province==province | province=='All', 
+                                 c('id', 'label', 'init_size_members', 
+                                   'max_size_members', 'hq_province')])
+      province.nodes <- province.nodes[!is.na(province.nodes$id),]
+      
+      # Summary information about a province
+      province.info <- province.nodes |>
+                       group_by(hq_province) |>
+                       summarise(init_size_members=mean(init_size_members),
+                                 max_size_members=mean(max_size_members),
+                                 n_profiles=n(),
+                                 )
+      geo_df <- NULL
+      
+      if(province=='All')
+      {
+        # World shapefile
+        geo_df <- ne_countries(scale='medium', returnclass = 'sf')
+        
+      }
+      else
+      {
+        # Country shapefile
+        geo_df <- ne_states(country=country, returnclass='sf')
+        province.info <- province.info |> 
+                         inner_join(geo_df, by=c('hq_province'='name'))
+        province.info <- st_as_sf(province.info)
+        browser()
+      }
+      province.info
+    })
+    
+    output$tmplot <- renderPlot({
+      tm_shape(tmplot.nodes()) + tm_polygons(input$geo_color_column)
+    })
+    
     
     #-------------------- Hierarchical code------------------------------------
     
@@ -1852,15 +1900,25 @@ s <- shinyServer(function(input, output, session){
     
     # Open manage a map div with information about the map populated
     observeEvent(input$manageMap, {
-      browser()
       mm_map_name <<- str_split(input$manageMap, '~@~')[[1]][1]
-      map_info <- unique(df_nodes[df_nodes$map_name==input$manageMap, 
+      map_info <- unique(df_nodes[df_nodes$map_name==mm_map_name, 
                                                                c('map_name',
                                                                  'new_description',
                                                                  'URL',
                                                                  'level',
                                                                  'endyear')])[1,]
+
       session$sendCustomMessage('showEditMap', map_info)
+    })
+    
+    observeEvent(input$showIncludedGroups, {
+      map_name <- input$showIncludedGroups
+      map_name <- str_split(map_name, '~@~')[[1]][1]
+      logging::loginfo(map_name)
+      nodes_under_mn <- data.frame(Profile=df_nodes[df_nodes$map_name==map_name, c('label')])
+      output$includedGroupsTable <- renderDataTable(
+        nodes_under_mn
+      )
     })
     
     # Close manage a map div

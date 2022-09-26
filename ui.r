@@ -281,11 +281,23 @@ u <- shinyUI(fluidPage(
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Geographical",
-                                     selectInput("g_map_name", 
-                                                 label="Select Map:", 
-                                                 choices = unique(df$map_name),
-                                                 selected = "Iraq"),
+                                     # selectInput("g_map_name", 
+                                     #             label="Select Map:", 
+                                     #             choices = unique(df$map_name),
+                                     #             selected = "Iraq"),
                                      plotOutput("geoMap"),
+                                     style = "background-color: #FCFCF3;"),
+                            
+                            tabPanel("Tmplot",
+                                     selectInput("geo_province", 
+                                                 label="Select Province:", 
+                                                 choices = c('All', provinces),
+                                                 selected = provinces[1]), # this should be 'All'
+                                     selectInput("geo_color_column",
+                                                 label="Color by criteria:",
+                                                 choices= c('init_size_members',
+                                                            'max_size_members')),
+                                     plotOutput("tmplot"),
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Map",
