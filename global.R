@@ -59,11 +59,29 @@ links <- read.csv("data/GroupLinks.csv", header=T)
 
 # Sponsorship information----------------------------------------------------
 nodes_extra <- read.csv("data/nodes_sample.csv", header=T,
-                        fill=T, blank.lines.skip=T, skipNul=T)
-nodes_extra[is.na(nodes_extra)] <- -1
-nodes_extra[is_empty(nodes_extra)] <- -1
+                        fill=T, blank.lines.skip=T, skipNul=T, 
+                        na.strings=c("", 'NA'))
+nodes_extra[is.na(nodes_extra$init_size_members), 'init_size_members'] <- 0
+nodes_extra[is.na(nodes_extra$max_size_members), 'max_size_members'] <- 0
+
+nodes_extra$init_size_members <- as.integer(nodes_extra$init_size_members)
+nodes_extra$max_size_members <- as.integer(nodes_extra$max_size_members)
+
+nodes_extra[is.na(nodes_extra$us_designated), 'us_designated'] <- 0
+nodes_extra[is.na(nodes_extra$un_designated), 'un_designated'] <- 0
+nodes_extra[is.na(nodes_extra$state_sponsor), 'state_sponsor'] <- 0
+nodes_extra[is.na(nodes_extra$other_designated), 'other_designated'] <- 0
+
+#Drop empty rows
+indices.empty.row <- which(is.na(nodes_extra$group_id))
+nodes_extra <- nodes_extra[-indices.empty.row,]
+
+# nodes_extra.int.cols <- c('startyear', 'endyear', 'active', 'first_attack',
+#                           'init_size_members', 'max_size_members')
+# nodes_extra[is.na(nodes_extra)] <- -1
+# nodes_extra[is_empty(nodes_extra)] <- -1
 extra_cnames <- data.frame(x=colnames(nodes_extra))
-browser()
+# browser()
 
 # Nodes database-------------------------------------------------------------
 latest_fname <- get_latest_file('data/groups/', 'groups')
@@ -80,11 +98,14 @@ c_cnames <- extra_cnames %>% anti_join(df_nodes_cnames)
 # c_cnames = complement column names in the nodes_sample.csv
 c_cnames <- c_cnames$x
 # browser()
-df_nodes <- df_nodes %>% left_join(nodes_extra[, 
-                                               c(c('group_id'),
+df_nodes <- df_nodes %>% left_join(nodes_extra[, c(c('group_id'),
                                                  c_cnames)], 
                                    by=c('group_id'), keep=F)
-browser()
+df_nodes[is.na(df_nodes$init_size_members), 'init_size_members'] <- 0
+df_nodes[is.na(df_nodes$max_size_members), 'max_size_members'] <- 0
+df_nodes$init_size_members <- as.integer(df_nodes$init_size_members)
+df_nodes$max_size_members <- as.integer(df_nodes$max_size_members)
+# browser()
 #------------------------------------------------------------------------------
 # I need information on what shape to include ---------------------------------
 # df_nodes$shape <- ifelse(df_nodes$us_designated==1 & df_nodes$state_sponsor)
@@ -334,9 +355,12 @@ df$width <- 9
 provinces <- unique(df_nodes$hq_province)
 provinces <- provinces[(!is.na(provinces)) & (provinces!="")]
 
-
-
-
+valid.countries.list <- unique(df_nodes$hq_country)
+valid.countries.list1 <- valid.countries.list[!is.na(valid.countries.list)]
+valid.countries.list2 <- valid.countries.list1
+valid.countries.list2[valid.countries.list2=='United States'] <- 'United States of America'
+valid.countries.list <- data.frame(hq_country_old=valid.countries.list1, 
+                                   hq_country_new=valid.countries.list2)
 
 
 

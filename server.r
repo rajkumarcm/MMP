@@ -1501,8 +1501,21 @@ s <- shinyServer(function(input, output, session){
     #---------------------tm_map plot-------------------------------------------
     
     tmplot.nodes <- reactive({
+      province_country <- unique(drop_na(df_nodes[, c('hq_province', 'hq_country')]))
+      
+      # Map invalid country names to valid ones
+      # browser()
+      province_country <- province_country %>% 
+                           inner_join(valid.countries.list, 
+                                           by=c('hq_country'='hq_country_old'))
+      cnames <- colnames(province_country)
+      cnames[cnames=='hq_country'] <- 'hq_country_invalid'
+      cnames[cnames=='hq_country_new'] <- 'hq_country'
+      colnames(province_country) <- cnames
+      # browser()
+      
       province <- input$geo_province
-      country <- df_nodes[df_nodes$hq_province==province, 'hq_country'][1]
+      country <- province_country[province_country$hq_province==province, 'hq_country']
       province.nodes <- unique(df_nodes[df_nodes$hq_province==province | province=='All', 
                                  c('id', 'label', 'init_size_members', 
                                    'max_size_members', 'hq_province')])
@@ -1511,26 +1524,30 @@ s <- shinyServer(function(input, output, session){
       # Summary information about a province
       province.info <- province.nodes |>
                        group_by(hq_province) |>
-                       summarise(init_size_members=mean(init_size_members),
-                                 max_size_members=mean(max_size_members),
-                                 n_profiles=n(),
-                                 )
+                       summarise(init_size_members=mean(init_size_members, na.rm=T),
+                                 max_size_members=mean(max_size_members, na.rm=T),
+                                 n_profiles=n())
+      # cnames <- colnames(province.info)
+      # cnames[cnames=='hq_province'] <- 'name'
+      # colnames(province.info) <- cnames
       geo_df <- NULL
       
       if(province=='All')
       {
         # World shapefile
         geo_df <- ne_countries(scale='medium', returnclass = 'sf')
-        
       }
       else
       {
         # Country shapefile
-        geo_df <- ne_states(country=country, returnclass='sf')
-        province.info <- province.info |> 
-                         inner_join(geo_df, by=c('hq_province'='name'))
-        province.info <- st_as_sf(province.info)
         browser()
+        geo_df <- ne_states(country=country, returnclass='sf')
+        # province.info <- province.info |> 
+        #                  inner_join(geo_df, by=c('hq_province'='name'))
+        province.info <- geo_df |> 
+                         regex_inner_join(province.info, by=c('name'='hq_province'))
+        province.info <- st_as_sf(province.info)
+        # browser()
       }
       province.info
     })
