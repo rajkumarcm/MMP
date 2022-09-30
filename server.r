@@ -1500,7 +1500,25 @@ s <- shinyServer(function(input, output, session){
     
     #---------------------tm_map plot-------------------------------------------
     
-    tmplot.nodes <- reactive({
+    available.provinces <- reactive({
+      tmp.df <- unique(df_nodes[df_nodes[, input$geo_filter_col] > 0 &
+                                (!is.na(df_nodes$hq_province)) &
+                                (length(df_nodes$hq_province) > 0) &
+                                (!is.na(df_nodes$hq_country)) & 
+                                length(df_nodes$hq_country) > 0, 'hq_province'])
+    })
+    
+    # observeEvent(input$geo_filter_col, {
+    #   updateSelectInput(session, 'geo_province', choices=available.provinces(),
+    #                     selected=available.provinces())
+    # })
+    
+    tmplot.map <- reactive({
+      
+      debug_param <- available.provinces()
+      # browser()
+      
+      # The following line need to be thrown onto global.R file
       province_country <- unique(drop_na(df_nodes[, c('hq_province', 'hq_country')]))
       
       # Map invalid country names to valid ones
@@ -1514,46 +1532,91 @@ s <- shinyServer(function(input, output, session){
       colnames(province_country) <- cnames
       # browser()
       
-      province <- input$geo_province
-      country <- province_country[province_country$hq_province==province, 'hq_country']
-      province.nodes <- unique(df_nodes[df_nodes$hq_province==province | province=='All', 
-                                 c('id', 'label', 'init_size_members', 
-                                   'max_size_members', 'hq_province')])
-      province.nodes <- province.nodes[!is.na(province.nodes$id),]
+      # province <- input$geo_province
       
-      # Summary information about a province
-      province.info <- province.nodes |>
-                       group_by(hq_province) |>
-                       summarise(init_size_members=mean(init_size_members, na.rm=T),
-                                 max_size_members=mean(max_size_members, na.rm=T),
-                                 n_profiles=n())
       # cnames <- colnames(province.info)
       # cnames[cnames=='hq_province'] <- 'name'
       # colnames(province.info) <- cnames
+      world <- ne_countries(scale='medium', returnclass='sf')
+      world <- sf::st_as_sf(world)
+      world <- sf::st_make_valid(world)
       geo_df <- NULL
+      complete_df <- NULL
       
-      if(province=='All')
+      if(input$geo_province=='All')
       {
         # World shapefile
+        
         geo_df <- ne_countries(scale='medium', returnclass = 'sf')
+        for(province in available.provinces())
+        {
+          # Get the corresponding country name
+          country <- province_country[province_country$hq_province==province,
+                                      'hq_country']
+          country <- unique(country[!is.na(country)])
+          # browser()
+          
+          # download shapefile from rnaturalearthhire
+          geo_df <- ne_states(country=country, returnclass='sf')
+          browser()
+          
+          if(sum(str_detect(geo_df$name, province)) > 0)
+          {
+            logging::loginfo(province)
+            # Fetch all the nodes that belong to the province
+            if(province=='Punjab')
+            {
+              browser() # debug...
+            }
+            province.nodes <- unique(df_nodes[df_nodes$hq_province==province, 
+                                              c('id', 'label', 'init_size_members', 
+                                                'max_size_members', 'hq_province')])
+            
+            # Filter out all nodes with NA in ID
+            province.nodes <- province.nodes[!is.na(province.nodes$id),]
+            
+            # Summary information about a province
+            province.info <- province.nodes |>
+              group_by(hq_province) |>
+              summarise(init_size_members=sum(init_size_members, na.rm=T),
+                        max_size_members=sum(max_size_members, na.rm=T),
+                        n_profiles=n())
+            
+            # Join profile summary with shape information in geo_df dataframe
+            tmp.info <- geo_df |> 
+              regex_inner_join(province.info, by=c('name'='hq_province'))
+            tmp.info <- sf::st_as_sf(tmp.info)
+            tmp.info <- sf::st_make_valid(tmp.info)
+            
+            complete_df <- tm_shape(world, xlim=c(-150, 180), ylim=c(-60,90)) + 
+                            tm_polygons()
+ 
+            # browser()
+            complete_df <- complete_df + 
+                            tm_shape(tmp.info) + 
+                            tm_polygons(input$geo_filter_col)
+
+          }
+        }
       }
       else
       {
-        # Country shapefile
-        browser()
-        geo_df <- ne_states(country=country, returnclass='sf')
-        # province.info <- province.info |> 
-        #                  inner_join(geo_df, by=c('hq_province'='name'))
-        province.info <- geo_df |> 
-                         regex_inner_join(province.info, by=c('name'='hq_province'))
-        province.info <- st_as_sf(province.info)
+        # # Country shapefile
         # browser()
+        # geo_df <- ne_states(country=country, returnclass='sf')
+        # # province.info <- province.info |> 
+        # #                  inner_join(geo_df, by=c('hq_province'='name'))
+        # province.info <- geo_df |> 
+        #                  regex_inner_join(province.info, by=c('name'='hq_province'))
+        # province.info <- st_as_sf(province.info)
+        # # browser()
       }
-      province.info
+      # browser()
+      return(complete_df)
     })
     
     output$tmplot <- renderPlot({
-      tm_shape(tmplot.nodes()) + tm_polygons(input$geo_color_column)
+      tmplot.map()
     })
     
     

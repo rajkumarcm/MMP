@@ -359,6 +359,7 @@ valid.countries.list <- unique(df_nodes$hq_country)
 valid.countries.list1 <- valid.countries.list[!is.na(valid.countries.list)]
 valid.countries.list2 <- valid.countries.list1
 valid.countries.list2[valid.countries.list2=='United States'] <- 'United States of America'
+valid.countries.list2[valid.countries.list2=='New York'] <- 'United States of America'
 valid.countries.list <- data.frame(hq_country_old=valid.countries.list1, 
                                    hq_country_new=valid.countries.list2)
 
