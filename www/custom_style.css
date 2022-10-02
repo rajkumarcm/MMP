@@ -614,17 +614,49 @@ div.outerBorder {
   height:800px;
 }
 
+#toggleNewProf_div
+{
+  display:None;
+}
 
+#new_prof_nm_flex
+{
+  display:flex;
+  flex-direction:row;
+}
 
+#new_prof_nm_flex > div
+{
+  position:relative;
+}
 
+#new_prof_nm_flex > div:nth-child(2)
+{
+  position:relative;
+  margin-left:40px;
+}
 
+.emfield_input_small
+{
+  width: 300px;
+  margin-left: 100px;
+  position: relative;
+  height: 41px;
+  border-radius: 4px;
+  border-color: silver;
+  border-style: solid;
+  margin-top:10px;
+}
 
+#new_prof_container table tbody tr
+{
+  height:58px;
+}
 
-
-
-
-
-
+#new_prof_desc
+{
+  height:150px;
+}
 
 
 

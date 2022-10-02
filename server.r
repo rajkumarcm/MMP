@@ -1558,16 +1558,11 @@ s <- shinyServer(function(input, output, session){
           
           # download shapefile from rnaturalearthhire
           geo_df <- ne_states(country=country, returnclass='sf')
-          browser()
+          # browser()
           
           if(sum(str_detect(geo_df$name, province)) > 0)
           {
-            logging::loginfo(province)
             # Fetch all the nodes that belong to the province
-            if(province=='Punjab')
-            {
-              browser() # debug...
-            }
             province.nodes <- unique(df_nodes[df_nodes$hq_province==province, 
                                               c('id', 'label', 'init_size_members', 
                                                 'max_size_members', 'hq_province')])
@@ -1974,7 +1969,11 @@ s <- shinyServer(function(input, output, session){
       html.table
     })
     
-    observeEvent(input$editMap, {
+    observeEvent(input$newProf_btn, {
+      session$sendCustomMessage('toggleNewProf_div', input$newProf_btn)
+    })
+    
+    observeEvent(input$newProf_schanges, {
       
     })
     

@@ -398,7 +398,97 @@ u <- shinyUI(fluidPage(
                          tabsetPanel(id = 'admin_tbsp', selected='admin_em',
                                      tabPanel(title='Edit Maps', value='admin_em',
                                               div(id='admin_em_sm',
+                                                actionButton(inputId='newProf_btn', label='New Profile/Back'),
+                                                HTML("<button id='' "),
+                                                actionButton(inputId='newProf_reset', label='Reset'),
                                                 uiOutput(outputId='em_profiles'),
+                                                HTML('
+                                                     <div id="new_prof_container" style="display:None;">
+                                                        <table>
+                                                        <tr>
+                                                         <td><h4>Name</h4></td>
+                                                         <td><input type="text" id="new_prof_name" class="emfield_input"/></td>
+                                                        </tr>
+                                                        <tr>
+                                                         <td><h4>URL</h4></td>
+                                                         <td><input type="text" id="new_prof_url" class="emfield_input"/></td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>Description</h4></td>
+                                                          <td><textarea id="new_prof_desc" class="emfield_input" maxlength="500"></textarea></td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>Start year</h4></td>
+                                                          <td><input type="text" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" /></td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>End year</h4></td>
+                                                          <td><input type="new_prof_ey" class="emfield_input_small" /></td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>Active</h4></td>
+                                                          <td><input type="checkbox" id="new_prof_active" style="margin-left:100px;" /></td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>Complete</h4></td>
+                                                          <td><input type="checbox" id="new_prof_complete" class="emfield_input_small" /></td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>Map</h4></td>
+                                                          <td><div id="new_prof_nm_flex" style="flex-direction:row; margin-left:100px;">
+                                                          <!--  Use Shiny\'s object here-->'),
+                                                
+                                                          selectInput(inputId='new_prof_maps',
+                                                                      label="",
+                                                                      choices=maps,
+                                                                      selected=maps[1]),
+                                                
+                                                           # Make textinput HTML itself rather than using Shiny
+                                                          textInput(inputId='new_mn', label=''),
+                                                          HTML('</div>
+                                                        </tr>
+                                                        <tr>
+                                                          <td><h4>First attack</h4></td>
+                                                          <td>
+                                                            <input type="number" id="new_prof_fatt" min="1800" max="2022" class="emfield_input_small" />
+                                                          </td>
+                                                        </tr>
+                                                        
+                                                        <tr>
+                                                          <td><h4>HQ City</h4></td>
+                                                          <td><input type="text" id="new_prof_city" class="emfield_input_small" /></td>
+                                                        </tr>
+                                                        
+                                                        <tr>
+                                                          <td><h4>HQ Country</h4></td>
+                                                          <td><input type="text" id="new_prof_country" class="emfield_input_small"  /></td>
+                                                        </tr>
+                                                        
+                                                        <tr>
+                                                          <td><h4>HQ Province</h4></td>
+                                                          <td><input type="text" id="new_prof_province" class="emfield_input_small" /></td>
+                                                        </tr>
+                                                        
+                                                        <tr>
+                                                          <td><h4>Init size members</h4></td>
+                                                          <td><input type="number" id="new_prof_ism" min="0" class="emfield_input_small" /></td>
+                                                        </tr>
+                                                        
+                                                        <tr>
+                                                          <td><h4>Max size members</h4></td>
+                                                          <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
+                                                        </tr>
+                                                      
+                                                        <tr>
+                                                          <td><h4>Published</h4></td>
+                                                          <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
+                                                        </tr>
+                                                        
+                                                        </table>
+                                                     </div>
+                                                     
+                                                     '),
+   
                                               ),
                                               
                                               div(id='admin_em_mm',

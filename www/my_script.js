@@ -186,6 +186,47 @@ function refresh_page(_)
 Shiny.addCustomMessageHandler('refresh_page', refresh_page);
 
 
+function toggleNewProf_div(_)
+{
+  edit_map = document.getElementById('em_profiles');
+  new_prof_div = document.getElementById('new_prof_container');
+  vis = new_prof_div.style.display;
+  if(vis == 'block')
+  {
+    new_prof_div.style.display = 'none';
+    edit_map.style.display = 'block';
+  }
+  else
+  {
+    new_prof_div.style.display = 'block';
+    edit_map.style.display = 'none';
+  }
+}
+Shiny.addCustomMessageHandler('toggleNewProf_div', toggleNewProf_div);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
