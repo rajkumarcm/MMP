@@ -1454,6 +1454,8 @@ s <- shinyServer(function(input, output, session){
       # browser()
       points(x=nodes_geo()$long, y=nodes_geo()$lat, pch=19, 
              col=nodes_geo()$color, cex=2)
+      text(x=nodes_geo()$long, y=nodes_geo()$lat-5, label=nodes_geo()$hq_country, 
+           cex=1.24, col='white')
       
       unique.edges <- geo.edges()[[1]]
       tmp.edges <- geo.edges()[[2]] # non unique edges so we can get the count of
@@ -1482,12 +1484,12 @@ s <- shinyServer(function(input, output, session){
         coord2 <- unique.edges[mn_idx, c('longitude2', 'latitude2')]
         color <- unique.edges[mn_idx, 'color']
         # browser()
-        intEdges <- gcIntermediate(coord1, coord2, n=2, addStartEnd=T)
+        intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
         lines(intEdges, col=color, lwd=2)
       }
+      
       # longitudes <- c()
       # latitudes <- c()
-      # browser()
       # for(i in 1:nrow(unique.edges))
       # {
       #   lat <- c(unique.edges[i, 'latitude1'], unique.edges[i, 'latitude2'])
