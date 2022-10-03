@@ -395,7 +395,6 @@ u <- shinyUI(fluidPage(
                                      tabPanel(title='Edit Maps', value='admin_em',
                                               div(id='admin_em_sm',
                                                 actionButton(inputId='newProf_btn', label='New Profile/Back'),
-                                                HTML("<button id='' "),
                                                 actionButton(inputId='newProf_reset', label='Reset'),
                                                 uiOutput(outputId='em_profiles'),
                                                 HTML('
@@ -415,11 +414,11 @@ u <- shinyUI(fluidPage(
                                                         </tr>
                                                         <tr>
                                                           <td><h4>Start year</h4></td>
-                                                          <td><input type="text" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" /></td>
+                                                          <td><input type="number" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" min="1700" /></td>
                                                         </tr>
                                                         <tr>
                                                           <td><h4>End year</h4></td>
-                                                          <td><input type="new_prof_ey" class="emfield_input_small" /></td>
+                                                          <td><input type="number" id="new_prof_ey" class="emfield_input_small" max="2022"  /></td>
                                                         </tr>
                                                         <tr>
                                                           <td><h4>Active</h4></td>
@@ -434,9 +433,9 @@ u <- shinyUI(fluidPage(
                                                           <td><div id="new_prof_nm_flex" style="flex-direction:row; margin-left:100px;">
                                                           <!--  Use Shiny\'s object here-->'),
                                                 
-                                                          selectInput(inputId='new_prof_maps',
+                                                          selectInput(inputId='new_prof_map',
                                                                       label="",
-                                                                      choices=maps,
+                                                                      choices=c(maps[2:length(maps)], 'Other'),
                                                                       selected=maps[1]),
                                                 
                                                            # Make textinput HTML itself rather than using Shiny
@@ -480,7 +479,17 @@ u <- shinyUI(fluidPage(
                                                           <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
                                                         </tr>
                                                         
+                                                        <tr>
+                                                          <td><button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button></td>
+                                                        </tr>
                                                         </table>
+                                                        
+                                                        <div id="new_prof_warnings_container">'),
+                                                        textOutput(outputId="new_prof_warnings", inline = F),
+                                                          
+                                                      HTML('
+                                                        </div>
+                                                        
                                                      </div>
                                                      
                                                      '),

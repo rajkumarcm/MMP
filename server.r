@@ -1972,10 +1972,70 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$newProf_btn, {
+      updateTextInput(session, inputId='new_prof_mn', value='')
+      shinyjs::disable("new_prof_mn")
       session$sendCustomMessage('toggleNewProf_div', input$newProf_btn)
     })
     
+    observeEvent(input$new_prof_map, {
+      if(input$new_prof_map == "Other")
+      {
+        shinyjs::enable('new_mn')
+      }
+      else
+      {
+        shinyjs::disable('new_mn')
+      }
+    })
+    
     observeEvent(input$newProf_schanges, {
+      # browser()
+      warnings <- c()
+      end_year <- as.integer(input$newProf_schanges['ey'][[1]])
+      start_year <- as.integer(input$newProf_schanges['sy'][[1]])
+      init_size_members <- as.integer(input$newProf_schanges['ism'][[1]])
+      max_size_members <- as.integer(input$newProf_schanges['msm'][[1]])
+      first_attack <- as.integer(input$newProf_schanges['first_attack'][[1]])
+      
+      if(!is.na(end_year))
+      {
+        if(end_year > as.integer(str_extract(Sys.Date(), '\\d{4}')) |
+           end_year < start_year)
+        {
+          warnings <- c('Invalid end year!')
+        }
+      }
+      
+      if(!is.na(init_size_members) & !is.na(max_size_members))
+      {
+        if(init_size_members > max_size_members)
+        {
+          warnings <- c(warnings, 'Invalid max size members')
+        }
+      }
+      
+      if(!is.na(first_attack))
+      {
+        if(first_attack < start_year)
+        {
+          warnings <- c(warnings, 'Invalid first attack year')
+        }
+      }
+      
+      browser()
+      if(length(warnings) > 0)
+      {
+        session$sendCustomMessage('showWarnings', '')
+        output$new_prof_warnings <- renderText({warnings})
+      }
+      else
+      {
+        output$new_prof_warnings <- renderText({})
+        session$sendCustomMessage('hideWarnings', '')
+        
+        # Save the changes
+        
+      }
       
     })
     

@@ -204,13 +204,52 @@ function toggleNewProf_div(_)
 }
 Shiny.addCustomMessageHandler('toggleNewProf_div', toggleNewProf_div);
 
+function new_prof_sc()
+{
+  let name = document.getElementById('new_prof_name').value;
+  let url = document.getElementById('new_prof_url').value;
+  let desc = document.getElementById('new_prof_desc').value;
+  let sy = document.getElementById('new_prof_sy').value;
+  let ey = document.getElementById('new_prof_ey').value;
+  let active = document.getElementById('new_prof_active').checked;
+  let complete = document.getElementById('new_prof_complete').value;
+  
+  // R server must collect map_name
+  let first_attack = document.getElementById('new_prof_fatt').value;
+  let city = document.getElementById('new_prof_city').value;
+  let country = document.getElementById('new_prof_country').value;
+  let province = document.getElementById('new_prof_province').value;
+  let ism = document.getElementById('new_prof_ism').value;
+  let msm = document.getElementById('new_prof_msm').value;
+  let published = document.getElementById('new_prof_pub').checked;
+    
+  jsonObj = {"name":name, "url":url, "desc":desc, "sy":sy, "ey":ey,
+             "active":active, "complete":complete, "first_attack":first_attack,
+             "city":city, "country":country, "province":province, "ism":ism, 
+             "msm":msm, "published":published};
+  
+  Shiny.setInputValue('newProf_schanges', jsonObj);
+  
+}
 
+function throwWarning(message)
+{
+  alert(message);
+}
 
+function showWarnings(_)
+{
+  let warn_container = document.getElementById('new_prof_warnings_container');
+  warn_container.style.display = 'block';
+}
+Shiny.addCustomMessageHandler('showWarnings', showWarnings);
 
-
-
-
-
+function hideWarnings(_)
+{
+  let warn_container = document.getElementById('new_prof_warnings_container');
+  warn_container.style.display = 'none';
+}
+Shiny.addCustomMessageHandler('hideWarnings', hideWarnings);
 
 
 

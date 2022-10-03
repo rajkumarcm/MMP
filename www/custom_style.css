@@ -658,7 +658,15 @@ div.outerBorder {
   height:150px;
 }
 
-
+#new_prof_warnings_container
+{
+  display:none;
+  height:300px;
+  width:500px;
+  color:red;
+  font-family:Merriweather;
+  font-size:15pt;
+}
 
 
 
