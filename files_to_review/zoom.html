@@ -2,23 +2,53 @@
 <head>
 <title>Zoom effect</title>
 <style>
+   
+   body
+   {
+     height:1000px;
+     width:1600px;
+   }
+   
+  #main_container
+  {
+    width:1600px;
+	background-color:maroon;
+	height:600px;
+	display:flex;
+	flex-direction:row;
+  }
+	
   .zoom
   {
-    height:100vh;
-    width:100%;
-    display:grid;
+    height:600px;;
+    width:760;
     place-items:center;
-    position:fixed;
+    position:relative;
     top:0;
     left:0;
+	background-color:red;
   }
+  
+  #dont_zoom
+  {
+	background-color:blue;
+	height:600px;
+    width:760;
+	position:relative;
+  }
+  
 </style>
 
 </head>
 <body onmouseover="mouseover(event);">
   <div id="txt"></div>
-  <div class='zoom'>
-     <h1>Zoom me</h1>
+  <div id="main_container">
+	  <div class='zoom'>
+		 <h1>Zoom me</h1>
+	  </div>
+	  <div id="dont_zoom">
+		 <h1>Do not zoom</h1>
+	  </div>
   </div>
 <script>
    const zoomElement = document.querySelector('.zoom');
@@ -39,10 +69,10 @@
    
    let txtElem = document.getElementById("txt");
    function mouseover(e){
-		let xPos = event.pageX;
-		let yPos = event.pageY;
+		let xPos = e.pageX;
+		let yPos = e.pageY;
 		let posStr = xPos.toString() + ", " + yPos.toString();
-		console.log(posStr);
+		//console.log(posStr);
 		txtElem.innerHTML = posStr;
    }
    
