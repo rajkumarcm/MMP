@@ -854,8 +854,10 @@ animate <- F
 # df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'title', 'active', 
 #                                      'shape', 'us_designated', 'URL', 'endyear')]) %>%
 #                       arrange(label) %>% filter(label != "")
-df_nodes.copy <- df_nodes
-df_nodes.original <- df_nodes.copy
+df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'active', 
+                                          'URL', 'endyear')]) %>%
+                 arrange(label) %>% filter(label != "")
+df_nodes.copy.original <- df_nodes.copy
 df.copy <- df
 avoidLB <- F
 ep_changes_made <- F
@@ -1996,6 +1998,44 @@ s <- shinyServer(function(input, output, session){
       init_size_members <- as.integer(input$newProf_schanges['ism'][[1]])
       max_size_members <- as.integer(input$newProf_schanges['msm'][[1]])
       first_attack <- as.integer(input$newProf_schanges['first_attack'][[1]])
+      name <- input$newProf_schanges['name'][[1]]
+      url <- input$newProf_schanges['url'][[1]]
+      desc <- input$newProf_schanges['desc'][[1]]
+      active <- input$newProf_schanges['active'][[1]]
+      complete <- input$newProf_schanges['complete'][[1]]
+      map_name <- input$new_prof_map
+      city <- input$newProf_schanges['city']
+      province <- input$newProf_schanges['province']
+      country <- input$newProf_schanges['country']
+      
+      if(map_name == "Other")
+      {
+        map_name <- input$new_mn
+        if(length(map_name) < 3)
+          warnings <- c(warnings, 'New map name cannot be empty')
+      }
+      
+      if(length(city) < 3)
+      {
+        warnings <- c(warnings, 'City field cannot be empty')
+      }
+      
+      if(length(province) < 3)
+      {
+        warnings <- c(warnings, 'Province cannot be empty')
+      }
+      
+      if(length(country) < 3)
+      {
+        warnings <- c(warnings, 'Country cannot be empty')
+      }
+      
+      browser()
+      
+      if(length(name) < 3)
+      {
+        warnings <- c(warnings, 'Profile name cannot be empty')
+      }
       
       if(!is.na(end_year))
       {
@@ -2013,6 +2053,9 @@ s <- shinyServer(function(input, output, session){
           warnings <- c(warnings, 'Invalid max size members')
         }
       }
+      else
+        warnings <- c(warnings, 'Both Initial and later members size must
+                      be supplied')
       
       if(!is.na(first_attack))
       {
@@ -2022,11 +2065,11 @@ s <- shinyServer(function(input, output, session){
         }
       }
       
-      browser()
+      # browser()
       if(length(warnings) > 0)
       {
         session$sendCustomMessage('showWarnings', '')
-        output$new_prof_warnings <- renderText({warnings})
+        output$new_prof_warnings <- renderText({warnings[1]})
       }
       else
       {
@@ -2076,9 +2119,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     admin.profiles <- reactive({
-      tmp.profiles <- unique(df_nodes.copy[, c('id', 'label', 'level', 'active', 
-                                               'URL', 'endyear')]) %>%
-                              arrange(label) %>% filter(label != "")
+      tmp.profiles <- df_nodes.copy
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
                                      tmp.profiles$endyear)
       tmp.profiles
@@ -2147,9 +2188,9 @@ s <- shinyServer(function(input, output, session){
       ep_changes_made <<- T
     })
     
+    
     observeEvent(input$delete_profile, {
       
-      # browser()
       # Get the original index in the df_nodes corresponding to the deleted profile
       # in order to remove the row from the table
       profile_name <- input$delete_profile
@@ -2159,10 +2200,9 @@ s <- shinyServer(function(input, output, session){
       # df_nodes.original is the sorted version of df_nodes
       # so it picks the correct row.id
       # The following snippet is for removing the record from the HTML table
-      row.id <- which(df_nodes.original$label %in% profile_name)
+      row.id <- which(df_nodes.copy$label %in% profile_name)
       session$sendCustomMessage('removeRow', row.id)
-      df_nodes.original <<- df_nodes.original[-row.id,]
-      
+      df_nodes.copy <<- df_nodes.copy[-row.id,]
       ep_changes_made <<- T
     })
     
@@ -2177,11 +2217,7 @@ s <- shinyServer(function(input, output, session){
       if(ep_changes_made==T)
       {
         # Delete profiles section-----------------------------------------------
-        # Apply changes made to the .copy dataframes
-        df <<- df.copy
-        df_nodes <<- df_nodes.copy
-        df_nodes.original <<- df_nodes.copy
-        
+ 
         # Restoring column names so that when we reload the file
         # there wouldn't be any conflicts
         
@@ -2224,6 +2260,25 @@ s <- shinyServer(function(input, output, session){
         ep_changes_made <<- F
         d.profile_names <<- NULL
         session$sendCustomMessage('refresh_page', '')
+        
+        # Apply the changes to the local variables for continuous use...
+        # Delete profiles from df_nodes
+        d.profile_names
+        indices <- which(df_nodes$label %in% d.profile_names)
+        df_nodes <<- df_nodes[-indices,]
+        
+        # Delete edges related to the discarded profile
+        indices <- which(df$group1_name %in% d.profile_names |
+                           df$group2_name %in% d.profile_names)
+        df <<- df[-indices,]
+        
+        
+        # Re-assign....
+        df_nodes.copy <<- unique(df_nodes[, c('id', 'label', 'level', 'active', 
+                                                   'URL', 'endyear')])
+        df_nodes.copy.original <<- df_nodes.copy
+        df.copy <<- df
+        
       }
     })
     

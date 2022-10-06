@@ -413,12 +413,12 @@ u <- shinyUI(fluidPage(
                                                           <td><textarea id="new_prof_desc" class="emfield_input" maxlength="500"></textarea></td>
                                                         </tr>
                                                         <tr>
-                                                          <td><h4>Start year</h4></td>
+                                                          <td><h4>Year founded</h4></td>
                                                           <td><input type="number" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" min="1700" /></td>
                                                         </tr>
                                                         <tr>
-                                                          <td><h4>End year</h4></td>
-                                                          <td><input type="number" id="new_prof_ey" class="emfield_input_small" max="2022"  /></td>
+                                                          <td><h4>Year dissolved</h4></td>
+                                                          <td><input type="number" id="new_prof_ey" class="emfield_input_small" min="0" max="2022"  /></td>
                                                         </tr>
                                                         <tr>
                                                           <td><h4>Active</h4></td>
@@ -445,7 +445,7 @@ u <- shinyUI(fluidPage(
                                                         <tr>
                                                           <td><h4>First attack</h4></td>
                                                           <td>
-                                                            <input type="number" id="new_prof_fatt" min="1800" max="2022" class="emfield_input_small" />
+                                                            <input type="number" id="new_prof_fatt" min="1700" max="2022" class="emfield_input_small" />
                                                           </td>
                                                         </tr>
                                                         
@@ -465,12 +465,12 @@ u <- shinyUI(fluidPage(
                                                         </tr>
                                                         
                                                         <tr>
-                                                          <td><h4>Init size members</h4></td>
+                                                          <td><h4>Initial member size</h4></td>
                                                           <td><input type="number" id="new_prof_ism" min="0" class="emfield_input_small" /></td>
                                                         </tr>
                                                         
                                                         <tr>
-                                                          <td><h4>Max size members</h4></td>
+                                                          <td><h4>Latest member size</h4></td>
                                                           <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
                                                         </tr>
                                                       

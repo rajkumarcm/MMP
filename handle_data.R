@@ -21,7 +21,6 @@ get_latest_file <- function(path, filename)
   # Get the list of file names corresponding to the latest date
   b.indices <- str_detect(fnames, sprintf('%s_%s_%s', year, month, date))
   fnames <- fnames[b.indices]
-  
   times <- str_extract(fnames, '-\\d{2}_\\d{2}_\\d{2}')
   times <- str_extract(times, '[\\d_]+')
   hms <- str_split(times, "_")
@@ -32,6 +31,9 @@ get_latest_file <- function(path, filename)
     times <- c(times, as.numeric(tmp.time))
   }
   max.time <- max(times)
+  if(nchar(max.time)==5)
+    max.time <- sprintf("0%s",max.time)
+  
   hour <- substr(max.time, 1, 2)
   mins <- substr(max.time, 3, 4)
   secs <- substr(max.time, 5, 6)
