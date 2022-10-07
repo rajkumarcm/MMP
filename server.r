@@ -1998,43 +1998,50 @@ s <- shinyServer(function(input, output, session){
       init_size_members <- as.integer(input$newProf_schanges['ism'][[1]])
       max_size_members <- as.integer(input$newProf_schanges['msm'][[1]])
       first_attack <- as.integer(input$newProf_schanges['first_attack'][[1]])
-      name <- input$newProf_schanges['name'][[1]]
-      url <- input$newProf_schanges['url'][[1]]
-      desc <- input$newProf_schanges['desc'][[1]]
+      name <- str_trim(input$newProf_schanges['name'][[1]])
+      url <- str_trim(input$newProf_schanges['url'][[1]])
+      desc <- str_trim(input$newProf_schanges['desc'][[1]])
       active <- input$newProf_schanges['active'][[1]]
       complete <- input$newProf_schanges['complete'][[1]]
       map_name <- input$new_prof_map
-      city <- input$newProf_schanges['city']
-      province <- input$newProf_schanges['province']
-      country <- input$newProf_schanges['country']
+      city <- str_trim(input$newProf_schanges['city'][[1]])
+      province <- str_trim(input$newProf_schanges['province'][[1]])
+      country <- str_trim(input$newProf_schanges['country'][[1]])
+      spons_names <- str_trim(input$newProf_schanges['spons_names'][[1]])
+      spons_types <- input$new_prof_spons_types
       
       if(map_name == "Other")
       {
-        map_name <- input$new_mn
-        if(length(map_name) < 3)
+        map_name <- str_trim(input$new_mn)
+        browser()
+        if(nchar(map_name) < 3)
           warnings <- c(warnings, 'New map name cannot be empty')
+        else if(tolower(map_name) %in% tolower(df_nodes$map_name))
+          warnings <- c(warnings, 'New map name already exists')
       }
       
-      if(length(city) < 3)
+      if(nchar(city) < 3)
       {
         warnings <- c(warnings, 'City field cannot be empty')
       }
       
-      if(length(province) < 3)
+      if(nchar(province) < 3)
       {
         warnings <- c(warnings, 'Province cannot be empty')
       }
       
-      if(length(country) < 3)
+      if(nchar(country) < 3)
       {
         warnings <- c(warnings, 'Country cannot be empty')
       }
       
-      browser()
-      
-      if(length(name) < 3)
+      if(nchar(name) < 3)
       {
         warnings <- c(warnings, 'Profile name cannot be empty')
+      }
+      else if(tolower(name) %in% tolower(str_trim(df_nodes$label))) # duplicate check
+      {
+        warnings <- c(warnings, 'Profile already exists')
       }
       
       if(!is.na(end_year))
@@ -2075,10 +2082,59 @@ s <- shinyServer(function(input, output, session){
       {
         output$new_prof_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', '')
-        
-        # Save the changes
-        
       }
+      
+      if(nchar(spons_names) > 2)
+      {
+        if(str_detect(spons_names, ','))
+        {
+          spons_names <- str_split(spons_names, ',')[[1]]
+        }
+      }
+      
+      us_sponsored = 0
+      if("US" %in% spons_types)
+      {
+        us_sponsored = 1
+      }
+      
+      un_sponsored = 0
+      if("UN" %in% spons_types)
+      {
+        un_sponsored = 1
+      }
+      
+      state_sponsored = 0
+      if("State" %in% spons_types)
+      {
+        state_sponsored = 1
+      }
+      
+      other_designated = 0
+      if("Others" %in% spons_types)
+      {
+        other_designated = 1
+      }
+      
+      browser()
+      
+      # Before writing the changes, check for duplicates in the df_nodes
+      
+      node_records <- data.frame(id=nrow(df_nodes)+1, label=name, 
+                                 level=start_year, end_year=end_year,
+                                 active=active, complete=complete,
+                                 title=label, on_any_map=1, map_name=map_name,
+                                 X_merge='matched(3)', URL=url, Anchor='',
+                                 new_description=desc, href=url, 
+                                 first_attack =first_attack, hq_city=city,
+                                 hq_province=province, hq_country=country,
+                                 init_size_members=init_size_members,
+                                 max_size_members=max_size_members, 
+                                 avg_size_members=NA, 
+                                 us_designated
+                                 )
+      
+      # Save the changes
       
     })
     
@@ -2259,7 +2315,6 @@ s <- shinyServer(function(input, output, session){
         # Once changes are saved, then we can reset these parameters
         ep_changes_made <<- F
         d.profile_names <<- NULL
-        session$sendCustomMessage('refresh_page', '')
         
         # Apply the changes to the local variables for continuous use...
         # Delete profiles from df_nodes
@@ -2278,7 +2333,7 @@ s <- shinyServer(function(input, output, session){
                                                    'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy
         df.copy <<- df
-        
+        session$sendCustomMessage('refresh_page', '')
       }
     })
     

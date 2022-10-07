@@ -390,188 +390,202 @@ u <- shinyUI(fluidPage(
              ), # End of tabPanel for visualiZe the data
              
              tabPanel(title='Admin', id='admin', value="admin", 
-                      mainPanel(
-                         tabsetPanel(id = 'admin_tbsp', selected='admin_em',
-                                     tabPanel(title='Edit Maps', value='admin_em',
-                                              div(id='admin_em_sm',
-                                                actionButton(inputId='newProf_btn', label='New Profile/Back'),
-                                                actionButton(inputId='newProf_reset', label='Reset'),
-                                                uiOutput(outputId='em_profiles'),
-                                                HTML('
-                                                     <div id="new_prof_container" style="display:None;">
-                                                        <table>
-                                                        <tr>
-                                                         <td><h4>Name</h4></td>
-                                                         <td><input type="text" id="new_prof_name" class="emfield_input"/></td>
-                                                        </tr>
-                                                        <tr>
-                                                         <td><h4>URL</h4></td>
-                                                         <td><input type="text" id="new_prof_url" class="emfield_input"/></td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>Description</h4></td>
-                                                          <td><textarea id="new_prof_desc" class="emfield_input" maxlength="500"></textarea></td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>Year founded</h4></td>
-                                                          <td><input type="number" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" min="1700" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>Year dissolved</h4></td>
-                                                          <td><input type="number" id="new_prof_ey" class="emfield_input_small" min="0" max="2022"  /></td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>Active</h4></td>
-                                                          <td><input type="checkbox" id="new_prof_active" style="margin-left:100px;" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>Complete</h4></td>
-                                                          <td><input type="checbox" id="new_prof_complete" class="emfield_input_small" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>Map</h4></td>
-                                                          <td><div id="new_prof_nm_flex" style="flex-direction:row; margin-left:100px;">
-                                                          <!--  Use Shiny\'s object here-->'),
-                                                
-                                                          selectInput(inputId='new_prof_map',
-                                                                      label="",
-                                                                      choices=c(maps[2:length(maps)], 'Other'),
-                                                                      selected=maps[1]),
-                                                
-                                                           # Make textinput HTML itself rather than using Shiny
-                                                          textInput(inputId='new_mn', label=''),
-                                                          HTML('</div>
-                                                        </tr>
-                                                        <tr>
-                                                          <td><h4>First attack</h4></td>
-                                                          <td>
-                                                            <input type="number" id="new_prof_fatt" min="1700" max="2022" class="emfield_input_small" />
-                                                          </td>
-                                                        </tr>
-                                                        
-                                                        <tr>
-                                                          <td><h4>HQ City</h4></td>
-                                                          <td><input type="text" id="new_prof_city" class="emfield_input_small" /></td>
-                                                        </tr>
-                                                        
-                                                        <tr>
-                                                          <td><h4>HQ Country</h4></td>
-                                                          <td><input type="text" id="new_prof_country" class="emfield_input_small"  /></td>
-                                                        </tr>
-                                                        
-                                                        <tr>
-                                                          <td><h4>HQ Province</h4></td>
-                                                          <td><input type="text" id="new_prof_province" class="emfield_input_small" /></td>
-                                                        </tr>
-                                                        
-                                                        <tr>
-                                                          <td><h4>Initial member size</h4></td>
-                                                          <td><input type="number" id="new_prof_ism" min="0" class="emfield_input_small" /></td>
-                                                        </tr>
-                                                        
-                                                        <tr>
-                                                          <td><h4>Latest member size</h4></td>
-                                                          <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
-                                                        </tr>
-                                                      
-                                                        <tr>
-                                                          <td><h4>Published</h4></td>
-                                                          <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
-                                                        </tr>
-                                                        
-                                                        <tr>
-                                                          <td><button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button></td>
-                                                        </tr>
-                                                        </table>
-                                                        
-                                                        <div id="new_prof_warnings_container">'),
-                                                        textOutput(outputId="new_prof_warnings", inline = F),
-                                                          
-                                                      HTML('
-                                                        </div>
-                                                        
-                                                     </div>
-                                                     
-                                                     '),
-   
-                                              ),
-                                              
-                                              div(id='admin_em_mm',
-                                                  h2('Manage a Map'),
-                                                  div(id="save_button_container", 
-                                                      actionButton(inputId='em_mp_save',
-                                                                   label='Save Changes'),
-                                                      actionButton(inputId='em_mp_back',
-                                                                   label='Back')),
-                                                
-                                                HTML('<div id="admin_em_mm_node_details" class="admin_em_mm_container">
-                                                     <table class="em_mm_table">
-                                                     <tr>
-                                                     <td><h4>Name</h4></td>
-                                                     <td><input type="text" id="em_mp_name"  name="em_mp_name" class="emfield_input" /></td>
-                                                     </tr>
-                                                     
-                                                     <tr>
-                                                     <td><h4>URL</h4></td>
-                                                     <td><input type="text" id="em_mp_url"  name="em_mp_url" class="emfield_input" /></td>
-                                                     </tr>
-                                                     
-                                                     <tr>
-                                                     <td><h4>Description</h4></td>
-                                                     <td><textarea id="em_mp_desc" class="emfield_input" maxlength="500"></textarea></td>
-                                                     </tr>
-                                                     
-                                                     <tr>
-                                                     <td><h4>Start year</h4></td>
-                                                     <td><input type="text" id="em_mp_sy"  name="em_mp_sy" class="emfield_input" /></td>
-                                                     </tr>
-                                                     
-                                                     <tr>
-                                                     <td><h4>End year</h4></td>
-                                                     <td><input type="text" id="em_mp_ey"  name="em_mp_ey" class="emfield_input" /></td>
-                                                     </tr>
-                                                     
-                                                     <tr>
-                                                     <td><h4>Published</h4></td>
-                                                     <td><input type="checkbox" id="em_mp_pub"  name="em_mp_pub" /></td>
-                                                     </tr>
-                                                     
-                                                     </table></br></br></div>
-                                                   '),
-                                                
-                                                HTML('<div id="admin_em_mm_zoom_levels" class="admin_em_mm_container">
-                                                        <h2>ZOOM LEVELS</h2>
-                                                        <select name="zoom_levels", id="zoom_levels"></select>
-                                                      </div>
-                                                     '),
-                                                
-                                                HTML('
-                                                     <div id="admin_em_mm_groups" class="admin_em_mm_container">
-                                                       <h2>INCLUDED GROUPS</h2>
-                                                       <div id="included_groups" class="admin_em_mm_container" style="width:600px;">'),
-                                                dataTableOutput(outputId='includedGroupsTable'),
-                                                HTML('            
-                                                       </div>
-                                                     </div>
-                                                     ')
-                                                )
-                                                
-                                                ),
-                                     tabPanel(title='Edit Profiles1', value='admin_ep1',
-                                              div(id='admin_ep_sp1',
+                mainPanel(
+                  tabsetPanel(id = 'admin_tbsp', selected='admin_em',
+                    tabPanel(title='Edit Maps', value='admin_em',
+                     div(id='admin_em_sm',
+                         
+                         uiOutput(outputId='em_profiles'),
+                         
+                         div(id='admin_em_mm',
+                           h2('Manage a Map'),
+                           div(id="save_button_container", 
+                              actionButton(inputId='em_mp_save',
+                                           label='Save Changes'),
+                              actionButton(inputId='em_mp_back',
+                                           label='Back')),
+                             # Closing admin_em_mm
                                                   
-                                                htmlOutput(outputId='ep_profiles'),
-                                                actionButton(inputId='ep_save_changes',
-                                                             label='Save Changes'),
-                                                actionButton(inputId='ep_discard_changes',
-                                                             label='Discard Changes'),
-                                                HTML('</br></br>')
-                                                )
-                                              )
-                                              )
-                                     )
+                             HTML('<div id="admin_em_mm_node_details" class="admin_em_mm_container">
+                                   <table class="em_mm_table">
+                                   <tr>
+                                   <td><h4>Name</h4></td>
+                                   <td><input type="text" id="em_mp_name"  name="em_mp_name" class="emfield_input" /></td>
+                                   </tr>
+                                   
+                                   <tr>
+                                   <td><h4>URL</h4></td>
+                                   <td><input type="text" id="em_mp_url"  name="em_mp_url" class="emfield_input" /></td>
+                                   </tr>
+                                   
+                                   <tr>
+                                   <td><h4>Description</h4></td>
+                                   <td><textarea id="em_mp_desc" class="emfield_input" maxlength="500"></textarea></td>
+                                   </tr>
+                                   
+                                   <tr>
+                                   <td><h4>Start year</h4></td>
+                                   <td><input type="text" id="em_mp_sy"  name="em_mp_sy" class="emfield_input" /></td>
+                                   </tr>
+                                   
+                                   <tr>
+                                   <td><h4>End year</h4></td>
+                                   <td><input type="text" id="em_mp_ey"  name="em_mp_ey" class="emfield_input" /></td>
+                                   </tr>
+                                   
+                                   <tr>
+                                   <td><h4>Published</h4></td>
+                                   <td><input type="checkbox" id="em_mp_pub"  name="em_mp_pub" /></td>
+                                   </tr>
+                                   
+                                   </table></br></br></div>
+                                '),
+                                                  
+                             HTML('<div id="admin_em_mm_zoom_levels" class="admin_em_mm_container">
+                                     <h2>ZOOM LEVELS</h2>
+                                     <select name="zoom_levels", id="zoom_levels"></select>
+                                   </div>
+                                  '),
+                            
+                             HTML('
+                                  <div id="admin_em_mm_groups" class="admin_em_mm_container">
+                                    <h2>INCLUDED GROUPS</h2>
+                                    <div id="included_groups" class="admin_em_mm_container" style="width:600px;">'),
+                             dataTableOutput(outputId='includedGroupsTable'),
+                             HTML('            
+                                   </div>
+                                   </div>
+                                 ') 
                          ),
-             tabPanel(title="Profile Links", id="plNM", value="plNM")
+                       ) # Closing admin_em_sm
+                      ), # Closing tabPanel(Edit Maps, admin_em)
+                     tabPanel(title='Edit Profiles1', value='admin_ep1',
+                        div(id='admin_ep_sp1',
+                          HTML('</br>'),
+                          actionButton(inputId='newProf_btn', label='New Profile/Back'),
+                          HTML('</br></br>'),
+                          div(id="ep_profiles_container",
+                            htmlOutput(outputId='ep_profiles'),
+                            actionButton(inputId='ep_save_changes',
+                                         label='Save Changes'),
+                            actionButton(inputId='ep_discard_changes',
+                                         label='Discard Changes'),
+                            HTML('</br></br>'),
+                          ),
+                  
+                          HTML('
+                             <div id="new_prof_container" style="display:None;">
+                                <table>
+                                <tr>
+                                 <td><h4>Name</h4></td>
+                                 <td><input type="text" id="new_prof_name" class="emfield_input"/></td>
+                                </tr>
+                                <tr>
+                                 <td><h4>URL</h4></td>
+                                 <td><input type="text" id="new_prof_url" class="emfield_input"/></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Description</h4></td>
+                                  <td><textarea id="new_prof_desc" class="emfield_input" maxlength="500"></textarea></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Year founded</h4></td>
+                                  <td><input type="number" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" min="1700" /></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Year dissolved</h4></td>
+                                  <td><input type="number" id="new_prof_ey" class="emfield_input_small" min="0" max="2022"  /></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Active</h4></td>
+                                  <td><input type="checkbox" id="new_prof_active" style="margin-left:100px;" /></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Complete</h4></td>
+                                  <td><input type="checbox" id="new_prof_complete" class="emfield_input_small" /></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Map</h4></td>
+                                  <td><div id="new_prof_nm_flex" style="flex-direction:row; margin-left:100px;">
+                                  <!--  Use Shiny\'s object here-->'),
+                          
+                          selectInput(inputId='new_prof_map',
+                                      label="",
+                                      choices=c(maps[2:length(maps)], 'Other'),
+                                      selected=maps[1]),
+                          
+                          # Make textinput HTML itself rather than using Shiny
+                          textInput(inputId='new_mn', label=''),
+                          HTML('</div>
+                                </tr>
+                                <tr>
+                                  <td><h4>First attack</h4></td>
+                                  <td>
+                                    <input type="number" id="new_prof_fatt" min="1700" max="2022" class="emfield_input_small" />
+                                  </td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>HQ City</h4></td>
+                                  <td><input type="text" id="new_prof_city" class="emfield_input_small" /></td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>HQ Country</h4></td>
+                                  <td><input type="text" id="new_prof_country" class="emfield_input_small"  /></td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>HQ Province</h4></td>
+                                  <td><input type="text" id="new_prof_province" class="emfield_input_small" /></td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>Initial member size</h4></td>
+                                  <td><input type="number" id="new_prof_ism" min="0" class="emfield_input_small" /></td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>Latest member size</h4></td>
+                                  <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>Sponsor types</h4></td>
+                                  <td>'),
+                          
+                                checkboxGroupInput(inputId='new_prof_spons_types', label='',
+                                                   choices=c('US', 'UN', 'State',
+                                                             'Others'), inline=T),
+                          
+                                HTML(' 
+                                  </td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><h4>Sponsor Names</h4></td>
+                                  <td><input type="text" id="new_prof_spons_names" /></td>
+                                </tr>
+                              
+                                <tr>
+                                  <td><h4>Published</h4></td>
+                                  <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
+                                </tr>
+                                
+                                <tr>
+                                  <td><button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button></td>
+                                </tr>
+                                </table>
+                                
+                                <div id="new_prof_warnings_container">'),
+                          textOutput(outputId="new_prof_warnings", inline = F),
+                          HTML('</div></div>'), 
+                       ) # Closing admin_ep_sp1
+                     ) # Closing edit profiles
+                    ) # Closing tabsetPanel(admin_tbsp)
+                   ) # Closing mainPanel
+                  ), # Closing tabPanel
+                 tabPanel(title="Profile Links", id="plNM", value="plNM")
   ))
   
 )

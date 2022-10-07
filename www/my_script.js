@@ -51,8 +51,9 @@ function hideDesc()
 function toggleFS(){
   if(!document.fullscreenElement)
   {
-    var elem = document.getElementById('nvf_body');
-    elem.requestFullscreen();
+    body = document.getElementsByTagName('body')[0];
+    //var elem = document.getElementById('nvf_body');
+    body.requestFullscreen();
   }
   else
     document.exitFullscreen();
@@ -84,8 +85,8 @@ Shiny.addCustomMessageHandler('animateBtn1', animateBtn1);
 
 function showEditMap(map_info)
 {
-  let em_sm = document.getElementById('admin_em_sm');
-  em_sm.style.display = 'None';
+  let em_prof = document.getElementById('em_profiles');
+  em_prof.style.display = 'None';
   
     // Before you display the manage map container, load the information
   let name = document.getElementById('em_mp_name');
@@ -116,8 +117,8 @@ function closeEditMap(_)
   let em_mm = document.getElementById('admin_em_mm');
   em_mm.style.display = 'None';
   
-  let em_sm = document.getElementById('admin_em_sm');
-  em_sm.style.display = 'block';
+  let em_prof = document.getElementById('em_profiles');
+  em_prof.style.display = 'block';
 }
 Shiny.addCustomMessageHandler('closeEditMap', closeEditMap);
 /*
@@ -188,7 +189,7 @@ Shiny.addCustomMessageHandler('refresh_page', refresh_page);
 
 function toggleNewProf_div(_)
 {
-  edit_map = document.getElementById('em_profiles');
+  edit_map = document.getElementById('ep_profiles_container');
   new_prof_div = document.getElementById('new_prof_container');
   vis = new_prof_div.style.display;
   if(vis == 'block')
@@ -222,11 +223,12 @@ function new_prof_sc()
   let ism = document.getElementById('new_prof_ism').value;
   let msm = document.getElementById('new_prof_msm').value;
   let published = document.getElementById('new_prof_pub').checked;
+  let spons_names = document.getElementById('new_prof_spons_names').value;
     
   jsonObj = {"name":name, "url":url, "desc":desc, "sy":sy, "ey":ey,
              "active":active, "complete":complete, "first_attack":first_attack,
              "city":city, "country":country, "province":province, "ism":ism, 
-             "msm":msm, "published":published};
+             "msm":msm, "published":published, 'spons_names':spons_names};
   
   Shiny.setInputValue('newProf_schanges', jsonObj);
   
