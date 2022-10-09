@@ -460,7 +460,7 @@ div.outerBorder {
 
 .tr_class:nth-child(even){background-color: #f2f2f2;}
 
-.tr_class:hover :not(.em_mm_table > tr){background-color: #ddd;}
+/*.tr_class:hover :not(.em_mm_table > tr){background-color: #ddd;}*/
 
 .th_class {
   padding-top: 12px;
@@ -673,9 +673,15 @@ div.outerBorder {
   cursor:crosshair;
 }
 
+#new_prof_spons_types
+{
+  margin-left:100px;
+}
 
-
-
+#new_prof_container
+{
+  width:600px;
+}
 
 
 

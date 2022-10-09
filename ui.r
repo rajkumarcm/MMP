@@ -271,14 +271,14 @@ u <- shinyUI(fluidPage(
                                      
                                      style = "background-color: #FCFCF3;"),
                             
-                            tabPanel("Sankey", 
-                                     selectInput(inputId="s_map_name",
-                                                 label="Map Name",
-                                                 choices=maps,
-                                                 selected='Iraq'),
-                                     sankeyNetworkOutput("diagram",
-                                                         height="500px"),
-                                     style = "background-color: #FCFCF3;"),
+                            # tabPanel("Sankey", 
+                            #          selectInput(inputId="s_map_name",
+                            #                      label="Map Name",
+                            #                      choices=maps,
+                            #                      selected='Iraq'),
+                            #          sankeyNetworkOutput("diagram",
+                            #                              height="500px"),
+                            #          style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Geographical",
                                      plotOutput("geoMap", height="810px", width="1411px"),
@@ -297,14 +297,7 @@ u <- shinyUI(fluidPage(
                                      plotOutput("tmplot"),
                                      style = "background-color: #FCFCF3;"),
                             
-                            tabPanel("Map",
-                                     selectInput(inputId='m_map_name', 
-                                                 label='Map Name',
-                                                 choices=maps,
-                                                 selected='Iraq'),
-                                     leafletOutput(outputId='mapOutput')
-                                     ),
-                            
+     
                             tabPanel("Statistics",
 
                                        sidebarLayout(
@@ -459,34 +452,36 @@ u <- shinyUI(fluidPage(
                          ),
                        ) # Closing admin_em_sm
                       ), # Closing tabPanel(Edit Maps, admin_em)
-                     tabPanel(title='Edit Profiles1', value='admin_ep1',
+                     tabPanel(title='Edit Profiles', value='admin_ep1',
                         div(id='admin_ep_sp1',
                           HTML('</br>'),
                           actionButton(inputId='newProf_btn', label='New Profile/Back'),
                           HTML('</br></br>'),
                           div(id="ep_profiles_container",
                             htmlOutput(outputId='ep_profiles'),
-                            actionButton(inputId='ep_save_changes',
-                                         label='Save Changes'),
-                            actionButton(inputId='ep_discard_changes',
-                                         label='Discard Changes'),
-                            HTML('</br></br>'),
-                          ),
-                  
-                          HTML('
-                             <div id="new_prof_container" style="display:None;">
+                          )
+                       ) # Closing admin_ep_sp1
+                     ), # Closing edit profiles
+                    tabPanel(title='New Profle', value='admin_np',
+                             actionButton(inputId='ep_save_changes',
+                                          label='Save Changes'),
+                             actionButton(inputId='ep_discard_changes',
+                                          label='Discard Changes'),
+                             HTML('</br></br>'),
+                             HTML('
+                             <div id="new_prof_container">
                                 <table>
                                 <tr>
                                  <td><h4>Name</h4></td>
-                                 <td><input type="text" id="new_prof_name" class="emfield_input"/></td>
+                                 <td><input type="text" id="new_prof_name" class="emfield_input_small "/></td>
                                 </tr>
                                 <tr>
                                  <td><h4>URL</h4></td>
-                                 <td><input type="text" id="new_prof_url" class="emfield_input"/></td>
+                                 <td><input type="text" id="new_prof_url" class="emfield_input_small "/></td>
                                 </tr>
                                 <tr>
                                   <td><h4>Description</h4></td>
-                                  <td><textarea id="new_prof_desc" class="emfield_input" maxlength="500"></textarea></td>
+                                  <td><textarea id="new_prof_desc" class="emfield_input_small" style="width:500px;" maxlength="500"></textarea></td>
                                 </tr>
                                 <tr>
                                   <td><h4>Year founded</h4></td>
@@ -508,15 +503,15 @@ u <- shinyUI(fluidPage(
                                   <td><h4>Map</h4></td>
                                   <td><div id="new_prof_nm_flex" style="flex-direction:row; margin-left:100px;">
                                   <!--  Use Shiny\'s object here-->'),
-                          
-                          selectInput(inputId='new_prof_map',
-                                      label="",
-                                      choices=c(maps[2:length(maps)], 'Other'),
-                                      selected=maps[1]),
-                          
-                          # Make textinput HTML itself rather than using Shiny
-                          textInput(inputId='new_mn', label=''),
-                          HTML('</div>
+                             
+                             selectInput(inputId='new_prof_map',
+                                         label="",
+                                         choices=c(maps[2:length(maps)], 'Other'),
+                                         selected=maps[1]),
+                             
+                             # Make textinput HTML itself rather than using Shiny
+                             textInput(inputId='new_mn', label=''),
+                             HTML('</div>
                                 </tr>
                                 <tr>
                                   <td><h4>First attack</h4></td>
@@ -524,64 +519,55 @@ u <- shinyUI(fluidPage(
                                     <input type="number" id="new_prof_fatt" min="1700" max="2022" class="emfield_input_small" />
                                   </td>
                                 </tr>
-                                
                                 <tr>
                                   <td><h4>HQ City</h4></td>
                                   <td><input type="text" id="new_prof_city" class="emfield_input_small" /></td>
                                 </tr>
-                                
                                 <tr>
                                   <td><h4>HQ Country</h4></td>
                                   <td><input type="text" id="new_prof_country" class="emfield_input_small"  /></td>
                                 </tr>
-                                
                                 <tr>
                                   <td><h4>HQ Province</h4></td>
                                   <td><input type="text" id="new_prof_province" class="emfield_input_small" /></td>
                                 </tr>
-                                
                                 <tr>
                                   <td><h4>Initial member size</h4></td>
                                   <td><input type="number" id="new_prof_ism" min="0" class="emfield_input_small" /></td>
                                 </tr>
-                                
                                 <tr>
                                   <td><h4>Latest member size</h4></td>
                                   <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
-                                
                                 <tr>
                                   <td><h4>Sponsor types</h4></td>
                                   <td>'),
-                          
-                                checkboxGroupInput(inputId='new_prof_spons_types', label='',
-                                                   choices=c('US', 'UN', 'State',
-                                                             'Others'), inline=T),
-                          
-                                HTML(' 
+                             checkboxGroupInput(inputId='new_prof_spons_types', label='',
+                                                choices=c('US', 'UN', 'State',
+                                                          'Others'), inline=T),
+                             HTML(' 
                                   </td>
                                 </tr>
-                                
+                                <tr>
+                                  <td></td>
+                                  <td><label style="margin-left:100px;">Sponsor names must be seperated by a comma</label></td>
+                                </tr>
                                 <tr>
                                   <td><h4>Sponsor Names</h4></td>
-                                  <td><input type="text" id="new_prof_spons_names" /></td>
+                                  <td><input type="text" id="new_prof_spons_names" class="emfield_input_small" /></td>
                                 </tr>
-                              
                                 <tr>
                                   <td><h4>Published</h4></td>
                                   <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
                                 </tr>
-                                
                                 <tr>
                                   <td><button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button></td>
                                 </tr>
                                 </table>
-                                
                                 <div id="new_prof_warnings_container">'),
-                          textOutput(outputId="new_prof_warnings", inline = F),
-                          HTML('</div></div>'), 
-                       ) # Closing admin_ep_sp1
-                     ) # Closing edit profiles
+                             textOutput(outputId="new_prof_warnings", inline = F),
+                             HTML('</div></div>')
+                             )
                     ) # Closing tabsetPanel(admin_tbsp)
                    ) # Closing mainPanel
                   ), # Closing tabPanel

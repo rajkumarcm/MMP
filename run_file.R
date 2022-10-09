@@ -11,4 +11,4 @@ library(shiny)
 
 # runGadget(shinyAppDir(appDir = './'), viewer = vwr)
 runGadget(shinyAppDir(appDir = './'), 
-          viewer=browserViewer(browser=getOption('browser')))
+          viewer=browserViewer(browser='C:\\Program Files\\Mozilla Firefox\\firefox.exe'))

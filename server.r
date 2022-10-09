@@ -2119,7 +2119,6 @@ s <- shinyServer(function(input, output, session){
       browser()
       
       # Before writing the changes, check for duplicates in the df_nodes
-      
       node_records <- data.frame(id=nrow(df_nodes)+1, label=name, 
                                  level=start_year, end_year=end_year,
                                  active=active, complete=complete,
@@ -2348,18 +2347,7 @@ s <- shinyServer(function(input, output, session){
       
     })
     
-    
-    output$mapOutput <- renderLeaflet({
-      browser()
-      leaflet(nodes_geo()) %>%
-        addProviderTiles(providers$Esri.WorldTopoMap) %>%
-        addMarkers(~long, ~lat, 
-                   # icon = filteredIcon(), 
-                   # label = ~Player, 
-                   labelOptions = labelOptions(textsize = "12px"),
-                   popup = ~label
-                   )
-    })
+
     
 })
 
