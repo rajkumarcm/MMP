@@ -563,7 +563,13 @@ u <- shinyUI(fluidPage(
                                 <div id="new_prof_warnings_container">'),
                              textOutput(outputId="new_prof_warnings", inline = F),
                              HTML('</div></div></br></br></br>')
-                             )
+                             ),
+                      tabPanel(title='New Edge', value='admin_nr',
+                               
+                               
+                               
+                               
+                               )
                     ) # Closing tabsetPanel(admin_tbsp)
                    ) # Closing mainPanel
                   ), # Closing tabPanel

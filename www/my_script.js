@@ -235,10 +235,11 @@ function new_prof_sc()
   
 }
 
-function throwWarning(message)
+function sendAlert(message)
 {
   alert(message);
 }
+Shiny.addCustomMessageHandler('sendAlert', sendAlert);
 
 function showWarnings(_)
 {

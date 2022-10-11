@@ -2096,12 +2096,11 @@ s <- shinyServer(function(input, output, session){
       
       if(nchar(spons_names) > 2)
       {
-        if(str_detect(spons_names, '[A-z\\-\\.\\s0-9,]*'))
+        if(!str_detect(spons_names, '[A-z\\-\\.\\s0-9,]*'))
         {
-          spons_names <- str_split(spons_names, ',')
-        }
-        else
           warnings <- c(warnings, 'Invalid sponsor names')
+        }
+          
       }
       
       us_sponsored = 0
@@ -2128,48 +2127,51 @@ s <- shinyServer(function(input, output, session){
         other_designated = 1
       }
       
-      # Before writing the changes, check for duplicates in the df_nodes
-      node_record <- data.frame(id=nrow(df_nodes)+1, label=name, 
-                                 level=start_year, end_year=end_year,
-                                 active=active, complete=complete,
-                                 title=name, on_any_map=1, map_name=map_name,
-                                 X_merge='matched(3)', URL=url, Anchor='',
-                                 new_description=desc, href=url, 
-                                 first_attack =first_attack, hq_city=city,
-                                 hq_province=province, hq_country=country,
-                                 init_size_members=init_size_members,
-                                 max_size_members=max_size_members, 
-                                 avg_size_members=NA, 
-                                 us_designated=us_sponsored,
-                                 un_designated=un_sponsored,
-                                 state_sponsor=state_sponsored,
-                                 state_sponsor_names=spons_names,
-                                 merged='matched(3)'
-                                 )
-      browser()
-      
-      # Save the changes
-      latest_fname <- get_latest_file('data/groups/', 'groups')
-      tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
-      tmp.df_nodes <- rbind(tmp.df_nodes, node_record[, c('group_id', 'group_name',
-                                                          'startyear',
-                                                          'endyear',
-                                                          'active',
-                                                          'complete',
-                                                          'description',
-                                                          'on_any_map',
-                                                          'map_name',
-                                                          '_merge')])
-      
-      time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
-      time_str <- gsub(":", "_", time_str)
-      date_str <- gsub("-", "_", Sys.Date())
-      date_time <- paste0(date_str, paste0('-', time_str))
-      
-      g.fname <- paste0(paste0("groups", date_time), ".csv")
-      r.fname <- paste0(paste0("relationships", date_time), ".csv")
-      write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
-      write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
+      if(length(warnings)==0)
+      {
+        # Before writing the changes, check for duplicates in the df_nodes
+        node_record <- data.frame(group_id=nrow(df_nodes)+1, group_name=name, 
+                                   startyear=start_year, endyear=end_year,
+                                   active=active, complete=complete,
+                                   title=name, on_any_map=1, map_name=map_name,
+                                   X_merge='matched(3)', URL=url, Anchor='',
+                                   description=desc, href=url, 
+                                   first_attack =first_attack, hq_city=city,
+                                   hq_province=province, hq_country=country,
+                                   init_size_members=init_size_members,
+                                   max_size_members=max_size_members, 
+                                   avg_size_members=NA, 
+                                   us_designated=us_sponsored,
+                                   un_designated=un_sponsored,
+                                   state_sponsor=state_sponsored,
+                                   state_sponsor_names=spons_names,
+                                   merged='matched(3)'
+                                   )
+        
+        # Get the file with the latest timestamp
+        latest_fname <- get_latest_file('data/groups/', 'groups')
+        
+        # Append changes to the nodes file
+        tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
+        tmp.df_nodes <- rbind(tmp.df_nodes, node_record[, c('group_id', 'group_name',
+                                                            'startyear',
+                                                            'endyear',
+                                                            'active',
+                                                            'complete',
+                                                            'description',
+                                                            'on_any_map',
+                                                            'map_name',
+                                                            'merged')])
+        
+        time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
+        time_str <- gsub(":", "_", time_str)
+        date_str <- gsub("-", "_", Sys.Date())
+        date_time <- paste0(date_str, paste0('-', time_str))
+        
+        g.fname <- paste0(paste0("groups", date_time), ".csv")
+        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
+        session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
+      }
     })
     
     # Open manage a map div with information about the map populated
