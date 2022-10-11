@@ -783,20 +783,9 @@ filter_profiles <- function(edges)
   edges
 }
 
-get_activeg_df <- function(df_nodes, map_name)
-{
-  tmp.nodes <- unique(df_nodes[df_nodes$map_name==map_name, 
-                               c('id', 'label', 'level', 'active')])
-  cnames <- colnames(tmp.nodes)
-  cnames[cnames == 'level'] <- 'year'
-  colnames(tmp.nodes) <- cnames
-  tmp.nodes <- tmp.nodes %>% filter(active == 1) %>% arrange(year)
-  tmp.nodes <- tmp.nodes %>% group_by(year) %>% 
-    summarise(n_active_groups=n())
-}
-
 fill_activeg_years <- function(tmp.df)
 {
+  browser()
   min.year <- min(tmp.df$year)
   max.year <- max(tmp.df$year)
   years <- seq(min.year, max.year, 1)
@@ -809,8 +798,8 @@ fill_activeg_years <- function(tmp.df)
       if(!exists(tmp.df[tmp.df$year==year & tmp.df$map_name==mname, 
                        c('label')]))
       {
-        tmp.df <- rbind(tmp.df, 
-                        data.frame(map_name=mname, year=year, n_active_groups=0))
+        tmp.df <- rbind(tmp.df, data.frame(map_name=mname, 
+                                           year=year, n_active_groups=0))
       }
     }
   }
@@ -1504,119 +1493,114 @@ s <- shinyServer(function(input, output, session){
     
     #---------------------tm_map plot-------------------------------------------
     
-    available.provinces <- reactive({
-      tmp.df <- unique(df_nodes[df_nodes[, input$geo_filter_col] > 0 &
-                                (!is.na(df_nodes$hq_province)) &
-                                (length(df_nodes$hq_province) > 0) &
-                                (!is.na(df_nodes$hq_country)) & 
-                                length(df_nodes$hq_country) > 0, 'hq_province'])
-    })
-    
-    # observeEvent(input$geo_filter_col, {
-    #   updateSelectInput(session, 'geo_province', choices=available.provinces(),
-    #                     selected=available.provinces())
+    # available.provinces <- reactive({
+    #   tmp.df <- unique(df_nodes[df_nodes[, input$geo_filter_col] > 0 &
+    #                             (!is.na(df_nodes$hq_province)) &
+    #                             (length(df_nodes$hq_province) > 0) &
+    #                             (!is.na(df_nodes$hq_country)) & 
+    #                             length(df_nodes$hq_country) > 0, 'hq_province'])
     # })
     
-    tmplot.map <- reactive({
-      
-      debug_param <- available.provinces()
-      # browser()
-      
-      # The following line need to be thrown onto global.R file
-      province_country <- unique(drop_na(df_nodes[, c('hq_province', 'hq_country')]))
-      
-      # Map invalid country names to valid ones
-      # browser()
-      province_country <- province_country %>% 
-                           inner_join(valid.countries.list, 
-                                           by=c('hq_country'='hq_country_old'))
-      cnames <- colnames(province_country)
-      cnames[cnames=='hq_country'] <- 'hq_country_invalid'
-      cnames[cnames=='hq_country_new'] <- 'hq_country'
-      colnames(province_country) <- cnames
-      # browser()
-      
-      # province <- input$geo_province
-      
-      # cnames <- colnames(province.info)
-      # cnames[cnames=='hq_province'] <- 'name'
-      # colnames(province.info) <- cnames
-      world <- ne_countries(scale='medium', returnclass='sf')
-      world <- sf::st_as_sf(world)
-      world <- sf::st_make_valid(world)
-      geo_df <- NULL
-      complete_df <- NULL
-      
-      if(input$geo_province=='All')
-      {
-        # World shapefile
-        
-        geo_df <- ne_countries(scale='medium', returnclass = 'sf')
-        for(province in available.provinces())
-        {
-          # Get the corresponding country name
-          country <- province_country[province_country$hq_province==province,
-                                      'hq_country']
-          country <- unique(country[!is.na(country)])
-          # browser()
-          
-          # download shapefile from rnaturalearthhire
-          geo_df <- ne_states(country=country, returnclass='sf')
-          # browser()
-          
-          if(sum(str_detect(geo_df$name, province)) > 0)
-          {
-            # Fetch all the nodes that belong to the province
-            province.nodes <- unique(df_nodes[df_nodes$hq_province==province, 
-                                              c('id', 'label', 'init_size_members', 
-                                                'max_size_members', 'hq_province')])
-            
-            # Filter out all nodes with NA in ID
-            province.nodes <- province.nodes[!is.na(province.nodes$id),]
-            
-            # Summary information about a province
-            province.info <- province.nodes |>
-              group_by(hq_province) |>
-              summarise(init_size_members=sum(init_size_members, na.rm=T),
-                        max_size_members=sum(max_size_members, na.rm=T),
-                        n_profiles=n())
-            
-            # Join profile summary with shape information in geo_df dataframe
-            tmp.info <- geo_df |> 
-              regex_inner_join(province.info, by=c('name'='hq_province'))
-            tmp.info <- sf::st_as_sf(tmp.info)
-            tmp.info <- sf::st_make_valid(tmp.info)
-            
-            complete_df <- tm_shape(world, xlim=c(-150, 180), ylim=c(-60,90)) + 
-                            tm_polygons()
- 
-            # browser()
-            complete_df <- complete_df + 
-                            tm_shape(tmp.info) + 
-                            tm_polygons(input$geo_filter_col)
-
-          }
-        }
-      }
-      else
-      {
-        # # Country shapefile
-        # browser()
-        # geo_df <- ne_states(country=country, returnclass='sf')
-        # # province.info <- province.info |> 
-        # #                  inner_join(geo_df, by=c('hq_province'='name'))
-        # province.info <- geo_df |> 
-        #                  regex_inner_join(province.info, by=c('name'='hq_province'))
-        # province.info <- st_as_sf(province.info)
-        # # browser()
-      }
-      # browser()
-      return(complete_df)
-    })
-    
-    output$tmplot <- renderPlot({
-      tmplot.map()
-    })
+    # tmplot.map <- reactive({
+    #   
+    #   debug_param <- available.provinces()
+    #   # browser()
+    #   
+    #   # The following line need to be thrown onto global.R file
+    #   province_country <- unique(drop_na(df_nodes[, c('hq_province', 'hq_country')]))
+    #   
+    #   # Map invalid country names to valid ones
+    #   # browser()
+    #   province_country <- province_country %>% 
+    #                        inner_join(valid.countries.list, 
+    #                                        by=c('hq_country'='hq_country_old'))
+    #   cnames <- colnames(province_country)
+    #   cnames[cnames=='hq_country'] <- 'hq_country_invalid'
+    #   cnames[cnames=='hq_country_new'] <- 'hq_country'
+    #   colnames(province_country) <- cnames
+    #   # browser()
+    #   
+    #   # province <- input$geo_province
+    #   
+    #   # cnames <- colnames(province.info)
+    #   # cnames[cnames=='hq_province'] <- 'name'
+    #   # colnames(province.info) <- cnames
+    #   world <- ne_countries(scale='medium', returnclass='sf')
+    #   world <- sf::st_as_sf(world)
+    #   world <- sf::st_make_valid(world)
+    #   geo_df <- NULL
+    #   complete_df <- NULL
+    #   
+    #   if(input$geo_province=='All')
+    #   {
+    #     # World shapefile
+    #     
+    #     geo_df <- ne_countries(scale='medium', returnclass = 'sf')
+    #     for(province in available.provinces())
+    #     {
+    #       # Get the corresponding country name
+    #       country <- province_country[province_country$hq_province==province,
+    #                                   'hq_country']
+    #       country <- unique(country[!is.na(country)])
+    #       # browser()
+    #       
+    #       # download shapefile from rnaturalearthhire
+    #       geo_df <- ne_states(country=country, returnclass='sf')
+    #       # browser()
+    #       
+    #       if(sum(str_detect(geo_df$name, province)) > 0)
+    #       {
+    #         # Fetch all the nodes that belong to the province
+    #         province.nodes <- unique(df_nodes[df_nodes$hq_province==province, 
+    #                                           c('id', 'label', 'init_size_members', 
+    #                                             'max_size_members', 'hq_province')])
+    #         
+    #         # Filter out all nodes with NA in ID
+    #         province.nodes <- province.nodes[!is.na(province.nodes$id),]
+    #         
+    #         # Summary information about a province
+    #         province.info <- province.nodes |>
+    #           group_by(hq_province) |>
+    #           summarise(init_size_members=sum(init_size_members, na.rm=T),
+    #                     max_size_members=sum(max_size_members, na.rm=T),
+    #                     n_profiles=n())
+    #         
+    #         # Join profile summary with shape information in geo_df dataframe
+    #         tmp.info <- geo_df |> 
+    #           regex_inner_join(province.info, by=c('name'='hq_province'))
+    #         tmp.info <- sf::st_as_sf(tmp.info)
+    #         tmp.info <- sf::st_make_valid(tmp.info)
+    #         
+    #         complete_df <- tm_shape(world, xlim=c(-150, 180), ylim=c(-60,90)) + 
+    #                         tm_polygons()
+    # 
+    #         # browser()
+    #         complete_df <- complete_df + 
+    #                         tm_shape(tmp.info) + 
+    #                         tm_polygons(input$geo_filter_col)
+    # 
+    #       }
+    #     }
+    #   }
+    #   else
+    #   {
+    #     # # Country shapefile
+    #     # browser()
+    #     # geo_df <- ne_states(country=country, returnclass='sf')
+    #     # # province.info <- province.info |> 
+    #     # #                  inner_join(geo_df, by=c('hq_province'='name'))
+    #     # province.info <- geo_df |> 
+    #     #                  regex_inner_join(province.info, by=c('name'='hq_province'))
+    #     # province.info <- st_as_sf(province.info)
+    #     # # browser()
+    #   }
+    #   # browser()
+    #   return(complete_df)
+    # })
+    # 
+    # output$tmplot <- renderPlot({
+    #   tmplot.map()
+    # })
     
     
     #-------------------- Hierarchical code------------------------------------
@@ -1824,63 +1808,89 @@ s <- shinyServer(function(input, output, session){
                                                                 scrollY='430px')
                                                   )
       
+      # output$basicStats_map <- renderPlot({
+      #   tmp.df <- df[, c('group1_name', 'group2_name', 'year', 'label', 'map_name')]
+      #   ggplot(tmp.df, aes(x=year, fill=label)) +
+      #     geom_bar(position='dodge', stat='count') +
+      #     theme(axis.text = element_text(size = 20),
+      #           plot.title = element_text(size=30),
+      #           axis.title.x = element_text(size=20),
+      #           axis.title.y = element_text(size=20),
+      #           legend.text = element_text(size=20),
+      #           legend.title = element_text(size=20),
+      #           legend.position = 'top') +
+      #     facet_wrap(~map_name, scales='free', nrow=7)
+      # })
+      
       output$basicStats_map <- renderPlot({
-        tmp.df <- df[, c('group1_name', 'group2_name', 'year', 'label', 'map_name')]
-        ggplot(tmp.df, aes(x=year, fill=label)) + 
-          geom_bar(position='dodge', stat='count') +
-          theme(axis.text = element_text(size = 20),
-                plot.title = element_text(size=30),
-                axis.title.x = element_text(size=20),
-                axis.title.y = element_text(size=20),
-                legend.text = element_text(size=20),
-                legend.title = element_text(size=20),
+        tmp.df <- df[!is.na(df$link_id),] %>% 
+                  group_by(map_name, status) %>% 
+                  summarise(count=n()) %>%
+                  arrange(desc(count))
+        max_count <- max(tmp.df$count)
+
+        ggplot(tmp.df, aes(x=status, y=count)) +
+          geom_bar(position='dodge', stat='identity') +
+          scale_y_continuous(limits = c(0, max_count)) +
+          theme(axis.text = element_text(size = 16),
+                plot.title = element_text(size=20),
+                axis.title.x = element_text(size=13),
+                axis.title.y = element_text(size=13),
+                legend.text = element_text(size=16),
+                legend.title = element_text(size=16),
                 legend.position = 'top') +
           facet_wrap(~map_name, scales='free', nrow=7)
       })
       
+      #----------Number of active groups per year-------------------------------
       output$activeg_year <- renderPlot({
-        ag_df <- NULL
-        for(i in 1:length(maps))
-        {
-          map_name <- maps[i]
-          tmp.ag.df <- get_activeg_df(df_nodes, map_name)
-          tmp.ag.df$map_name <- map_name
-          if(is.null(tmp.ag.df))
-          {
-            ag_df <- tmp.ag.df
-          }
-          else
-            ag_df <- rbind(ag_df, tmp.ag.df)
-        }
+
+        ag_df <- unique(df_nodes[df_nodes$active==1 & df_nodes$level!=0 &
+                                   !is.na(df_nodes$map_name), 
+                                 c('label', 'map_name', 'level', 'active')]) %>% 
+                    
+                 group_by(map_name, level) %>% summarise(count=n())
+        ag_df <- drop_na(ag_df)
+        # ag_df <- data.frame(ag_df) %>% filter(level != 0)
         
-        ag_df <- data.frame(ag_df) %>% filter(year != 0)
-        
-        ggplot(ag_df, aes(x=year, y=n_active_groups, color=n_active_groups)) +
-          geom_point(color='steelblue') +
-          geom_line() +
+        ggplot(ag_df, aes(x=level, y=count, color=count)) +
+          geom_point(color='steelblue', size=2) +
+          geom_line(size=1) +
           xlab('Year') + ylab('Number of active groups') +
           ggtitle('Number of active groups each year') +
-          # theme(panel.background = element_rect(fill='transparent')) +
+          scale_y_continuous(limits=c(0, 5)) +
+          theme(axis.text = element_text(size = 12),
+                plot.title = element_text(size=15, hjust = 0.5),
+                axis.title.x = element_text(size=12),
+                axis.title.y = element_text(size=12),
+                legend.key.size = unit(1.3, 'cm')) +
           facet_wrap(~map_name, nrow = 6, scales='free')
       })
       
+      #-------------Number of profiles per map----------------------------------
+      
       output$nprofiles_map <- renderPlot({
-        tmp.df_nodes <- unique(df_nodes[, c('label', 'map_name')])
+        tmp.df_nodes <- unique(df_nodes[df_nodes$active==1 & df_nodes$level!=0 &
+                                          !is.na(df_nodes$map_name), 
+                                        c('label', 'map_name', 'level', 'active')])
         tmp.df_nodes <- tmp.df_nodes %>% group_by(map_name) %>%
                                          summarise(count=n()) %>%
                                          arrange(desc(count))
+        tmp.df_nodes <- drop_na(tmp.df_nodes)
         avg_n <- mean(tmp.df_nodes$count)
         
-        ggplot(tmp.df_nodes, aes(x=reorder(map_name, -count), y=count, fill=count)) +
+        ggplot(tmp.df_nodes, aes(x=count, y=reorder(map_name, -count), fill=count)) +
           geom_bar(stat='identity', ) +
-          geom_hline(yintercept=avg_n, color='red') +
-            xlab('Map Name') +
-            ylab('Number of unique profiles') +
+          geom_vline(xintercept=avg_n, color='red') +
+            ylab('Map Name') +
+            xlab('Number of unique profiles') +
             ggtitle('Number of unique profiles in each map') + 
-            theme(axis.text = element_text(size = 20, angle=90),
-                  plot.title = element_text(size=30),
-                  axis.title.x = element_text(size=20),
-                  axis.title.y = element_text(size=20))
+            theme(axis.text = element_text(size = 16),
+                  plot.title = element_text(size=20, hjust = 0.5),
+                  axis.title.x = element_text(size=16),
+                  axis.title.y = element_text(size=16),
+                  legend.key.size = unit(2, 'cm')
+                  )
         
         # ggplot(tmp.df_nodes, aes(x=map_name, y=count, color=count)) +
         # geom_point(color='steelblue') +
@@ -1919,17 +1929,17 @@ s <- shinyServer(function(input, output, session){
           else
             top_profiles <- rbind(top_profiles, tmp.profiles)
         }
-        # browser()
+        
         ggplot(top_profiles, aes(x=label, y=n)) +
         geom_bar(stat='identity') +
           xlab('Profile Name') +
           ylab('Number of edges') +
-          ggtitle('Number of unique profiles in each map') + 
+          ggtitle('Number of unique profiles in each map')
           # theme(axis.text = element_text(size = 20, angle=90),
           #       plot.title = element_text(size=30),
           #       axis.title.x = element_text(size=20),
           #       axis.title.y = element_text(size=20)) +
-          facet_wrap(~map_name, scales='free')
+          # facet_wrap(~map_name, scales='free')
         
       })
       
@@ -2086,10 +2096,12 @@ s <- shinyServer(function(input, output, session){
       
       if(nchar(spons_names) > 2)
       {
-        if(str_detect(spons_names, ','))
+        if(str_detect(spons_names, '[A-z\\-\\.\\s0-9,]*'))
         {
-          spons_names <- str_split(spons_names, ',')[[1]]
+          spons_names <- str_split(spons_names, ',')
         }
+        else
+          warnings <- c(warnings, 'Invalid sponsor names')
       }
       
       us_sponsored = 0
@@ -2116,13 +2128,11 @@ s <- shinyServer(function(input, output, session){
         other_designated = 1
       }
       
-      browser()
-      
       # Before writing the changes, check for duplicates in the df_nodes
-      node_records <- data.frame(id=nrow(df_nodes)+1, label=name, 
+      node_record <- data.frame(id=nrow(df_nodes)+1, label=name, 
                                  level=start_year, end_year=end_year,
                                  active=active, complete=complete,
-                                 title=label, on_any_map=1, map_name=map_name,
+                                 title=name, on_any_map=1, map_name=map_name,
                                  X_merge='matched(3)', URL=url, Anchor='',
                                  new_description=desc, href=url, 
                                  first_attack =first_attack, hq_city=city,
@@ -2130,11 +2140,36 @@ s <- shinyServer(function(input, output, session){
                                  init_size_members=init_size_members,
                                  max_size_members=max_size_members, 
                                  avg_size_members=NA, 
-                                 us_designated
+                                 us_designated=us_sponsored,
+                                 un_designated=un_sponsored,
+                                 state_sponsor=state_sponsored,
+                                 state_sponsor_names=spons_names,
+                                 merged='matched(3)'
                                  )
+      browser()
       
       # Save the changes
+      latest_fname <- get_latest_file('data/groups/', 'groups')
+      tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
+      tmp.df_nodes <- rbind(tmp.df_nodes, node_record[, c('group_id', 'group_name',
+                                                          'startyear',
+                                                          'endyear',
+                                                          'active',
+                                                          'complete',
+                                                          'description',
+                                                          'on_any_map',
+                                                          'map_name',
+                                                          '_merge')])
       
+      time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
+      time_str <- gsub(":", "_", time_str)
+      date_str <- gsub("-", "_", Sys.Date())
+      date_time <- paste0(date_str, paste0('-', time_str))
+      
+      g.fname <- paste0(paste0("groups", date_time), ".csv")
+      r.fname <- paste0(paste0("relationships", date_time), ".csv")
+      write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
+      write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
     })
     
     # Open manage a map div with information about the map populated

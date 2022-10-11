@@ -284,18 +284,18 @@ u <- shinyUI(fluidPage(
                                      plotOutput("geoMap", height="810px", width="1411px"),
                                      style = "background-color: #FCFCF3;"),
                             
-                            tabPanel("Tmplot",
-                                     selectInput("geo_filter_col",
-                                                 label="Filter criteria:",
-                                                 choices= c('max_size_members',
-                                                            'min_size_members',
-                                                            'n_profiles')),
-                                     selectInput("geo_province", 
-                                                 label="Select Province:", 
-                                                 choices = c('All'),
-                                                 selected = 'All'), # this should be 'All'
-                                     plotOutput("tmplot"),
-                                     style = "background-color: #FCFCF3;"),
+                            # tabPanel("Tmplot",
+                            #          selectInput("geo_filter_col",
+                            #                      label="Filter criteria:",
+                            #                      choices= c('max_size_members',
+                            #                                 'min_size_members',
+                            #                                 'n_profiles')),
+                            #          selectInput("geo_province", 
+                            #                      label="Select Province:", 
+                            #                      choices = c('All'),
+                            #                      selected = 'All'), # this should be 'All'
+                            #          plotOutput("tmplot"),
+                            #          style = "background-color: #FCFCF3;"),
                             
      
                             tabPanel("Statistics",
@@ -340,8 +340,8 @@ u <- shinyUI(fluidPage(
                                            conditionalPanel('input.stat_level=="Map"',
                                                             div(
                                                               HTML("</br>"),
-                                                              plotOutput("basicStats_map", height='1800px',
-                                                                         width='1800px'),
+                                                              plotOutput("basicStats_map", height='1100px',
+                                                                         width='1300px'),
                                                             )
                                                           ),
                                            conditionalPanel('input.stat_level=="ActiveGroups"',
@@ -354,8 +354,8 @@ u <- shinyUI(fluidPage(
                                            conditionalPanel('input.stat_level=="NProfilesInMap"',
                                                             
                                                             div(
-                                                              plotOutput("nprofiles_map", height='1200px',
-                                                                        width='1600px')
+                                                              plotOutput("nprofiles_map", height='800px',
+                                                                        width='1300px')
                                                             )
                                                             
                                            ),
@@ -392,7 +392,7 @@ u <- shinyUI(fluidPage(
                          
                          div(id='admin_em_mm',
                            h2('Manage a Map'),
-                           div(id="save_button_container", 
+                           div(class="save_button_container", 
                               actionButton(inputId='em_mp_save',
                                            label='Save Changes'),
                               actionButton(inputId='em_mp_back',
@@ -455,18 +455,15 @@ u <- shinyUI(fluidPage(
                      tabPanel(title='Edit Profiles', value='admin_ep1',
                         div(id='admin_ep_sp1',
                           HTML('</br>'),
-                          actionButton(inputId='newProf_btn', label='New Profile/Back'),
-                          HTML('</br></br>'),
+                          # actionButton(inputId='newProf_btn', label='New Profile/Back'),
+                          # HTML('</br></br>'),
                           div(id="ep_profiles_container",
                             htmlOutput(outputId='ep_profiles'),
                           )
                        ) # Closing admin_ep_sp1
                      ), # Closing edit profiles
                     tabPanel(title='New Profle', value='admin_np',
-                             actionButton(inputId='ep_save_changes',
-                                          label='Save Changes'),
-                             actionButton(inputId='ep_discard_changes',
-                                          label='Discard Changes'),
+                             
                              HTML('</br></br>'),
                              HTML('
                              <div id="new_prof_container">
@@ -550,7 +547,7 @@ u <- shinyUI(fluidPage(
                                 </tr>
                                 <tr>
                                   <td></td>
-                                  <td><label style="margin-left:100px;">Sponsor names must be seperated by a comma</label></td>
+                                  <td><label style="margin-left:100px; color:maroon; font-style:italic;">Sponsor names must be seperated by a comma</label></td>
                                 </tr>
                                 <tr>
                                   <td><h4>Sponsor Names</h4></td>
@@ -560,13 +557,12 @@ u <- shinyUI(fluidPage(
                                   <td><h4>Published</h4></td>
                                   <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
                                 </tr>
-                                <tr>
-                                  <td><button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button></td>
-                                </tr>
                                 </table>
+                                <button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button>
+                                </br><br/>
                                 <div id="new_prof_warnings_container">'),
                              textOutput(outputId="new_prof_warnings", inline = F),
-                             HTML('</div></div>')
+                             HTML('</div></div></br></br></br>')
                              )
                     ) # Closing tabsetPanel(admin_tbsp)
                    ) # Closing mainPanel
