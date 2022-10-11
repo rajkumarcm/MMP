@@ -58,7 +58,8 @@ links <- read.csv("data/GroupLinks.csv", header=T)
 # links$Anchor <- paste0('.*', paste0(links$Anchor, '.*'))
 
 # Sponsorship information----------------------------------------------------
-nodes_extra <- read.csv("data/nodes_sample.csv", header=T,
+latest_ge_fname <- get_latest_file('data/groups_extra/', 'groups_extra')
+nodes_extra <- read.csv(latest_ge_fname, header=T,
                         fill=T, blank.lines.skip=T, skipNul=T, 
                         na.strings=c("", 'NA'))
 nodes_extra[is.na(nodes_extra$init_size_members), 'init_size_members'] <- 0

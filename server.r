@@ -2019,6 +2019,7 @@ s <- shinyServer(function(input, output, session){
       country <- str_trim(input$newProf_schanges['country'][[1]])
       spons_names <- str_trim(input$newProf_schanges['spons_names'][[1]])
       spons_types <- input$new_prof_spons_types
+      comments <- input$newProf_schanges[['comments']][[1]]
       
       if(map_name == "Other")
       {
@@ -2135,7 +2136,8 @@ s <- shinyServer(function(input, output, session){
                                    active=active, complete=complete,
                                    title=name, on_any_map=1, map_name=map_name,
                                    X_merge='matched(3)', URL=url, Anchor='',
-                                   description=desc, href=url, 
+                                   description=desc, new_description=descrption,
+                                   href=url, 
                                    first_attack =first_attack, hq_city=city,
                                    hq_province=province, hq_country=country,
                                    init_size_members=init_size_members,
@@ -2143,13 +2145,15 @@ s <- shinyServer(function(input, output, session){
                                    avg_size_members=NA, 
                                    us_designated=us_sponsored,
                                    un_designated=un_sponsored,
+                                   other_designated=other_designated,
                                    state_sponsor=state_sponsored,
                                    state_sponsor_names=spons_names,
-                                   merged='matched(3)'
+                                   merged='matched(3)', Notes=comments
                                    )
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
+        latest_ge_fname <- get_latest_file('data/groups_extra/', 'groups_extra')
         
         # Append changes to the nodes file
         tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
@@ -2163,13 +2167,38 @@ s <- shinyServer(function(input, output, session){
                                                             'map_name',
                                                             'merged')])
         
+        tmp.extra_node_info <- read.csv(paste0('data/groups_extra/',latest_ge_fname), header=T,)
+        tmp.nodes_extra <- rbind(tmp.nodes_extra, node_record[, c('group_id', 'group_name',
+                                                                  'startyear',
+                                                                  'endyear',
+                                                                  'active',
+                                                                  'complete',
+                                                                  'description',
+                                                                  'new_description',
+                                                                  'on_any_map',
+                                                                  'map_name',
+                                                                  'href', 'first_attack',
+                                                                  'hq_city', 'hq_province',
+                                                                  'hq_country', 
+                                                                  'init_size_members',
+                                                                  'max_size_members',
+                                                                  'us_designated',
+                                                                  'un_designated',
+                                                                  'other_designated',
+                                                                  'state_sponsor',
+                                                                  'state_sponsor_names',
+                                                                  'Notes')])
+        
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
         time_str <- gsub(":", "_", time_str)
         date_str <- gsub("-", "_", Sys.Date())
         date_time <- paste0(date_str, paste0('-', time_str))
         
         g.fname <- paste0(paste0("groups", date_time), ".csv")
+        ge.fname <- paste0(paste0("groups_extra", date_time), ".csv")
+        
         write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
+        write.csv(tmp.nodes_extra, file=paste0('data/groups_extra/', ge.fname))
         session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
       }
     })
