@@ -2409,8 +2409,40 @@ s <- shinyServer(function(input, output, session){
       # Append more code when more flexibility to customization is added
     })
     
-    observeEvent(input$view_profile, {
+    observeEvent(input$newRel_schanges, {
       
+      group1_name <- input$new_rel_fgn
+      group2_name <- input$new_rel_tgn
+      map_name <- input$new_rel_map_name
+      primary <- input$new_rel_primary
+      status <- input$newRel_schanges[['type']][[1]]
+      description <- input$newRel_schanges[['desc']][[1]]
+      year <- input$newRel_schanges[['year']][[1]]
+      multiple <- 0
+      
+      warnings <- c()
+      if(group1_name == group2_name)
+      {
+        warnings <- c(warnings, 'Loop connection is not allowed')
+      }
+      
+      group1_year <- unique(df_nodes[df_nodes$label==group1_name, 'level'])
+      group2_year <- unique(df_nodes[df_nodes$label==group2_name, 'level'])
+      min_year <- min(c(group1_year, group2_year))
+      max_year <- max(c(group1_year, group2_year))
+      
+      if(year < min_year | year > max_year)
+      {
+        warnings <- c(warnings, 'Invalid year')
+      }
+      
+      if(length(map_name) > 1)
+      {
+        multiple <- 1
+      }
+      browser()
+        
+        
     })
     
 

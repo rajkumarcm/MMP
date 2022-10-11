@@ -255,7 +255,17 @@ function hideWarnings(_)
 }
 Shiny.addCustomMessageHandler('hideWarnings', hideWarnings);
 
-
+function new_rel_trigger(_)
+{
+  let type = document.getElementById('new_rel_type').value;
+  let desc = document.getElementById('new_rel_desc').value;
+  let year = document.getElementById('new_rel_year').value;
+  //let multiple = document.getElementById('new_rel_multiple').value;
+  
+  jsonObj = {"type":type, "desc":desc, "year":year};
+  
+  Shiny.setInputValue('newRel_schanges', jsonObj);
+}
 
 
 

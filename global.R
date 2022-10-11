@@ -44,14 +44,6 @@ graph <- graph.data.frame(tmp_edges, directed = T)
 rm('tmp_edges') 
 
 # Nodes data frame
-# Need to discuss about this with Iris. I don't completely agree with the
-# way this has been created.
-# The problem associated with this approach is, concatenated identifier
-# is passed through unique function that makes it lose the order.
-# When the order is lost, it is not possible to simply assign another column
-# with information hoping they are relevant with each other.
-# There is chance that they both cannot be related at all.
-# This can cause nodes to carry wrong labels showing incorrect information.
 
 # Reference link-------------------------------------------------------------
 links <- read.csv("data/GroupLinks.csv", header=T)
@@ -59,7 +51,7 @@ links <- read.csv("data/GroupLinks.csv", header=T)
 
 # Sponsorship information----------------------------------------------------
 latest_ge_fname <- get_latest_file('data/groups_extra/', 'groups_extra')
-nodes_extra <- read.csv(latest_ge_fname, header=T,
+nodes_extra <- read.csv(paste0('data/groups_extra/',latest_ge_fname), header=T,
                         fill=T, blank.lines.skip=T, skipNul=T, 
                         na.strings=c("", 'NA'))
 nodes_extra[is.na(nodes_extra$init_size_members), 'init_size_members'] <- 0
@@ -365,7 +357,8 @@ valid.countries.list <- data.frame(hq_country_old=valid.countries.list1,
                                    hq_country_new=valid.countries.list2)
 
 
-
+profile_names <- unique(df_nodes$label)
+profile_names <- profile_names[profile_names != "" & !is.na(profile_names)]
 
 
 

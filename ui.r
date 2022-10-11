@@ -466,7 +466,7 @@ u <- shinyUI(fluidPage(
                              
                              HTML('</br></br>'),
                              HTML('
-                             <div id="new_prof_container">
+                             <div id="new_prof_container" class="admin_new_container">
                                 <table>
                                 <tr>
                                  <td><h4>Name</h4></td>
@@ -564,8 +564,85 @@ u <- shinyUI(fluidPage(
                              textOutput(outputId="new_prof_warnings", inline = F),
                              HTML('</div></div></br></br></br>')
                              ),
+                    
                       tabPanel(title='New Edge', value='admin_nr',
-                               
+                         HTML('
+                              <div id="new_edge_container" class="admin_new_container">
+                                <table>
+                                  <tr>
+                                   <td><h4>From group name</h4></td>
+                                   <td>'
+                         ),
+                         
+                         selectInput(inputId='new_rel_fgn', label='', 
+                                     choices=profile_names,
+                                     selected=profile_names[1]),
+                         
+                         HTML('   </td>
+                                 </tr>
+                                 
+                                 <tr>
+                                  <td><h4>To group name</h4></td>
+                                  <td>'
+                             ),
+                         selectInput(inputId='new_rel_tgn', label='',
+                                     choices=profile_names,
+                                     selected=profile_names[1]),
+                                  
+                        HTML('    </td>
+                                 </tr>
+                                 
+                                 <tr>
+                                  <td><h4>Type</h4></td>
+                                  <td>
+                                   <select id="new_rel_type">
+                                     <option value="Splinters">Splinters</option>
+                                     <option value="Allies">Allies</option>
+                                     <option value="Rivals">Rivals</option>
+                                     <option value="Mergers">Mergers</option>
+                                     <option value="Affiliates">Affiliates</option>
+                                   </select>
+                                  </td>
+                                 </tr>
+                                 
+                                 </tr>
+                                  <tr>
+                                    <td><h4>Map name</h4></td>
+                                    <td>'
+                              ),
+                              selectInput(inputId='new_rel_map_name', label='',
+                                          choices=maps[2:length(maps)], selected=maps[2],
+                                          multiple=TRUE
+                                          ),
+                                    
+                              HTML('</td>
+                                  </tr>
+                                  
+                                  <tr>
+                                   <td><h4>Description</h4></td>
+                                   <td><textarea id="new_rel_desc" style="width:500px;" maxlength="500"></textarea></td>
+                                  </tr>
+                                  
+                                  <tr>
+                                   <td><h4>Year</h4></td>
+                                   <td><input type="number" id="new_rel_year" min="1700" max="2022"></td>
+                                  </tr>
+                                  
+                                  
+                                   
+                                   <tr>
+                                     <td><h4>Primary</h4></td>
+                                     <td>'
+                              ),
+                             selectInput(inputId='new_rel_primary', label='',
+                                         choices=maps[2:length(maps)],
+                                         selected=maps[2]),
+                             HTML('</td>
+                                  </tr>
+                                </table>
+                                <button id="new_rel_sc_button", onclick="new_rel_trigger();">Create edge</button>
+                              </div>
+                              ')
                                
                                
                                

@@ -648,7 +648,7 @@ div.outerBorder {
   margin-top:10px;
 }
 
-#new_prof_container table tbody tr
+.admin_new_container table tbody tr
 {
   height:58px;
 }
@@ -683,8 +683,38 @@ div.outerBorder {
   width:600px;
 }
 
+#new_edge_container td:nth-child(even)
+{
+  padding-left:80px;
+}
 
+#new_edge_container input
+{
+  border: solid gray 1px;
+}
 
+#new_edge_container textarea
+{
+  border: solid gray 1px;
+}
+
+#new_edge_container select
+{
+  border: solid gray 1px;
+  height:28px;
+  width:112px;
+}
+/*
+#new_edge_container > table > tr > td > input
+{
+  margin-left:100px;
+}
+
+#new_edge_container > table > tr > td > div
+{
+  margin-left:100px;
+}
+*/
 
 
 
