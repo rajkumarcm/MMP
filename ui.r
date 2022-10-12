@@ -462,7 +462,7 @@ u <- shinyUI(fluidPage(
                           )
                        ) # Closing admin_ep_sp1
                      ), # Closing edit profiles
-                    tabPanel(title='New Profle', value='admin_np',
+                    tabPanel(title='New Profile', value='admin_np',
                              
                              HTML('</br></br>'),
                              HTML('
@@ -557,10 +557,14 @@ u <- shinyUI(fluidPage(
                                   <td><h4>Published</h4></td>
                                   <td><input type="checkbox" id="new_prof_pub"  name="new_prof_pub" style="margin-left:100px;" /></td>
                                 </tr>
+                                <tr>
+                                 <td><h4>Notes</h4></td>
+                                 <td><textarea id="new_prof_comments" class="emfield_input_small"></textarea></td>
+                                </tr>
                                 </table>
                                 <button id="new_prof_sc_btn" onclick="javascript:new_prof_sc();">Save Changes</button>
                                 </br><br/>
-                                <div id="new_prof_warnings_container">'),
+                                <div id="new_prof_warnings_container" class="warnings_div">'),
                              textOutput(outputId="new_prof_warnings", inline = F),
                              HTML('</div></div></br></br></br>')
                              ),
@@ -611,8 +615,7 @@ u <- shinyUI(fluidPage(
                                     <td>'
                               ),
                               selectInput(inputId='new_rel_map_name', label='',
-                                          choices=maps[2:length(maps)], selected=maps[2],
-                                          multiple=TRUE
+                                          choices=maps[2:length(maps)], selected=maps[2]
                                           ),
                                     
                               HTML('</td>
@@ -641,12 +644,13 @@ u <- shinyUI(fluidPage(
                                   </tr>
                                 </table>
                                 <button id="new_rel_sc_button", onclick="new_rel_trigger();">Create edge</button>
-                              </div>
+                                </br><br/>
+                                <div id="new_rel_warnings_container" class="warnings_div">'),
+                                 textOutput(outputId="new_rel_warnings", inline = F),
+                        
+                          HTML('</div>
                               ')
-                               
-                               
-                               
-                               )
+                              )
                     ) # Closing tabsetPanel(admin_tbsp)
                    ) # Closing mainPanel
                   ), # Closing tabPanel

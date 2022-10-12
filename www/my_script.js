@@ -225,11 +225,13 @@ function new_prof_sc()
   let msm = document.getElementById('new_prof_msm').value;
   let published = document.getElementById('new_prof_pub').checked;
   let spons_names = document.getElementById('new_prof_spons_names').value;
+  let comments = document.getElementById('new_prof_comments').value;
     
   jsonObj = {"name":name, "url":url, "desc":desc, "sy":sy, "ey":ey,
              "active":active, "complete":complete, "first_attack":first_attack,
              "city":city, "country":country, "province":province, "ism":ism, 
-             "msm":msm, "published":published, 'spons_names':spons_names};
+             "msm":msm, "published":published, 'spons_names':spons_names,
+             "comments":comments};
   
   Shiny.setInputValue('newProf_schanges', jsonObj);
   
@@ -241,16 +243,16 @@ function sendAlert(message)
 }
 Shiny.addCustomMessageHandler('sendAlert', sendAlert);
 
-function showWarnings(_)
+function showWarnings(tagId)
 {
-  let warn_container = document.getElementById('new_prof_warnings_container');
+  let warn_container = document.getElementById(tagId);
   warn_container.style.display = 'block';
 }
 Shiny.addCustomMessageHandler('showWarnings', showWarnings);
 
-function hideWarnings(_)
+function hideWarnings(tagId)
 {
-  let warn_container = document.getElementById('new_prof_warnings_container');
+  let warn_container = document.getElementById(tagId);
   warn_container.style.display = 'none';
 }
 Shiny.addCustomMessageHandler('hideWarnings', hideWarnings);

@@ -3,6 +3,7 @@ get_latest_file <- function(path, filename)
   # browser()
   fnames <- list.files(path)
   dates <- str_extract(fnames, '\\d{4}_\\d{2}_\\d{2}-')
+  # browser()
   dates <- str_extract(dates, '[\\d_]*')
   ymd <- str_split(dates, "_")
   dates <- NULL
@@ -24,11 +25,11 @@ get_latest_file <- function(path, filename)
   times <- str_extract(fnames, '-\\d{2}_\\d{2}_\\d{2}')
   times <- str_extract(times, '[\\d_]+')
   hms <- str_split(times, "_")
-  times <- NULL
+  times <- c()
   for(i in 1:length(hms))
   {
     tmp.time <- paste(hms[[i]], collapse='')
-    times <- c(times, as.numeric(tmp.time))
+    times <- c(times, tmp.time)
   }
   max.time <- max(times)
   if(nchar(max.time)==5)

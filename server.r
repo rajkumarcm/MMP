@@ -2083,25 +2083,13 @@ s <- shinyServer(function(input, output, session){
         }
       }
       
-      # browser()
-      if(length(warnings) > 0)
-      {
-        session$sendCustomMessage('showWarnings', '')
-        output$new_prof_warnings <- renderText({warnings[1]})
-      }
-      else
-      {
-        output$new_prof_warnings <- renderText({})
-        session$sendCustomMessage('hideWarnings', '')
-      }
-      
       if(nchar(spons_names) > 2)
       {
         if(!str_detect(spons_names, '[A-z\\-\\.\\s0-9,]*'))
         {
           warnings <- c(warnings, 'Invalid sponsor names')
         }
-          
+        
       }
       
       us_sponsored = 0
@@ -2128,15 +2116,24 @@ s <- shinyServer(function(input, output, session){
         other_designated = 1
       }
       
-      if(length(warnings)==0)
+      # browser()
+      if(length(warnings) > 0)
       {
+        session$sendCustomMessage('showWarnings', 'new_prof_warnings_container')
+        output$new_prof_warnings <- renderText({warnings[1]})
+      }
+      else
+      {
+        output$new_prof_warnings <- renderText({})
+        session$sendCustomMessage('hideWarnings', 'new_prof_warnings_container')
+     
         # Before writing the changes, check for duplicates in the df_nodes
-        node_record <- data.frame(group_id=nrow(df_nodes)+1, group_name=name, 
+        node_record <- data.frame(group_id=max(df_nodes$id)+1, group_name=name, 
                                    startyear=start_year, endyear=end_year,
                                    active=active, complete=complete,
                                    title=name, on_any_map=1, map_name=map_name,
                                    X_merge='matched(3)', URL=url, Anchor='',
-                                   description=desc, new_description=descrption,
+                                   description=desc, new_description=desc,
                                    href=url, 
                                    first_attack =first_attack, hq_city=city,
                                    hq_province=province, hq_country=country,
@@ -2167,7 +2164,9 @@ s <- shinyServer(function(input, output, session){
                                                             'map_name',
                                                             'merged')])
         
-        tmp.extra_node_info <- read.csv(paste0('data/groups_extra/',latest_ge_fname), header=T,)
+        browser()
+        
+        tmp.nodes_extra <- nodes_extra
         tmp.nodes_extra <- rbind(tmp.nodes_extra, node_record[, c('group_id', 'group_name',
                                                                   'startyear',
                                                                   'endyear',
@@ -2201,6 +2200,7 @@ s <- shinyServer(function(input, output, session){
         write.csv(tmp.nodes_extra, file=paste0('data/groups_extra/', ge.fname))
         session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
       }
+
     })
     
     # Open manage a map div with information about the map populated
@@ -2436,11 +2436,58 @@ s <- shinyServer(function(input, output, session){
         warnings <- c(warnings, 'Invalid year')
       }
       
-      if(length(map_name) > 1)
+      if(nchar(map_name) <= 2)
       {
-        multiple <- 1
+        warnings <- c(warnings, 'map name must be supplied')
       }
-      browser()
+      # browser()
+      
+      # Check for duplicates
+      if(nrow(df[df$group1_name==group1_name & 
+                 df$group2_name==group2_name &
+                 df$map_name==map_name &
+                 df$status==status &
+                 df$year==year,]) > 0)
+      {
+        warnings <- c(warnings, 'This relationship already exists')
+      }
+      
+      if(length(warnings) > 0)
+      {
+        session$sendCustomMessage('showWarnings', 'new_rel_warnings_container')
+        output$new_rel_warnings <- renderText({warnings[1]})
+      }
+      else
+      {
+        output$new_rel_warnings <- renderText({})
+        session$sendCustomMessage('hideWarnings', 'new_rel_warnings_container')
+        
+        group1_id <- df_nodes[df_nodes$label==group1_name, 'id']
+        group2_id <- df_nodes[df_nodes$label==group2_name, 'id']
+        link_id <- max(df$link_id)+1
+        
+        rel_record = data.frame(link_id=link_id, type=status, 
+                                group1_id=group1_id, group2_id=group2_id,
+                                description=description, group1_name=group1_name,
+                                group2_name=group2_name, year=year,
+                                multiple=multiple, map_name=map_name,
+                                primary=primary)
+        
+        l_rel_fname <- get_latest_file('data/relationships', 'relationships')
+        tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
+                           header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
+                           colClasses=c('multiple'='factor'))
+        tmp.df <- rbind(tmp.df, rel_record)
+        
+        time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
+        time_str <- gsub(":", "_", time_str)
+        date_str <- gsub("-", "_", Sys.Date())
+        date_time <- paste0(date_str, paste0('-', time_str))
+        
+        r.fname <- paste0(paste0("relationships", date_time), ".csv")
+        write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
+        session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
+      }
         
         
     })

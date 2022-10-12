@@ -79,12 +79,13 @@ extra_cnames <- data.frame(x=colnames(nodes_extra))
 # Nodes database-------------------------------------------------------------
 latest_fname <- get_latest_file('data/groups/', 'groups')
 df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
-df_nodes.original <- df_nodes
+# df_nodes.original <- df_nodes
 
 # df_nodes <- df_nodes %>% regex_left_join(links[, c("URL", "Anchor")],
 #                                          by=c("group_name"="Anchor"))
 df_nodes <- df_nodes %>% left_join(links[, c("URL", "Anchor")],
                                    by=c("group_name"="Anchor"), keep=T)
+# browser()
 
 df_nodes_cnames <- data.frame(x=colnames(df_nodes))
 c_cnames <- extra_cnames %>% anti_join(df_nodes_cnames)
@@ -359,6 +360,8 @@ valid.countries.list <- data.frame(hq_country_old=valid.countries.list1,
 
 profile_names <- unique(df_nodes$label)
 profile_names <- profile_names[profile_names != "" & !is.na(profile_names)]
+profile_names <- data.frame(label=profile_names) %>% arrange(label)
+profile_names <- profile_names$label
 
 
 
