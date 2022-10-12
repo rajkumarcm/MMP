@@ -635,11 +635,9 @@ u <- shinyUI(fluidPage(
                                    <td><input type="number" id="new_rel_year" min="1700" max="2022"></td>
                                   </tr>
                                   
-                                  
-                                   
                                    <tr>
-                                     <td><h4>Primary</h4></td>
-                                     <td>'
+                                    <td><h4>Primary</h4></td>
+                                    <td>'
                               ),
                              selectInput(inputId='new_rel_primary', label='',
                                          choices=maps[2:length(maps)],
@@ -659,7 +657,13 @@ u <- shinyUI(fluidPage(
                    ) # Closing mainPanel
                   ), # Closing tabPanel
                  tabPanel(title="Profile Links", id="plNM", value="plNM")
-  ))
+  ),
+  
+  div(id='logo_div', 
+      HTML('<img src="mmp-white.png" style="width:10%; margin-left:90%;" alt="MMP Logo">')
+      )
+  
+  )
   
 )
 

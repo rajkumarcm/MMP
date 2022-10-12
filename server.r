@@ -12,12 +12,12 @@ library('ggplot2')
 library('gridExtra')
 library('tidyverse')
 library('shinyjs')
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(rnaturalearthhires)
-library(sf)
-library(tmap)
-library(tmaptools)
+# library(rnaturalearth)
+# library(rnaturalearthdata)
+# library(rnaturalearthhires)
+# library(sf)
+# library(tmap)
+# library(tmaptools)
 
 source('filter_medges_all.R', local=T)
 # source('generate_xoffset_template.R', local=T)
@@ -786,7 +786,6 @@ filter_profiles <- function(edges)
 
 fill_activeg_years <- function(tmp.df)
 {
-  browser()
   min.year <- min(tmp.df$year)
   max.year <- max(tmp.df$year)
   years <- seq(min.year, max.year, 1)
@@ -1078,7 +1077,7 @@ s <- shinyServer(function(input, output, session){
   alreadyClustered <- F
   observeEvent(input$clusterNodes, {
     # browser()
-    logging::loginfo(input$clusterNodes[['scale']])
+    # logging::loginfo(input$clusterNodes[['scale']])
     if(input$clusterNodes[['scale']] < 0.08 & alreadyClustered==F & 
        input$map_name=='All')
     {
@@ -2027,7 +2026,6 @@ s <- shinyServer(function(input, output, session){
       if(map_name == "Other")
       {
         map_name <- str_trim(input$new_mn)
-        browser()
         if(nchar(map_name) < 3)
           warnings <- c(warnings, 'New map name cannot be empty')
         else if(tolower(map_name) %in% tolower(df_nodes$map_name))
@@ -2166,8 +2164,6 @@ s <- shinyServer(function(input, output, session){
                                                             'on_any_map',
                                                             'map_name',
                                                             'merged')])
-        
-        browser()
         
         tmp.nodes_extra <- nodes_extra
         tmp.nodes_extra <- rbind(tmp.nodes_extra, node_record[, c('group_id', 'group_name',
