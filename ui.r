@@ -459,6 +459,10 @@ u <- shinyUI(fluidPage(
                           # HTML('</br></br>'),
                           div(id="ep_profiles_container",
                             htmlOutput(outputId='ep_profiles'),
+                            actionButton(inputId='ep_save_changes',
+                                         label='Save Changes'),
+                            actionButton(inputId='ep_discard_changes',
+                                         label='Discard Changes'),
                           )
                        ) # Closing admin_ep_sp1
                      ), # Closing edit profiles

@@ -741,7 +741,8 @@ get_spatial_visNetwork <- function(nodes, edges)
     visPhysics(solver = "forceAtlas2Based",
                forceAtlas2Based = list(avoidOverlap=0.7,
                                        gravitationalConstant=-100,
-                                       damping=1)
+                                       damping=1,
+                                       springLength=100)
     ) %>%
     
     #-------------------TEMPORARILY DISABLED AS JS IS BREAKING----------------      
@@ -753,7 +754,7 @@ get_spatial_visNetwork <- function(nodes, edges)
            )))  %>%
     visEdges(
       label=edges()$title,
-      font = list(size = 2)) %>%
+      font = list(size = 1)) %>%
     visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;
                 font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;
                 -moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;
@@ -885,6 +886,7 @@ s <- shinyServer(function(input, output, session){
       tmp_df <- filter_edges_mmap(tmp_df)
     
     tmp_df <- filter_hidden_profiles(tmp_df)
+    
     tmp_df
   })
   
@@ -960,7 +962,6 @@ s <- shinyServer(function(input, output, session){
                                choices=checkbox_choices,
                                selected=checkbox_choices, inline=T
                                )
-    
     
     get_spatial_visNetwork(nodes2(), edges())
   })
@@ -1076,18 +1077,20 @@ s <- shinyServer(function(input, output, session){
   
   alreadyClustered <- F
   observeEvent(input$clusterNodes, {
+    # browser()
+    logging::loginfo(input$clusterNodes[['scale']])
     if(input$clusterNodes[['scale']] < 0.08 & alreadyClustered==F & 
        input$map_name=='All')
     {
       # browser()
-      session$sendCustomMessage('toggleSL', '')
       alreadyClustered <<- T
+      session$sendCustomMessage('toggleSL', '')
       visRemoveEdges(myVisNetworkProxy, edges()$id)
       visRemoveNodes(myVisNetworkProxy, nodes2()$id)
       visUpdateNodes(myVisNetworkProxy, clustered_nodes)
       visUpdateEdges(myVisNetworkProxy, clustered_edges)
     }
-    else if(input$clusterNodes[['scale']] >= 0.6 & alreadyClustered==T & 
+    else if(input$clusterNodes[['scale']] >= 0.92 & alreadyClustered==T & 
             input$map_name=='All')
     {
       alreadyClustered <<- F
@@ -2199,6 +2202,7 @@ s <- shinyServer(function(input, output, session){
         write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
         write.csv(tmp.nodes_extra, file=paste0('data/groups_extra/', ge.fname))
         session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
+        session$sendCustomMessage('refresh_page', '')
       }
 
     })
@@ -2487,6 +2491,7 @@ s <- shinyServer(function(input, output, session){
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
+        session$sendCustomMessage('refresh_page', '')
       }
         
         
