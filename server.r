@@ -1646,7 +1646,7 @@ s <- shinyServer(function(input, output, session){
         visEvents(type='once',
                   beforeDrawing=sprintf("function(){
                                           this.moveTo({scale:1,
-                                                       position: {x:1150, y:450},
+                                                       position: {x:650, y:450},
                                                        });
                                           
                                          }")#,

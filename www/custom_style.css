@@ -248,8 +248,9 @@ div:fullscreen
 
 #h_subcontainer
 {
-  width:100%;
-  min-width:2880px;
+  /*width:100%;
+  min-width:2880px;*/
+  width:1640px;
   min-height:1000px;
   height:100%;
   margin-top:10px;
@@ -260,7 +261,7 @@ div:fullscreen
 #year_ruler
 {
   height:950px;
-  width:130px;
+  width:300px;
   overflow-y:clip;
   position:relative;
 }
