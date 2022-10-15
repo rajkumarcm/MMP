@@ -1,7 +1,24 @@
-.Rproj.user
-.Rhistory
-.RData
+*.Rproj.user
+*.Rhistory
+*.RData
 .Ruserdata
 BasicAnimation
 Others
 *.Rproj
+bugs_capture
+rsconnect
+data/backup/
+data/hq_city coordinates.txt
+data/hq_province.txt
+data/nodes_sample_old.csv
+data/profile_locations.txt
+files_to_review/clustered nodes.PNG
+files_to_review/drag_and_drop_template.html
+files_to_review/hierarchical_template/
+files_to_review/navPanelApp/
+files_to_review/shiny_toy/
+files_to_review/smooth_drag.html
+files_to_review/tmp_UI.R
+files_to_review/tmp_server.R
+World_Countries/.ipynb_checkpoints/HQ_Countries-checkpoint.ipynb
+Katy
