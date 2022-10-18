@@ -1,3 +1,5 @@
+# source('preprocess_global.R', local=T)
+
 get_latest_file <- function(path, filename)
 {
   # browser()
@@ -45,6 +47,15 @@ get_latest_file <- function(path, filename)
   new.fname <- paste0(new.fname, '.csv')
   return(new.fname)
 }
+
+make_graph <- function(df)
+{
+  require(igraph)
+  relations <- unique(data.frame(from=df$group1_name,
+                                 to=df$group2_name))
+  graph.edgelist(as.matrix(relations), directed = T)
+}
+
 
 load_data <- function()
 {
@@ -109,13 +120,7 @@ preprocess <- function(df)
   return(df)
 }
 
-make_graph <- function(df)
-{
-  require(igraph)
-  relations <- unique(data.frame(from=df$group1_name,
-                                 to=df$group2_name))
-  graph.edgelist(as.matrix(relations), directed = T)
-}
+
 
 remove_edges_rd <- function(df)
 {

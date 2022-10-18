@@ -7,72 +7,11 @@ library('gridExtra')
 library('tidyverse')
 library('shinyjs')
 
+source('handle_data.R', local=T)
 source('filter_medges_all.R', local=T)
 source('preprocess_h.R', local=T)
 source('spatial.R', local=T)
 source('hierarchical.R', local=T)
-
-get_legend <- function(ledges, include_second_line=T)
-{
-   html_content <- ""
-   y <- 30
-   for(i in 1:nrow(ledges))
-   {
-     color <- ledges[i, 'color']
-     label <- ledges[i, 'label']
-     line1 <- sprintf("<line x1='0' y1='%dpx' x2='90px' y2='%dpx' stroke='%s' stroke-width='3px' />", y, y, color)
-     text <- sprintf("<text x='100px' y='%dpx' class='legend_label'><a href='javascript:showDesc(\"%s\");'>%s</a></text>", y, label, label)
-     line2 <- sprintf("<line x1='190px' y1='%dpx' x2='280px' y2='%dpx' stroke='%s' stroke-width='3px' />", y, y, color)
-     sub_html <- ""
-     if(include_second_line==T)
-       sub_html <- paste0(line1, paste0(text, line2))
-     else
-       sub_html <- paste0(line1, text) 
-     
-     html_content <- paste(html_content, sub_html)
-     y <- y + 50
-   }
-   html_content
-}
-
-get_h_legend <- function(levels)
-{
-  # Here the levels is a dataframe that should contain both
-  # the years and y-coordinate associated to the edge pertaining to that level
-  
-  new_levels <- NULL
-  for(i in 1:(nrow(levels)-1))
-  {
-    prev_y <- levels[i, 'y']
-    next_y <- levels[i+1, 'y']
-    edge_y <- prev_y + ((next_y - prev_y)/2) + 20 # 20 = offset
-    row <- data.frame(y=edge_y, year=levels[i+1, 'year'])
-    
-    if(is.null(new_levels))
-    {
-      new_levels <- row
-    }
-    else
-    {
-      new_levels <- rbind(new_levels, row)
-    }
-  }
-  # browser()
-  levels <- new_levels
-  html_content <- ""
-  for(i in 1:nrow(levels))
-  {
-    year <- levels[i, 'year']
-    y <- levels[i, 'y']
-    label <- as.character(year)
-    line <- sprintf("<line x1='0' y1='%dpx' x2='40px' y2='%dpx' stroke='black' stroke-width='3px' />", y, y)
-    text <- sprintf("<text x='50px' y='%dpx' class='legend_label'>%s</text>", y, label)
-    sub_html <- paste0(line, text)
-    html_content <- paste(html_content, sub_html)
-  }
-  html_content
-}
-
 
 
 #---------------------------SERVER CODE-----------------------------------------
@@ -80,9 +19,7 @@ get_h_legend <- function(levels)
 # House Keeping Parameters---------------
 mm_map_name <- ''
 animate <- F
-# df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'title', 'active', 
-#                                      'shape', 'us_designated', 'URL', 'endyear')]) %>%
-#                       arrange(label) %>% filter(label != "")
+
 df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'active', 
                                           'URL', 'endyear')]) %>%
                  arrange(label) %>% filter(label != "")
@@ -91,17 +28,21 @@ df.copy <- df
 avoidLB <- F
 ep_changes_made <- F
 d.profile_names <- NULL
+dummyNode <- 0
 #----------------------------------------
 
 s <- shinyServer(function(input, output, session){
-  
-  shinyjs::onclick('toggleMenu', shinyjs::showElement(id='sp', anim=T, animType='fade'))
-  shinyjs::onclick('closeSp', shinyjs::toggle(id='sp', anim=T, animType='fade'))
-  
+
   # cloned version of the original df
   # This was done in order to faciliate the process of stopping the progress bar
   # from loading when the timeline slider is tweaked. Because stabilized event
   # by as a bug is failing to fire when the network reaches the stabilized point.  
+  
+  # initial_run parameter influences the progressbar behavior
+  
+  triggered_df <- reactiveVal(df)
+  triggered_node <- reactiveVal(dummyNode)
+  
   initial_run <- T
   minYr <- min(df$year)
   maxYr <- max(df$year)
@@ -118,7 +59,8 @@ s <- shinyServer(function(input, output, session){
       initial_run <<- F
       prev.map_name <<- input$map_name
     }
-    tmp_df <- df %>% 
+    ignore_var <- triggered_node
+    tmp_df <- triggered_df() %>% 
       filter(input$map_name  == 'All' | map_name == input$map_name)
     
     if(input$map_name=='All')
@@ -159,10 +101,7 @@ s <- shinyServer(function(input, output, session){
     tmp.nodes <- get_nodes(filtered_df())
     # tmp.nodes <- filter_designation(tmp.nodes, input$filterDesig)
   })
-
-  # edges data.frame for legend
-  # browser()
-  tmp_df <- unique(df[, c('status', 'color')])
+ 
   
   f_years <- reactive({
     years <- unique(edges()$year)
@@ -174,16 +113,21 @@ s <- shinyServer(function(input, output, session){
   
   # ledges is created & used for the sake of displaying legend
   # that aid in understanding the edges
-  ledges <- data.frame(color = tmp_df$color,
-                       label = tmp_df$status
-  )
+  # edges data.frame for legend
+  # browser()
+  ledges <- reactive({
+    tmp_df <- unique(filtered_df()[, c('status', 'color')])
+    data.frame(color = tmp_df$color,
+               label = tmp_df$status)
+  })
+  
 
   output$networkvisfinal <- renderVisNetwork({
       updateSliderInput(session, 'range',
                         min=min(edges()$year), max=max(edges()$year),
                         value=c(min(edges()$year), max(edges()$year))
       )
-      
+      # browser()
       # Also update the options under sponsor filter
       tmp.nodes <- nodes2()
       checkbox_choices <- c('All')
@@ -531,7 +475,7 @@ s <- shinyServer(function(input, output, session){
     output$nvf_legend_sub <- renderUI({
       
       # browser()
-      svg_content <- get_legend(ledges)
+      svg_content <- get_legend(ledges())
       HTML(
         paste0("
         <style>
@@ -815,35 +759,37 @@ s <- shinyServer(function(input, output, session){
       )
     })
     
-    output$h_legend_sub <- renderUI({
-      # browser()
-      ledges <- dfs()[[2]]
-      ledges <- unique(ledges[, c('status', 'color')])
-      cnames <- colnames(ledges)
-      cnames[cnames=='status'] <- 'label'
-      colnames(ledges) <- cnames
-      svg_content1 <- get_legend(ledges, include_second_line=F)
-      svg_content2 <- "
-            <circle cx='20' cy='200' r='20' fill='#97C2FC' />
-            <text x='60px' y='200' class='legend_label'>Original Node</text>
-            <circle cx='20' cy='260' r='20' fill='#FB7E81' />
-            <text x='60px' y='260' class='legend_label'>Clone Node</text>
-      "
-      svg_content <- paste(svg_content1, svg_content2)
-      HTML(
-        paste0("
-        <style>
-          .legend_label
-          {
-            font-size:15pt;
-          }
-        </style>
-        <h2 style='width:100px;'>Legend</h2>
-        </br>
-        <svg viewBox='0 0 200 1000' xmlns='http://www.w3.org/2000/svg'>",
-               paste0(
-                 svg_content, "</svg>"))
-      )
+    reactive({
+        output$h_legend_sub <- renderUI({
+          # browser()
+          # ledges <- dfs()[[2]]
+          # ledges <- ledges[, c('status', 'color')]
+          # cnames <- colnames(ledges)
+          # cnames[cnames=='status'] <- 'label'
+          # colnames(ledges) <- cnames
+          svg_content1 <- get_legend(ledges(), include_second_line=F)
+          svg_content2 <- "
+                <circle cx='20' cy='200' r='20' fill='#97C2FC' />
+                <text x='60px' y='200' class='legend_label'>Original Node</text>
+                <circle cx='20' cy='260' r='20' fill='#FB7E81' />
+                <text x='60px' y='260' class='legend_label'>Clone Node</text>
+          "
+          svg_content <- paste(svg_content1, svg_content2)
+          HTML(
+            paste0("
+            <style>
+              .legend_label
+              {
+                font-size:15pt;
+              }
+            </style>
+            <h2 style='width:100px;'>Legend</h2>
+            </br>
+            <svg viewBox='0 0 200 1000' xmlns='http://www.w3.org/2000/svg'>",
+                   paste0(
+                     svg_content, "</svg>"))
+          )
+        })
     })
     
     observeEvent(input$zoomDel, {
@@ -1286,27 +1232,26 @@ s <- shinyServer(function(input, output, session){
                                                             'map_name',
                                                             'merged')])
         
-        tmp.nodes_extra <- nodes_extra
-        tmp.nodes_extra <- rbind(tmp.nodes_extra, node_record[, c('group_id', 'group_name',
-                                                                  'startyear',
-                                                                  'endyear',
-                                                                  'active',
-                                                                  'complete',
-                                                                  'description',
-                                                                  'new_description',
-                                                                  'on_any_map',
-                                                                  'map_name',
-                                                                  'href', 'first_attack',
-                                                                  'hq_city', 'hq_province',
-                                                                  'hq_country', 
-                                                                  'init_size_members',
-                                                                  'max_size_members',
-                                                                  'us_designated',
-                                                                  'un_designated',
-                                                                  'other_designated',
-                                                                  'state_sponsor',
-                                                                  'state_sponsor_names',
-                                                                  'Notes')])
+        nodes_extra <<- rbind(nodes_extra, node_record[, c('group_id', 'group_name',
+                                                          'startyear',
+                                                          'endyear',
+                                                          'active',
+                                                          'complete',
+                                                          'description',
+                                                          'new_description',
+                                                          'on_any_map',
+                                                          'map_name',
+                                                          'href', 'first_attack',
+                                                          'hq_city', 'hq_province',
+                                                          'hq_country', 
+                                                          'init_size_members',
+                                                          'max_size_members',
+                                                          'us_designated',
+                                                          'un_designated',
+                                                          'other_designated',
+                                                          'state_sponsor',
+                                                          'state_sponsor_names',
+                                                          'Notes')])
         
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
         time_str <- gsub(":", "_", time_str)
@@ -1317,9 +1262,15 @@ s <- shinyServer(function(input, output, session){
         ge.fname <- paste0(paste0("groups_extra", date_time), ".csv")
         
         write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
-        write.csv(tmp.nodes_extra, file=paste0('data/groups_extra/', ge.fname))
+        write.csv(nodes_extra, file=paste0('data/groups_extra/', ge.fname))
         session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
-        session$sendCustomMessage('refresh_page', '')
+        # session$sendCustomMessage('refresh_page', '')
+        
+        cnames <- colnames(node_record)
+        cnames[cnames %in% c('group_id', 'group_name',
+                             'startyear', 'X_merge')] <- c('id', 'label', 'level', 'merged')
+        colnames(node_record) <- cnames
+        dummyNode <<- rnorm(1)
       }
 
     })
@@ -1594,6 +1545,13 @@ s <- shinyServer(function(input, output, session){
                                 multiple=multiple, map_name=map_name,
                                 primary=primary)
         
+        # Write changes onto the edges dataframe (df)---------------------------
+        tmp.df <- preprocess(rel_record)
+        tmp.df$old_link_id=link_id
+        tmp.df$width=9 # As of now
+        df <<- rbind(df, tmp.df)
+        
+        # Write changes onto the csv file---------------------------------------
         l_rel_fname <- get_latest_file('data/relationships', 'relationships')
         tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
                            header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
@@ -1608,7 +1566,7 @@ s <- shinyServer(function(input, output, session){
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
-        session$sendCustomMessage('refresh_page', '')
+        # session$sendCustomMessage('refresh_page', '')
       }
         
         

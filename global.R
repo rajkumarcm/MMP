@@ -12,6 +12,7 @@ library(dplyr)
 library(fuzzyjoin)
 library(leaflet)
 library(tidyverse)
+# source('preproces_global.R', local=F)
 source('handle_data.R', local=T)
 map_idx <- 2
 #---------------------------------------------------
