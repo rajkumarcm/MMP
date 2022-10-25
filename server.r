@@ -43,6 +43,15 @@ s <- shinyServer(function(input, output, session){
   triggered_df <- reactiveVal(df)
   triggered_node <- reactiveVal(dummyNode)
   
+  reactive_df <- reactive({
+    tmp <- observe(triggered_df(), {
+      loginfo('triggered_df observe triggered')
+      return(triggered_df())
+    })
+    tmp
+  })
+  
+  
   initial_run <- T
   minYr <- min(df$year)
   maxYr <- max(df$year)
@@ -60,7 +69,7 @@ s <- shinyServer(function(input, output, session){
       prev.map_name <<- input$map_name
     }
     ignore_var <- triggered_node
-    tmp_df <- triggered_df() %>% 
+    tmp_df <- reactive_df() %>% 
       filter(input$map_name  == 'All' | map_name == input$map_name)
     
     if(input$map_name=='All')
@@ -1463,7 +1472,7 @@ s <- shinyServer(function(input, output, session){
         indices <- which(df$group1_name %in% d.profile_names |
                            df$group2_name %in% d.profile_names)
         df <<- df[-indices,]
-        
+        triggered_df(df)
         
         # Re-assign....
         df_nodes.copy <<- unique(df_nodes[, c('id', 'label', 'level', 'active', 
@@ -1497,15 +1506,44 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Loop connection is not allowed')
       }
-      
-      group1_year <- unique(df_nodes[df_nodes$label==group1_name, 'level'])
-      group2_year <- unique(df_nodes[df_nodes$label==group2_name, 'level'])
-      min_year <- min(c(group1_year, group2_year))
-      max_year <- max(c(group1_year, group2_year))
-      
-      if(year < min_year | year > max_year)
+      browser()
+      group1_syear <- unique(df_nodes[df_nodes$label==group1_name, 'level'])
+      group2_syear <- unique(df_nodes[df_nodes$label==group2_name, 'level'])
+      group1_eyear <- unique(df_nodes[df_nodes$label==group1_name, 'endyear'])
+      group2_eyear <- unique(df_nodes[df_nodes$label==group2_name, 'endyear'])
+      min_year <- min(c(group1_syear, group2_syear))
+      max_year <- 0
+      if(group1_eyear == 0 & group2_eyear == 0)
       {
-        warnings <- c(warnings, 'Invalid year')
+        max_year <- -1
+      }
+      else if(group1_eyear == 0)
+      {
+        max_year <- group2_eyear
+      }
+      else if(group2_eyear == 0)
+      {
+        max_year <- group1_eyear
+      }
+      else
+      {
+        max_year <- max(c(group1_eyear, group2_eyear))
+      }
+      
+      # browser()
+      if(max_year != -1)
+      {
+        if(year < min_year | year > max_year)
+        {
+          warnings <- c(warnings, 'Invalid year')
+        } 
+      }
+      else
+      {
+        if(year < min_year)
+        {
+          warnings <- c(warnings, 'Invalid year')
+        }
       }
       
       if(nchar(map_name) <= 2)
@@ -1534,24 +1572,65 @@ s <- shinyServer(function(input, output, session){
         output$new_rel_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_rel_warnings_container')
         
-        group1_id <- df_nodes[df_nodes$label==group1_name, 'id']
-        group2_id <- df_nodes[df_nodes$label==group2_name, 'id']
+        group1_id <- unique(df_nodes[df_nodes$label==group1_name, 'id'])
+        group2_id <- unique(df_nodes[df_nodes$label==group2_name, 'id'])
         link_id <- max(df$link_id)+1
         
-        rel_record = data.frame(link_id=link_id, type=status, 
-                                group1_id=group1_id, group2_id=group2_id,
-                                description=description, group1_name=group1_name,
-                                group2_name=group2_name, year=year,
-                                multiple=multiple, map_name=map_name,
-                                primary=primary)
+        
+        # browser()
+        # label, status_id, old_link_id, title, color, actor_color, value, width
         
         # Write changes onto the edges dataframe (df)---------------------------
-        tmp.df <- preprocess(rel_record)
-        tmp.df$old_link_id=link_id
-        tmp.df$width=9 # As of now
-        df <<- rbind(df, tmp.df)
+        tmp.df2 <- data.frame(link_id=link_id, status=status, 
+                              label=status,
+                              from=group1_id, to=group2_id,
+                              description=description, group1_name=group1_name,
+                              group2_name=group2_name, year=year,
+                              multiple=multiple, map_name=map_name,
+                              primary=primary)
+        
+        # Status in verb for displaying in title
+        label <- ""
+        if(status == "Affiliates")
+          label <- "affiliation"
+        else if(status == "Mergers")
+          label <- "mergers"
+        else if(status == "Splinters")
+          label <- "splinters"
+        else if(status == "Rivals")
+          label <- "rivalry"
+        else if(status == "Allies")
+          label <- "alliance"
+        
+        tmp.df2$status_id <- unique(df[df$status==status, 'status_id'])
+        tmp.df2$old_link_id <- link_id
+        tmp.df2$title <- ifelse(tmp.df2$label=="affiliation" | tmp.df2$label=="alliance", 
+                                paste0("An (lid:)", tmp.df2$link_id, "", tmp.df2$label, " occurred in ", tmp.df2$year, 
+                                       " between ", tmp.df2$group1_name, " and ", tmp.df2$group2_name),
+                                paste0("A (lid:)", tmp.df2$link_id, "", tmp.df2$label, " occurred in ", tmp.df2$year, 
+                                       " between ",  tmp.df2$group1_name, " and ", tmp.df2$group2_name))
+        
+        require(scales)
+        # Each status will have its own color.
+        hex <- hue_pal()(length(unique(df$status_id)))
+        tmp.df2$color <- hex[tmp.df2$status_id]
+        #----------------------------------------------------------------------------
+        tmp.df2$actor_color = ifelse(tmp.df2$map_name=="Global Al Qaeda" |
+                                       tmp.df2$map_name == "Global Islamic State", 1, 0)
+        #----------------------------------------------------------------------------
+        tmp.df2$value <- 1
+        tmp.df2$width <- 9 # As of now
+        
         
         # Write changes onto the csv file---------------------------------------
+        
+        rel_record <- data.frame(link_id=link_id, type=status, 
+                                 group1_id=group1_id, group2_id=group2_id,
+                                 description=description, group1_name=group1_name,
+                                 group2_name=group2_name, year=year,
+                                 multiple=multiple, map_name=map_name,
+                                 primary=primary)
+        
         l_rel_fname <- get_latest_file('data/relationships', 'relationships')
         tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
                            header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
@@ -1567,9 +1646,10 @@ s <- shinyServer(function(input, output, session){
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
         # session$sendCustomMessage('refresh_page', '')
+        browser()
+        df <<- rbind(df, tmp.df2[, colnames(df)])
+        triggered_node(df)
       }
-        
-        
     })
     
 

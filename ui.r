@@ -603,7 +603,7 @@ u <- shinyUI(fluidPage(
                                  <tr>
                                   <td><h4>Type</h4></td>
                                   <td>
-                                   <select id="new_rel_type">
+                                   <select id="new_rel_type" style="background-color:white;">
                                      <option value="Splinters">Splinters</option>
                                      <option value="Allies">Allies</option>
                                      <option value="Rivals">Rivals</option>
