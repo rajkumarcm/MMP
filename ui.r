@@ -19,12 +19,16 @@ u <- shinyUI(fluidPage(
     tags$link(rel = "stylesheet", type = "text/css", href = "custom_style.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css")
   ),
-  navbarPage('MMP Prototype 2', selected="vizNM", id="nbp", 
+  navbarPage('Mapping Militants Project', selected="vizNM", id="nbp", 
              tabPanel(title='About the App', id='aboutNM',
                       value='aboutNM',
                       div(id="about_ct",
                           tags$div(id='about_title_div',
                           HTML("<h2>&nbsp;Mapping Militants Project</h2>")),
+                          tags$br(),
+                          tags$p("This app lets you manipulate, explore, and download the Mapping Militants Project (MMP) data. It was created in Shiny using R (V 4.2.1)"),
+                          tags$br(),
+                          tags$p("MMP records information about 112 different groups and 712 different relationships among these groups across 15 global conflict theaters."),
                           tags$br(),
                           tags$div(id="mpp_video", 
                                    HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/5Gj_l0x-SEQ" title="CISAC Who We Are REVISED" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
@@ -36,7 +40,7 @@ u <- shinyUI(fluidPage(
                           )
                       ),
              
-             tabPanel(title='Download the data', id='downloadNM', value="downloadNM",
+             tabPanel(title='Download the Data', id='downloadNM', value="downloadNM",
                       div(id="dd_body",
                         div(id="dd_sp",
                             

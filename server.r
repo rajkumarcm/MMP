@@ -40,15 +40,13 @@ s <- shinyServer(function(input, output, session){
   
   # initial_run parameter influences the progressbar behavior
   
-  triggered_df <- reactiveVal(list(rnorm(1), df))
+  triggered_df <- reactiveVal(df)
   triggered_node <- reactiveVal(dummyNode)
   
   reactive_df <- reactive({
     browser()
     tmp <- observe(triggered_df(), {
-      randn <- triggered_df()[[1]]
-      loginfo(sprintf('triggered_df observe triggered %f', randn))
-      return(triggered_df()[[2]])
+      return(triggered_df())
     })
     return(tmp)
     
@@ -189,6 +187,7 @@ s <- shinyServer(function(input, output, session){
   output$year_slider <- renderPrint({
     html.outer <- "<div id='years_list_container'><div id='year_list_sub_container'>"
     html.inner <- ""
+    # browser()
     for(i in 1:length(f_years()))
     {
       html.inner <- paste0(html.inner, sprintf("<div class='year_field'>%d</div>", f_years()[i]))
@@ -1505,7 +1504,7 @@ s <- shinyServer(function(input, output, session){
       primary <- input$new_rel_primary
       status <- input$newRel_schanges[['type']][[1]]
       description <- input$newRel_schanges[['desc']][[1]]
-      year <- input$newRel_schanges[['year']][[1]]
+      year <- as.integer(input$newRel_schanges[['year']][[1]])
       multiple <- 0
       # browser()
       warnings <- c()
@@ -1656,7 +1655,7 @@ s <- shinyServer(function(input, output, session){
         # session$sendCustomMessage('refresh_page', '')
         # browser()
         df <<- rbind(df, tmp.df2[, colnames(df)])
-        triggered_node(list(rnorm(1), df))
+        triggered_df(df)
       }
     })
     
