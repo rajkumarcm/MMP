@@ -718,7 +718,11 @@ div.outerBorder {
 }
 */
 
-
+.save_button
+{
+  display:flex;
+  flex-direction:row;
+}
 
 
 

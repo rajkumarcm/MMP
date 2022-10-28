@@ -645,7 +645,10 @@ u <- shinyUI(fluidPage(
                              HTML('</td>
                                   </tr>
                                 </table>
-                                <button id="new_rel_sc_button", onclick="new_rel_trigger();">Create edge</button>
+                                <div class="save_button">
+                                  <button id="new_rel_sc_button", onclick="new_rel_trigger();">Create edge</button>
+                                  <button id="refreshData", onclick="Shiny.setInputValue(\'refreshData\', Math.random());">Refresh Data</button>
+                                </div>
                                 </br><br/>
                                 <div id="new_rel_warnings_container" class="warnings_div">'),
                                  textOutput(outputId="new_rel_warnings", inline = F),

@@ -40,17 +40,24 @@ s <- shinyServer(function(input, output, session){
   
   # initial_run parameter influences the progressbar behavior
   
-  triggered_df <- reactiveVal(df)
+  triggered_df <- reactiveVal(list(rnorm(1), df))
   triggered_node <- reactiveVal(dummyNode)
   
   reactive_df <- reactive({
+    browser()
     tmp <- observe(triggered_df(), {
-      loginfo('triggered_df observe triggered')
-      return(triggered_df())
+      randn <- triggered_df()[[1]]
+      loginfo(sprintf('triggered_df observe triggered %f', randn))
+      return(triggered_df()[[2]])
     })
-    tmp
+    return(tmp)
+    
   })
   
+  observeEvent(input$refreshData, {
+    loginfo('observe triggered for refreshData defined outside...')
+    ''
+  })
   
   initial_run <- T
   minYr <- min(df$year)
@@ -1500,7 +1507,7 @@ s <- shinyServer(function(input, output, session){
       description <- input$newRel_schanges[['desc']][[1]]
       year <- input$newRel_schanges[['year']][[1]]
       multiple <- 0
-      
+      # browser()
       warnings <- c()
       if(group1_name == group2_name)
       {
@@ -1635,6 +1642,7 @@ s <- shinyServer(function(input, output, session){
         tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
                            header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
                            colClasses=c('multiple'='factor'))
+        # browser()
         tmp.df <- rbind(tmp.df, rel_record)
         
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
@@ -1643,12 +1651,12 @@ s <- shinyServer(function(input, output, session){
         date_time <- paste0(date_str, paste0('-', time_str))
         
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
-        write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
+        write.csv(tmp.df, file=paste0('data/relationships/', r.fname), row.names=F)
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
         # session$sendCustomMessage('refresh_page', '')
-        browser()
+        # browser()
         df <<- rbind(df, tmp.df2[, colnames(df)])
-        triggered_node(df)
+        triggered_node(list(rnorm(1), df))
       }
     })
     
