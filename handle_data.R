@@ -64,6 +64,13 @@ load_data <- function()
                  fileEncoding = 'UTF-8-BOM', check.names=T,
                  colClasses=c('multiple'='factor'))
   # browser()
+  rel$year <- as.integer(rel$year)
+  rel$group1_id <- as.integer(rel$group1_id)
+  rel$group2_id <- as.integer(rel$group2_id)
+  rel$multiple <- as.factor(rel$multiple)
+  rel$link_id <- as.integer(rel$link_id)
+  
+  # browser()
   ignore_row_idx <- which(rel$type == "")
   if(length(ignore_row_idx) >= 1)
     rel <- rel[-ignore_row_idx,]
