@@ -41,20 +41,20 @@ s <- shinyServer(function(input, output, session){
   # initial_run parameter influences the progressbar behavior
   
   triggered_df <- reactiveVal(df)
-  triggered_node <- reactiveVal(dummyNode)
+  reactive_df_node <- reactiveVal(df_nodes)
   
   reactive_df <- reactive({
-    browser()
     tmp <- observe(triggered_df(), {
       return(triggered_df())
     })
     return(tmp)
-    
   })
   
-  observeEvent(input$refreshData, {
-    loginfo('observe triggered for refreshData defined outside...')
-    ''
+  triggered_nodes <- reactive({
+    tmp <- observe(reactive_df_node(), {
+      return(reactive_df_node())
+    })
+    return(tmp)
   })
   
   initial_run <- T
@@ -73,7 +73,7 @@ s <- shinyServer(function(input, output, session){
       initial_run <<- F
       prev.map_name <<- input$map_name
     }
-    ignore_var <- triggered_node
+    
     tmp_df <- reactive_df() %>% 
       filter(input$map_name  == 'All' | map_name == input$map_name)
     
@@ -113,7 +113,6 @@ s <- shinyServer(function(input, output, session){
   # given label of another relationship.
   nodes2 <- reactive({
     tmp.nodes <- get_nodes(filtered_df())
-    # tmp.nodes <- filter_designation(tmp.nodes, input$filterDesig)
   })
  
   
@@ -141,7 +140,7 @@ s <- shinyServer(function(input, output, session){
                         min=min(edges()$year), max=max(edges()$year),
                         value=c(min(edges()$year), max(edges()$year))
       )
-      # browser()
+      
       # Also update the options under sponsor filter
       tmp.nodes <- nodes2()
       checkbox_choices <- c('All')
@@ -187,7 +186,7 @@ s <- shinyServer(function(input, output, session){
   output$year_slider <- renderPrint({
     html.outer <- "<div id='years_list_container'><div id='year_list_sub_container'>"
     html.inner <- ""
-    # browser()
+    
     for(i in 1:length(f_years()))
     {
       html.inner <- paste0(html.inner, sprintf("<div class='year_field'>%d</div>", f_years()[i]))
@@ -302,11 +301,11 @@ s <- shinyServer(function(input, output, session){
   
   observeEvent(input$link_nid, {
 
-    url <- unique(df_nodes[df_nodes$id==input$link_nid & 
-                      (df_nodes$map_name==input$map_name | input$map_name=='All'), "URL"])
+    url <- unique(triggered_nodes()[triggered_nodes()$id==input$link_nid & 
+                      (triggered_nodes()$map_name==input$map_name | input$map_name=='All'), "URL"])
     # browser()
-    gname <- unique(df_nodes[df_nodes$id==input$link_nid & 
-                        (df_nodes$map_name==input$map_name | input$map_name=='All'), "label"])
+    gname <- unique(triggered_nodes()[triggered_nodes()$id==input$link_nid & 
+                        (triggered_nodes()$map_name==input$map_name | input$map_name=='All'), "label"])
     if(is.na(url))
     {
       url <- "#"
@@ -359,7 +358,7 @@ s <- shinyServer(function(input, output, session){
     filteredNodes2 <- data.frame(id=unique(c(filteredEdges$from,
                                              filteredEdges$to)))
     
-    filteredNodes2 <- filteredNodes2 %>% inner_join(df_nodes[, c("id", "label")],
+    filteredNodes2 <- filteredNodes2 %>% inner_join(triggered_nodes()[, c("id", "label")],
                                                     by="id", keep=F)
     filteredNodes2 <- filteredNodes2 %>% inner_join(nodes, by='id', keep=F)
     cnames <- colnames(filteredNodes2)
@@ -541,7 +540,7 @@ s <- shinyServer(function(input, output, session){
       # Embed location information to both first and the second groups in the 
       # edges dataframe.
       tmp.edges <- unique(df[, c('from', 'to')] )
-      tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_country')]), 
+      tmp.edges <- tmp.edges %>% inner_join(unique(triggered_nodes()[, c('id', 'hq_country')]), 
                                             by=c('from'='id'), copy=T)
       cnames <- colnames(tmp.edges)
       cnames[cnames=='hq_country'] <- 'g1_hqc'
@@ -549,7 +548,7 @@ s <- shinyServer(function(input, output, session){
       tmp.edges <- drop_na(tmp.edges)
       tmp.edges <- tmp.edges[str_trim(tmp.edges$g1_hqc, side='both') != "",]
       
-      tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_country')]), 
+      tmp.edges <- tmp.edges %>% inner_join(unique(triggered_nodes()[, c('id', 'hq_country')]), 
                                             by=c('to'='id'), copy=T)
       cnames <- colnames(tmp.edges)
       cnames[cnames=='hq_country'] <- 'g2_hqc'
@@ -831,7 +830,7 @@ s <- shinyServer(function(input, output, session){
     })
       
       growth_by_prof <- reactive({
-        tmp.df <- df_nodes %>% inner_join(nodes[, c('id', 'between')], by='id')
+        tmp.df <- triggered_nodes() %>% inner_join(nodes[, c('id', 'between')], by='id')
         tmp.df <- unique(tmp.df[, c('label', 'init_size_members', 
                                     'max_size_members', 'between', 
                                     'level', 'endyear')])
@@ -929,8 +928,9 @@ s <- shinyServer(function(input, output, session){
       #----------Number of active groups per year-------------------------------
       output$activeg_year <- renderPlot({
 
-        ag_df <- unique(df_nodes[df_nodes$active==1 & df_nodes$level!=0 &
-                                   !is.na(df_nodes$map_name), 
+        ag_df <- unique(triggered_nodes()[triggered_nodes()$active==1 & 
+                                          triggered_nodes()$level!=0 &
+                                          !is.na(triggered_nodes()$map_name), 
                                  c('label', 'map_name', 'level', 'active')]) %>% 
                     
                  group_by(map_name, level) %>% summarise(count=n())
@@ -954,8 +954,9 @@ s <- shinyServer(function(input, output, session){
       #-------------Number of profiles per map----------------------------------
       
       output$nprofiles_map <- renderPlot({
-        tmp.df_nodes <- unique(df_nodes[df_nodes$active==1 & df_nodes$level!=0 &
-                                          !is.na(df_nodes$map_name), 
+        tmp.df_nodes <- unique(triggered_nodes()[triggered_nodes()$active==1 & 
+                                                   triggered_nodes()$level!=0 &
+                                          !is.na(triggered_nodes()$map_name), 
                                         c('label', 'map_name', 'level', 'active')])
         tmp.df_nodes <- tmp.df_nodes %>% group_by(map_name) %>%
                                          summarise(count=n()) %>%
@@ -991,7 +992,7 @@ s <- shinyServer(function(input, output, session){
         for(i in 2:length(maps))
         {
           mname <- maps[i]
-          unique.nodes <- unique(df_nodes[df_nodes$map_name==mname, 'label'])
+          unique.nodes <- unique(triggered_nodes()[triggered_nodes()$map_name==mname, 'label'])
           tmp.profiles <- NULL
           for(j in 1:length(unique.nodes))
           {
@@ -1038,11 +1039,11 @@ s <- shinyServer(function(input, output, session){
     
     # Edit Maps
     admin.maps <- reactive({
-      data.frame(name=unique(df_nodes$map_name),
+      data.frame(name=unique(triggered_nodes()$map_name),
                  edit_links=sprintf('<a href=\"javascript:Shiny.setInputValue(\'editMap\', \'%s\');\"><i class=\"fa fa-link\"></i></a>', 
-                                  unique(df_nodes$map_name)),
+                                  unique(triggered_nodes()$map_name)),
                  manage=sprintf('<a href=\"javascript:Shiny.setInputValue(\'manageMap\', \'%s~@~\'+Date.now());\">Manage</i></a>',
-                                unique(df_nodes$map_name))
+                                unique(triggered_nodes()$map_name))
                  )
     })
     
@@ -1110,7 +1111,7 @@ s <- shinyServer(function(input, output, session){
         map_name <- str_trim(input$new_mn)
         if(nchar(map_name) < 3)
           warnings <- c(warnings, 'New map name cannot be empty')
-        else if(tolower(map_name) %in% tolower(df_nodes$map_name))
+        else if(tolower(map_name) %in% tolower(triggered_nodes()$map_name))
           warnings <- c(warnings, 'New map name already exists')
       }
       
@@ -1133,7 +1134,7 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Profile name cannot be empty')
       }
-      else if(tolower(name) %in% tolower(str_trim(df_nodes$label))) # duplicate check
+      else if(tolower(name) %in% tolower(str_trim(triggered_nodes()$label))) # duplicate check
       {
         warnings <- c(warnings, 'Profile already exists')
       }
@@ -1211,7 +1212,7 @@ s <- shinyServer(function(input, output, session){
         session$sendCustomMessage('hideWarnings', 'new_prof_warnings_container')
      
         # Before writing the changes, check for duplicates in the df_nodes
-        node_record <- data.frame(group_id=max(df_nodes$id)+1, group_name=name, 
+        node_record <- data.frame(group_id=max(triggered_nodes()$id)+1, group_name=name, 
                                    startyear=start_year, endyear=end_year,
                                    active=active, complete=complete,
                                    title=name, on_any_map=1, map_name=map_name,
@@ -1285,7 +1286,12 @@ s <- shinyServer(function(input, output, session){
         cnames[cnames %in% c('group_id', 'group_name',
                              'startyear', 'X_merge')] <- c('id', 'label', 'level', 'merged')
         colnames(node_record) <- cnames
-        dummyNode <<- rnorm(1)
+        
+        # Overwrite (append changes to) df_nodes
+        browser()
+        triggered_nodes(df_nodes)
+        triggered_df(df_nodes)
+        
       }
 
     })
@@ -1293,7 +1299,7 @@ s <- shinyServer(function(input, output, session){
     # Open manage a map div with information about the map populated
     observeEvent(input$manageMap, {
       mm_map_name <<- str_split(input$manageMap, '~@~')[[1]][1]
-      map_info <- unique(df_nodes[df_nodes$map_name==mm_map_name, 
+      map_info <- unique(triggered_nodes()[triggered_nodes()$map_name==mm_map_name, 
                                                                c('map_name',
                                                                  'new_description',
                                                                  'URL',
@@ -1307,7 +1313,7 @@ s <- shinyServer(function(input, output, session){
       map_name <- input$showIncludedGroups
       map_name <- str_split(map_name, '~@~')[[1]][1]
       logging::loginfo(map_name)
-      nodes_under_mn <- data.frame(Profile=df_nodes[df_nodes$map_name==map_name, c('label')])
+      nodes_under_mn <- data.frame(Profile=triggered_nodes()[triggered_nodes()$map_name==map_name, c('label')])
       output$includedGroupsTable <- renderDataTable(
         nodes_under_mn
       )
@@ -1437,7 +1443,7 @@ s <- shinyServer(function(input, output, session){
         if(length(d.profile_names) > 0)
         {
           indices <- which(tmp.df$group1_name %in% d.profile_names | 
-                             tmp.df$group2_name %in% d.profile_names)
+                           tmp.df$group2_name %in% d.profile_names)
           tmp.df <- tmp.df[-indices,] 
         }
         
@@ -1450,7 +1456,7 @@ s <- shinyServer(function(input, output, session){
           tmp.df_nodes <- tmp.df_nodes[-indices,]
         }
         
-        # Save hidden profile names changes--------------------------------------
+        # Save hidden profile names changes-------------------------------------
         save(file='data/hidden_profiles.RData', 'h.profile_names')
         #-----------------------------------------------------------------------
         
@@ -1466,26 +1472,29 @@ s <- shinyServer(function(input, output, session){
         
         # Once changes are saved, then we can reset these parameters
         ep_changes_made <<- F
-        d.profile_names <<- NULL
+        
         
         # Apply the changes to the local variables for continuous use...
         # Delete profiles from df_nodes
         d.profile_names
-        indices <- which(df_nodes$label %in% d.profile_names)
-        df_nodes <<- df_nodes[-indices,]
+        indices <- which(triggered_nodes()$label %in% d.profile_names)
+        df_nodes <<- triggered_nodes()[-indices,]
         
         # Delete edges related to the discarded profile
         indices <- which(df$group1_name %in% d.profile_names |
-                           df$group2_name %in% d.profile_names)
+                         df$group2_name %in% d.profile_names)
+        
         df <<- df[-indices,]
-        triggered_df(df)
+        d.profile_names <<- NULL
         
         # Re-assign....
-        df_nodes.copy <<- unique(df_nodes[, c('id', 'label', 'level', 'active', 
+        df_nodes.copy <<- unique(triggered_nodes()[, c('id', 'label', 'level', 'active', 
                                                    'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy
         df.copy <<- df
-        session$sendCustomMessage('refresh_page', '')
+        triggered_df(df)
+        # session$sendCustomMessage('refresh_page', '')
+        
       }
     })
     
@@ -1513,10 +1522,10 @@ s <- shinyServer(function(input, output, session){
         warnings <- c(warnings, 'Loop connection is not allowed')
       }
       browser()
-      group1_syear <- unique(df_nodes[df_nodes$label==group1_name, 'level'])
-      group2_syear <- unique(df_nodes[df_nodes$label==group2_name, 'level'])
-      group1_eyear <- unique(df_nodes[df_nodes$label==group1_name, 'endyear'])
-      group2_eyear <- unique(df_nodes[df_nodes$label==group2_name, 'endyear'])
+      group1_syear <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'level'])
+      group2_syear <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'level'])
+      group1_eyear <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'endyear'])
+      group2_eyear <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'endyear'])
       min_year <- min(c(group1_syear, group2_syear))
       max_year <- 0
       if(group1_eyear == 0 & group2_eyear == 0)
@@ -1578,8 +1587,8 @@ s <- shinyServer(function(input, output, session){
         output$new_rel_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_rel_warnings_container')
         
-        group1_id <- unique(df_nodes[df_nodes$label==group1_name, 'id'])
-        group2_id <- unique(df_nodes[df_nodes$label==group2_name, 'id'])
+        group1_id <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'id'])
+        group2_id <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'id'])
         link_id <- max(df$link_id)+1
         
         
