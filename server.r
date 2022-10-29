@@ -1216,6 +1216,7 @@ s <- shinyServer(function(input, output, session){
                                    startyear=start_year, endyear=end_year,
                                    active=active, complete=complete,
                                    title=name, on_any_map=1, map_name=map_name,
+                                   X=NA,
                                    X_merge='matched(3)', URL=url, Anchor='',
                                    description=desc, new_description=desc,
                                    href=url, 
@@ -1229,7 +1230,7 @@ s <- shinyServer(function(input, output, session){
                                    other_designated=other_designated,
                                    state_sponsor=state_sponsored,
                                    state_sponsor_names=spons_names,
-                                   merged='matched(3)', Notes=comments
+                                   merged='matched(3)', Notes=comments, shape=NA
                                    )
         
         # Get the file with the latest timestamp
@@ -1249,25 +1250,25 @@ s <- shinyServer(function(input, output, session){
                                                             'merged')])
         
         nodes_extra <<- rbind(nodes_extra, node_record[, c('group_id', 'group_name',
-                                                          'startyear',
-                                                          'endyear',
-                                                          'active',
-                                                          'complete',
-                                                          'description',
-                                                          'new_description',
-                                                          'on_any_map',
-                                                          'map_name',
-                                                          'href', 'first_attack',
-                                                          'hq_city', 'hq_province',
-                                                          'hq_country', 
-                                                          'init_size_members',
-                                                          'max_size_members',
-                                                          'us_designated',
-                                                          'un_designated',
-                                                          'other_designated',
-                                                          'state_sponsor',
-                                                          'state_sponsor_names',
-                                                          'Notes')])
+                                                           'startyear',
+                                                           'endyear',
+                                                           'active',
+                                                           'complete',
+                                                           'description',
+                                                           'new_description',
+                                                           'on_any_map',
+                                                           'map_name',
+                                                           'href', 'first_attack',
+                                                           'hq_city', 'hq_province',
+                                                           'hq_country', 
+                                                           'init_size_members',
+                                                           'max_size_members',
+                                                           'us_designated',
+                                                           'un_designated',
+                                                           'other_designated',
+                                                           'state_sponsor',
+                                                           'state_sponsor_names',
+                                                           'Notes')])
         
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
         time_str <- gsub(":", "_", time_str)
@@ -1289,8 +1290,29 @@ s <- shinyServer(function(input, output, session){
         
         # Overwrite (append changes to) df_nodes
         browser()
-        triggered_nodes(df_nodes)
-        triggered_df(df_nodes)
+        node_record$title <- node_record$label
+        df_nodes <<- rbind(df_nodes, node_record[, c('id', 'label',
+                                                     'level',
+                                                     'endyear',
+                                                     'active',
+                                                     'complete',
+                                                     'title',
+                                                     'on_any_map', 'map_name',
+                                                     'merged', 'URL', 'Anchor',
+                                                     'new_description', 
+                                                     'href', 'first_attack',
+                                                     'hq_city', 'hq_province',
+                                                     'hq_country',
+                                                     'init_size_members',
+                                                     'max_size_members',
+                                                     'us_designated',
+                                                     'un_designated',
+                                                     'other_designated',
+                                                     'state_sponsor',
+                                                     'state_sponsor_names',
+                                                     'Notes', 'shape')])
+        profile_names <<- c(profile_names, name)
+        reactive_df_node(df_nodes)
         
       }
 
