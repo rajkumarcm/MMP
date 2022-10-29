@@ -1085,6 +1085,16 @@ s <- shinyServer(function(input, output, session){
       }
     })
     
+    observeEvent(input$admin_tbsp, {
+      if(input$admin_tbsp == "admin_nr")
+      {
+        updateSelectInput(session, 'new_rel_fgn', choices=profile_names,
+                          selected=profile_names[1])
+        updateSelectInput(session, 'new_rel_tgn', choices=profile_names,
+                          selected=profile_names[1])
+      }
+    })
+    
     observeEvent(input$newProf_schanges, {
       # browser()
       warnings <- c()
@@ -1311,9 +1321,10 @@ s <- shinyServer(function(input, output, session){
                                                      'state_sponsor',
                                                      'state_sponsor_names',
                                                      'Notes', 'shape')])
-        profile_names <<- c(profile_names, name)
+        profile_names <- c(profile_names, name)
+        profile_names <- data.frame(x=profile_names) %>% arrange(x)
+        profile_names <<- profile_names$x
         reactive_df_node(df_nodes)
-        
       }
 
     })

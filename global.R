@@ -1,4 +1,5 @@
 #---------------Load libraries-----------------------
+rm(list=ls())
 library(shiny)
 library(stringr)
 library(visNetwork)
@@ -358,12 +359,10 @@ valid.countries.list2[valid.countries.list2=='New York'] <- 'United States of Am
 valid.countries.list <- data.frame(hq_country_old=valid.countries.list1, 
                                    hq_country_new=valid.countries.list2)
 
-
 profile_names <- unique(df_nodes$label)
 profile_names <- profile_names[profile_names != "" & !is.na(profile_names)]
 profile_names <- data.frame(label=profile_names) %>% arrange(label)
 profile_names <- profile_names$label
-
 
 
 
