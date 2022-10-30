@@ -57,7 +57,7 @@ make_graph <- function(df)
 }
 
 
-load_data <- function()
+load_edges_data <- function()
 {
   latest_fname <- get_latest_file('data/relationships', 'relationships')
   rel <- read.csv(paste0('data/relationships/',latest_fname), sep=',', header=T, 
@@ -78,7 +78,90 @@ load_data <- function()
   rel
 }
 
-preprocess <- function(df)
+populate_shape <- function(df_nodes)
+{
+  df_nodes$shape <- 'square'
+  df_nodes[(df_nodes$us_designated==1 |
+              df_nodes$un_designated==1) &
+             df_nodes$state_sponsor!=1, 'shape'] <- 'star'
+  df_nodes[df_nodes$state_sponsor==1 &
+             df_nodes$un_designated!=1 &
+             df_nodes$us_designated!=1 &
+             df_nodes$other_designated!=1, 'shape'] <- 'diamond'
+  df_nodes[(df_nodes$us_designated==1 |
+              df_nodes$un_designated==1) &
+             df_nodes$state_sponsor==1, 'shape'] <- 'triangle'
+  df_nodes
+}
+
+load_nodes_data <- function()
+{
+  latest_fname <- get_latest_file('data/groups/', 'groups')
+  df_nodes <- read.csv(paste0('data/groups/',latest_fname), 
+                       header=T, strip.white=T, blank.lines.skip=T,
+                       fileEncoding='UTF-8-BOM', check.names=T)
+  df_nodes$group_id <- as.integer(df_nodes$group_id)
+  
+  # Having NULL in start_year cannot be tolerated
+  df_nodes$start_year <- as.integer(df_nodes$start_year)
+  
+  df_nodes[is.null(df_nodes$end_year) |
+           is.na(df_nodes$end_year), 'end_year'] <- 0
+  df_nodes$end_year <- as.integer(df_nodes$end_year)
+  
+  df_nodes$active <- as.factor(df_nodes$active)
+  df_nodes$complete <- as.factor(df_nodes$complete)
+  df_nodes$on_any_map <- as.factor(df_nodes$on_any_map)
+  
+  df_nodes[is.null(df_nodes$first_attack) | 
+           is.na(df_nodes$first_attack), 'first_attack'] <- 0
+  df_nodes$first_attack <- as.integer(df_nodes$first_attack)
+  
+  df_nodes[is.null(df_nodes$last_attack) |
+           is.na(df_nodes$last_attack), 'last_attack'] <- 0
+  df_nodes$last_attack <- as.integer(df_nodes$last_attack)
+  
+  df_nodes[is.null(df_nodes$init_size_members) |
+           is.na(df_nodes$init_size_members), 'init_size_members'] <- 0
+  df_nodes$init_size_members <- as.integer(df_nodes$init_size_members)
+  
+  df_nodes[is.null(df_nodes$max_size_members) |
+           is.na(df_nodes$max_size_members), 'max_size_members'] <- 0
+  df_nodes$max_size_members <- as.integer(df_nodes$max_size_members)
+  
+  df_nodes[is.null(df_nodes$max_size_year) |
+           is.na(df_nodes$max_size_year), 'max_size_year'] <- 0
+  df_nodes$max_size_year <- as.integer(df_nodes$max_size_year)
+  
+  df_nodes[is.null(df_nodes$us_designated) |
+           is.na(df_nodes$us_designated), 'us_designated'] <- 0
+  df_nodes$us_designated <- as.integer(df_nodes$us_designated)
+  
+  df_nodes[is.null(df_nodes$un_designated) |
+           is.na(df_nodes$un_designated), 'un_designated'] <- 0
+  df_nodes$un_designated <- as.integer(df_nodes$un_designated)
+  
+  df_nodes[is.null(df_nodes$other_designated) |
+           is.na(df_nodes$other_designated), 'other_designated'] <- 0
+  df_nodes$other_designated <- as.integer(df_nodes$other_designated)
+  
+  df_nodes[is.null(df_nodes$state_sponsor) |
+           is.na(df_nodes$state_sponsor), 'state_sponsor'] <- 0
+  df_nodes$state_sponsor <- as.integer(df_nodes$state_sponsor)
+  
+  cnames <- colnames(df_nodes)
+  cnames[cnames == 'group_id'] <- 'id'
+  cnames[cnames == 'group_name'] <- 'label'
+  cnames[cnames == 'description'] <- 'title'
+  cnames[cnames == 'startyear'] <- 'level'
+  colnames(df_nodes) <- cnames
+  
+  df_nodes <- populate_shape(df_nodes)
+  
+  df_nodes
+}
+
+preprocess_df <- function(df)
 {
   cnames <- colnames(df)
   
