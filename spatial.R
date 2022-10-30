@@ -44,8 +44,7 @@ get_spatial_visNetwork <- function(nodes, edges)
   legend.df[legend.df$shape=='diamond', 'label'] <- 'Only US'
   legend.df[legend.df$shape=='triangle', 'label'] <- 'US or UN, and State Sponsored'
   legend.df[legend.df$shape=='square', 'label'] <- 'None'
-  # browser()
-  
+  browser()
   visNetwork(nodes,
              edges,
              width = "100%")  %>%

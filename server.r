@@ -45,6 +45,7 @@ s <- shinyServer(function(input, output, session){
   
   reactive_df <- reactive({
     tmp <- observe(triggered_df(), {
+      loginfo('df triggered')
       return(triggered_df())
     })
     return(tmp)
@@ -52,6 +53,7 @@ s <- shinyServer(function(input, output, session){
   
   triggered_nodes <- reactive({
     tmp <- observe(reactive_df_node(), {
+      loginfo('nodes triggered')
       return(reactive_df_node())
     })
     return(tmp)
@@ -218,8 +220,6 @@ s <- shinyServer(function(input, output, session){
   
   #------------Have to duplicate call to visNetwork for Animation---------------
   observeEvent(input$animateBtn, {
-    
-    logging::loginfo(input$animate_spatial)
     
     # browser()
     tmp.edges <- edges()
@@ -1222,7 +1222,7 @@ s <- shinyServer(function(input, output, session){
         session$sendCustomMessage('hideWarnings', 'new_prof_warnings_container')
      
         # Before writing the changes, check for duplicates in the df_nodes
-        node_record <- data.frame(group_id=max(triggered_nodes()$id)+1, group_name=name, 
+        node_record <- data.frame(group_id=(max(df_nodes$id)+1), group_name=name, 
                                    startyear=start_year, endyear=end_year,
                                    active=active, complete=complete,
                                    title=name, on_any_map=1, map_name=map_name,
@@ -1240,8 +1240,9 @@ s <- shinyServer(function(input, output, session){
                                    other_designated=other_designated,
                                    state_sponsor=state_sponsored,
                                    state_sponsor_names=spons_names,
-                                   merged='matched(3)', Notes=comments, shape=NA
+                                   merged='matched(3)', Notes=comments, shape='square'
                                    )
+        browser()
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
@@ -1288,8 +1289,8 @@ s <- shinyServer(function(input, output, session){
         g.fname <- paste0(paste0("groups", date_time), ".csv")
         ge.fname <- paste0(paste0("groups_extra", date_time), ".csv")
         
-        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
-        write.csv(nodes_extra, file=paste0('data/groups_extra/', ge.fname))
+        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname), row.names=F)
+        write.csv(nodes_extra, file=paste0('data/groups_extra/', ge.fname), row.names=F)
         session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
         # session$sendCustomMessage('refresh_page', '')
         
@@ -1299,7 +1300,7 @@ s <- shinyServer(function(input, output, session){
         colnames(node_record) <- cnames
         
         # Overwrite (append changes to) df_nodes
-        browser()
+        
         node_record$title <- node_record$label
         df_nodes <<- rbind(df_nodes, node_record[, c('id', 'label',
                                                      'level',
@@ -1321,6 +1322,21 @@ s <- shinyServer(function(input, output, session){
                                                      'state_sponsor',
                                                      'state_sponsor_names',
                                                      'Notes', 'shape')])
+        
+        # Here I have used id instead of group_id since the column names
+        # gets changed already...
+        nodes.temp <- data.frame(id=node_record$id, 
+                                 value=min(nodes$value), 
+                                 central_color='yellow',
+                                 between=nodes$between[1],
+                                 between_color=nodes$between_color[1],
+                                 color.border=nodes$color.border[1],
+                                 color.highlight.background=nodes$color.highlight.background[1],
+                                 color.hover.background=nodes$color.hover.background[1],
+                                 color.hover.border=nodes$color.hover.border[1])
+        
+        nodes <<- rbind(nodes, nodes.temp)
+        
         profile_names <- c(profile_names, name)
         profile_names <- data.frame(x=profile_names) %>% arrange(x)
         profile_names <<- profile_names$x
@@ -1399,11 +1415,11 @@ s <- shinyServer(function(input, output, session){
         hidden.html <- ""
         if(hidden==T)
         {
-          hidden.html <- sprintf("<td class='td_class'><input type='checkbox' onload=\"javascript:console.log('Hello...');\" onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\" checked></td>", name) 
+          hidden.html <- sprintf("<td class='td_class'><input type='checkbox'  onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\" checked></td>", name) 
         }
         else
         {
-          hidden.html <- sprintf("<td class='td_class'><input type='checkbox' onload=\"javascript:console.log('Hello...');\" onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>", name) 
+          hidden.html <- sprintf("<td class='td_class'><input type='checkbox'  onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>", name) 
         }
         
         html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
@@ -1554,7 +1570,7 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Loop connection is not allowed')
       }
-      browser()
+      
       group1_syear <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'level'])
       group2_syear <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'level'])
       group1_eyear <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'endyear'])
