@@ -11,22 +11,21 @@ get_nodes <- function(edges.df)
   }
   tmp_df <- data.frame(id = unique(c(edges.df$from,
                                      edges.df$to)))
-  tmp_df <- tmp_df %>% inner_join(unique(df_nodes[df_nodes$map_name==map_name | 
-                                                    map_name=='All', 
-                                                  c('id', 'label', 'title', 
-                                                    'level', 'shape', 
-                                                    'un_designated', 
-                                                    'us_designated',
-                                                    'state_sponsor',
-                                                    'other_designated')]),
+  tmp_df <- tmp_df %>% inner_join(df_nodes[, 
+                                            c('id', 'label', 'title', 
+                                              'level', 'shape', 
+                                              'un_designated', 
+                                              'us_designated',
+                                              'state_sponsor',
+                                              'other_designated')],
                                   by="id", keep=F)
   
   # nodes dataframe is created using correct inner join
-  tmp_df <- merge(tmp_df, nodes[, c('id', 'between_color', 'value', 
+  tmp_df <- inner_join(tmp_df, nodes[, c('id', 'between_color', 'value', 
                                     'color.border', 'color.highlight.background',
                                     'color.hover.background',
                                     'color.hover.border')], 
-                  by='id')
+                  by='id', keep=F)
   cnames <- colnames(tmp_df)
   cnames[cnames == 'between_color'] <- 'color.background'
   colnames(tmp_df) <- cnames
@@ -38,13 +37,13 @@ get_nodes <- function(edges.df)
 
 get_spatial_visNetwork <- function(nodes, edges)
 {
+  # browser()
   legend.df <- data.frame(shape=unique(nodes$shape))
   legend.df$label <- ""
   legend.df[legend.df$shape=='star', 'label'] <- 'US or UN'
   legend.df[legend.df$shape=='diamond', 'label'] <- 'Only US'
   legend.df[legend.df$shape=='triangle', 'label'] <- 'US or UN, and State Sponsored'
   legend.df[legend.df$shape=='square', 'label'] <- 'None'
-  browser()
   visNetwork(nodes,
              edges,
              width = "100%")  %>%

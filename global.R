@@ -176,17 +176,20 @@ get_clusters <- function()
 {
   
   tmp.edges <- unique(df[, c('from', 'to')] )
-  tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
-                                        by=c('from'='id'), copy=T)
+  tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'hq_city')], 
+                                        by=c('from'='id'), keep=F)
+  # browser()
   cnames <- colnames(tmp.edges)
-  cnames[cnames=='map_name'] <- 'g1_map'
+  cnames[cnames=='hq_city'] <- 'g1_map'
   colnames(tmp.edges) <- cnames
   
-  tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'map_name')], 
-                                        by=c('to'='id'), copy=T)
+  tmp.edges <- tmp.edges %>% inner_join(df_nodes[, c('id', 'hq_city')], 
+                                        by=c('to'='id'), keep=F)
   cnames <- colnames(tmp.edges)
-  cnames[cnames=='map_name'] <- 'g2_map'
+  cnames[cnames=='hq_city'] <- 'g2_map'
   colnames(tmp.edges) <- cnames
+  
+  # browser()
   
   unique.edges <- unique(tmp.edges[, c('g1_map', 'g2_map')])
   tmp.nodes <- unique(c(unique.edges$g1_map, unique.edges$g2_map))
@@ -249,7 +252,7 @@ profile_names <- unique(df_nodes$label)
 profile_names <- profile_names[profile_names != "" & !is.na(profile_names)]
 profile_names <- data.frame(label=profile_names) %>% arrange(label)
 profile_names <- profile_names$label
-
+loginfo('Finished global.R')
 
 
 

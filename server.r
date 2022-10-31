@@ -19,7 +19,7 @@ source('hierarchical.R', local=T)
 # House Keeping Parameters---------------
 mm_map_name <- ''
 animate <- F
-
+# browser()
 df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'active', 
                                           'URL', 'endyear')]) %>%
                  arrange(label) %>% filter(label != "")
@@ -160,7 +160,7 @@ s <- shinyServer(function(input, output, session){
                                choices=checkbox_choices,
                                selected=checkbox_choices, inline=T
                                )
-    
+    # browser()
     get_spatial_visNetwork(nodes2(), edges())
   })
   
@@ -1242,7 +1242,7 @@ s <- shinyServer(function(input, output, session){
                                    state_sponsor_names=spons_names,
                                    merged='matched(3)', Notes=comments, shape='square'
                                    )
-        browser()
+        # browser()
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
@@ -1537,6 +1537,7 @@ s <- shinyServer(function(input, output, session){
         d.profile_names <<- NULL
         
         # Re-assign....
+        browser()
         df_nodes.copy <<- unique(triggered_nodes()[, c('id', 'label', 'level', 'active', 
                                                    'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy

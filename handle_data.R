@@ -154,6 +154,12 @@ load_nodes_data <- function()
   cnames[cnames == 'group_name'] <- 'label'
   cnames[cnames == 'description'] <- 'title'
   cnames[cnames == 'startyear'] <- 'level'
+  cnames[cnames == 'founding_city'] <- 'hq_city'
+  cnames[cnames == 'founding_province'] <- 'hq_province'
+  cnames[cnames == 'founding_country'] <- 'hq_country'
+  cnames[cnames == 'start_year'] <- 'level'
+  cnames[cnames == 'end_year'] <- 'endyear'
+  cnames[cnames == 'page_url'] <- 'URL'
   colnames(df_nodes) <- cnames
   
   df_nodes <- populate_shape(df_nodes)
