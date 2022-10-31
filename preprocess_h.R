@@ -170,6 +170,7 @@ preprocess_hdata <- function(edges, old_nodes)
       first_child <- T
       if(e > 1)
       {
+        
         prev_edge <- tmp_edges[(e-1),]
         if(nrow(tmp_edges[tmp_edges$from==old_edge$from &
                           tmp_edges$status=='Splinters' &
@@ -218,6 +219,7 @@ preprocess_hdata <- function(edges, old_nodes)
                                    "that splinted from the original group"))
 
         # second_edge represents the clone edge
+        # browser()
         second_edge <- data.frame(from=new_edge$from, to=id,
                                   link_id=NaN, old_link_id=NaN,
                                   multiple=old_edge$multiple,
@@ -231,7 +233,7 @@ preprocess_hdata <- function(edges, old_nodes)
                                   title=description,
                                   color=old_edge$color,
                                   actor_color=old_edge$actor_color,
-                                  value=old_edge$value,
+                                  # value=old_edge$value,
                                   label=old_edge$label,
                                   width=old_edge$width)
         # browser()

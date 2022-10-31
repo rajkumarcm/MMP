@@ -704,10 +704,11 @@ s <- shinyServer(function(input, output, session){
       
       dfs <- get_all_done(nodes_mn, h_edges)
       nodes_mn <- dfs[[1]]
+      # browser()
       nodes_mn<- nodes_mn %>% select(-width)
       # Inspect and understand where value is given to edges and what does this
       # attribute mean
-      h_edges <- h_edges %>% select(-value, -label)
+      h_edges <- h_edges %>% select(-label)
       return(list(nodes_mn, h_edges))
     })
     
