@@ -29,9 +29,15 @@ u <- shinyUI(fluidPage(
                           tags$p("This app lets you manipulate, explore, and download the Mapping Militants Project (MMP) data. It was created in Shiny using R (V 4.2.1)"),
                           tags$br(),
                           tags$p("MMP records information about 112 different groups and 712 different relationships among these groups across 15 global conflict theaters."),
+                          # tags$br(),
+                          tags$p("This app has the following main functionalities:"),
+                          tags$ul(
+                                   tags$li("The Download the Data tab generates downloadable portions of the MMP relational edge and node data."),
+                                   tags$li("The Visualize the Data tab generates different network diagrams including a spatial, hierarchical, and geographic map. You can choose the maps, groups, and relationships to visualize. There is also an option to generate descriptive statistics and information regarding the MMP data")
+                                  ),
                           tags$br(),
                           tags$div(id="mpp_video", 
-                                   HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/5Gj_l0x-SEQ" title="CISAC Who We Are REVISED" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
+                                    HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/5Gj_l0x-SEQ" title="CISAC Who We Are REVISED" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
                                    ),
                           tags$br(),
                           tags$p("The MMP research project traces the evolution of militant organizations and the interactions that develop among them over time. Findings are presented in interactive “maps,” which provide both (1) visual representations of how relationships among militant organizations change over time and (2) links to in-depth profiles of individual groups. The project provides uniquely accessible and clear genealogical information about violent extremist organizations that, combined with the detailed group profiles, is an invaluable resource to students, scholars, journalists, policy analysts, and others interested in violent oppositional organizations. The project helps identify patterns in, as well as causes and consequences of, violent extremist group evolution by describing and comparing the genealogy of different families of organizations. Genealogies are presented in interactive diagrams or “maps” that detail how groups form, split, merge, collaborate, compete, shift ideological direction, adopt or renounce violence, grow, shrink, and eventually decline over time.  The MMP research project also provides a database of detailed and documented group profiles. It develops computer software to assemble, organize, and display the profiles and genealogical information that researchers have produced."),
@@ -88,7 +94,7 @@ u <- shinyUI(fluidPage(
                                                HTML('</br>'),
                                                
                                                # input group name
-                                               textInput(inputId = 'inputGN', label='Search profile'),
+                                               textInput(inputId = 'inputGN', label='Search profile:'),
                                                conditionalPanel(condition='input.inputGN != ""',
                                                                 htmlOutput(outputId='gn_list')),
                                                
@@ -103,7 +109,7 @@ u <- shinyUI(fluidPage(
                                                ),
                                                HTML('</br>'),
                                                selectInput("selectStatus",
-                                                           "Highlight one status",
+                                                           "Highlight One status:",
                                                            selected = 0,
                                                            choices = c("None"=0,
                                                                        "Affiliates"=5, 

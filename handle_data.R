@@ -75,6 +75,7 @@ load_edges_data <- function()
   if(length(ignore_row_idx) >= 1)
     rel <- rel[-ignore_row_idx,]
   rel$type <- factor(rel$type, levels=unique(rel$type))
+
   rel
 }
 

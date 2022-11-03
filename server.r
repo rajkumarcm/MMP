@@ -19,7 +19,6 @@ source('hierarchical.R', local=T)
 # House Keeping Parameters---------------
 mm_map_name <- ''
 animate <- F
-# browser()
 df_nodes.copy <- unique(df_nodes[, c('id', 'label', 'level', 'active', 
                                           'URL', 'endyear')]) %>%
                  arrange(label) %>% filter(label != "")
@@ -300,21 +299,20 @@ s <- shinyServer(function(input, output, session){
   })
   
   observeEvent(input$link_nid, {
-
-    url <- unique(triggered_nodes()[triggered_nodes()$id==input$link_nid & 
-                      (triggered_nodes()$map_name==input$map_name | input$map_name=='All'), "URL"])
-    # browser()
-    gname <- unique(triggered_nodes()[triggered_nodes()$id==input$link_nid & 
-                        (triggered_nodes()$map_name==input$map_name | input$map_name=='All'), "label"])
+    browser()
+    tmp.df <- df_nodes[df_nodes$id==input$link_nid, c("URL", "label")]
+    url <- tmp.df$URL
+    
     if(is.na(url))
     {
       url <- "#"
-    }else if (length(url)==0)
+    }
+    else if(length(url)==0)
     {
       url <- "#"
     }
     output$link <- renderUI({
-      HTML(sprintf("<a href='%s'>%s</a>", url, gname))
+      HTML(sprintf("<a href='%s'>%s</a>", url, tmp.df$label))
     })
   })
   

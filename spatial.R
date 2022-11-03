@@ -42,7 +42,7 @@ get_spatial_visNetwork <- function(nodes, edges)
   legend.df$label <- ""
   legend.df[legend.df$shape=='star', 'label'] <- 'US or UN'
   legend.df[legend.df$shape=='diamond', 'label'] <- 'Only US'
-  legend.df[legend.df$shape=='triangle', 'label'] <- 'US or UN, and State Sponsored'
+  legend.df[legend.df$shape=='triangle', 'label'] <- 'State-Designated Terrorist'
   legend.df[legend.df$shape=='square', 'label'] <- 'None'
   visNetwork(nodes,
              edges,
@@ -51,7 +51,7 @@ get_spatial_visNetwork <- function(nodes, edges)
               addNodes=legend.df, stepY=150, stepX=150) %>%
     visEvents(type='on',
               select = "function(properties) {
-     Shiny.setInputValue('link_nid', properties.nodes);}",
+                          Shiny.setInputValue('link_nid', properties.nodes);}",
               stabilizationProgress = "function(params){
                     Shiny.setInputValue('updatePB', params);
                 }",
