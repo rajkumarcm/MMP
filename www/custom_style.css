@@ -724,7 +724,19 @@ div.outerBorder {
   flex-direction:row;
 }
 
+#chkbx_filter_div
+{
+  height:164px;
+  width:320px;
+  display:flex;
+  flex-direction:row;
+}
 
+.sub_chkbx_filter_div
+{
+  position:relative;
+  width:50%; 
+}
 
 
 

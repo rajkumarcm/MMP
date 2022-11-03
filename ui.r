@@ -98,14 +98,25 @@ u <- shinyUI(fluidPage(
                                                conditionalPanel(condition='input.inputGN != ""',
                                                                 htmlOutput(outputId='gn_list')),
                                                
-                                               checkboxGroupInput("filterEdges",
-                                                                  "Filter relationship:",
-                                                                  selected = unique(df$status_id),
-                                                                  choices = c("Affiliates"=5, 
-                                                                              "Allies"=2, 
-                                                                              "Mergers"=3,
-                                                                              "Rivals"=1,
-                                                                              "Splinters"=4)
+                                               div(id="chkbx_filter_div",
+                                                   div(class="sub_chkbx_filter_div",
+                                                     checkboxGroupInput("filterEdges",
+                                                                        "Filter relationship:",
+                                                                        selected = unique(df$status_id),
+                                                                        choices = c("Affiliates"=5, 
+                                                                                    "Allies"=2, 
+                                                                                    "Mergers"=3,
+                                                                                    "Rivals"=1,
+                                                                                    "Splinters"=4)
+                                                                        )
+                                                       ),
+                                                   div(class="sub_chkbx_filter_div", 
+                                                       checkboxGroupInput("filterDesig",
+                                                                          label='Filter Designation',
+                                                                          choices=c('All','US','UN', 'State', 'Others'),
+                                                                          selected=c('All','US','UN', 'State', 'Others')
+                                                                         )
+                                                       )
                                                ),
                                                HTML('</br>'),
                                                selectInput("selectStatus",
@@ -116,8 +127,8 @@ u <- shinyUI(fluidPage(
                                                                        "Allies"=2, 
                                                                        "Mergers"=3,
                                                                        "Rivals"=1,
-                                                                       "Splinters"=4
-                                                           )),
+                                                                       "Splinters"=4)
+                                                          ),
                                                HTML('</br>'),
                                                sliderInput("range", round=T,
                                                            label = "Choose a start and end year:",
@@ -151,14 +162,6 @@ u <- shinyUI(fluidPage(
                                          div(id="nvf_mp",
                                              div(id="popDiv"),
                                              uiOutput("reg_hideDesc"),
-                                             div(id="filterDesig_div", 
-                                                 checkboxGroupInput("filterDesig",
-                                                                    label='Filter Designation',
-                                                                    choices=c('All','US','UN', 'State', 'Others'),
-                                                                    selected=c('All','US','UN', 'State', 'Others'),
-                                                                    inline=T
-                                                                    )
-                                                 ),
                                              visNetworkOutput("networkvisfinal",
                                                               width="100%", 
                                                               height="1000px"

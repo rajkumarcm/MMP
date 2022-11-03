@@ -157,8 +157,7 @@ s <- shinyServer(function(input, output, session){
       updateCheckboxGroupInput(session, inputId='filterDesig', 
                                label='Filter Designation',
                                choices=checkbox_choices,
-                               selected=checkbox_choices, inline=T
-                               )
+                               selected=checkbox_choices)
     # browser()
     get_spatial_visNetwork(nodes2(), edges())
   })
