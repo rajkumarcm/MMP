@@ -130,6 +130,7 @@ s <- shinyServer(function(input, output, session){
   # edges data.frame for legend
   # browser()
   ledges <- reactive({
+    loginfo('ledges reactive block is triggered...')
     tmp_df <- unique(filtered_df()[, c('status', 'color')])
     data.frame(color = tmp_df$color,
                label = tmp_df$status)
@@ -757,52 +758,47 @@ s <- shinyServer(function(input, output, session){
       svg_content <- get_h_legend(tmp.levels)
       HTML(
         paste0("
-        <style>
-          .legend_label
-          {
-            font-size:15pt;
-          }
-        </style>
-        <!--<h2 style='width:100px;'>Legend</h2>-->
-        </br>
-        <svg viewBox='0 0 130 3000' xmlns='http://www.w3.org/2000/svg'>",
-               paste0(
-                 svg_content, "</svg>"))
-      )
-    })
-    
-    reactive({
-        output$h_legend_sub <- renderUI({
-          # browser()
-          # ledges <- dfs()[[2]]
-          # ledges <- ledges[, c('status', 'color')]
-          # cnames <- colnames(ledges)
-          # cnames[cnames=='status'] <- 'label'
-          # colnames(ledges) <- cnames
-          svg_content1 <- get_legend(ledges(), include_second_line=F)
-          svg_content2 <- "
-                <circle cx='20' cy='200' r='20' fill='#97C2FC' />
-                <text x='60px' y='200' class='legend_label'>Original Node</text>
-                <circle cx='20' cy='260' r='20' fill='#FB7E81' />
-                <text x='60px' y='260' class='legend_label'>Clone Node</text>
-          "
-          svg_content <- paste(svg_content1, svg_content2)
-          HTML(
-            paste0("
             <style>
               .legend_label
               {
                 font-size:15pt;
               }
             </style>
-            <h2 style='width:100px;'>Legend</h2>
             </br>
-            <svg viewBox='0 0 200 1000' xmlns='http://www.w3.org/2000/svg'>",
-                   paste0(
-                     svg_content, "</svg>"))
-          )
-        })
+            <svg viewBox='0 0 130 3000' xmlns='http://www.w3.org/2000/svg'>",
+               paste0(svg_content, "</svg>"))
+      )
     })
+    
+
+      output$h_legend_sub <- renderUI({
+        loginfo('h_legend_sub triggered')
+        # browser()
+        
+        # svg_content1 <- get_legend(ledges(), include_second_line=F)
+        svg_content2 <- "
+              <circle cx='20' cy='50' r='10' fill='#97C2FC' />
+              <text x='60px' y='50' class='legend_label'>Original Node</text>
+              <circle cx='220' cy='50' r='10' fill='#FB7E81' />
+              <text x='255px' y='50' class='legend_label'>Clone Node</text>"
+        # svg_content <- paste(svg_content1, svg_content2)
+        svg_content <- svg_content2
+        HTML(
+          paste0("
+          <style>
+            .legend_label
+            {
+              font-size:15pt;
+            }
+          </style>
+          <!--<h2 style='width:100px;'>Legend</h2>-->
+          <!--</br>-->
+          <svg viewBox='0 0 400 1000' xmlns='http://www.w3.org/2000/svg'>",
+                 paste0(
+                   svg_content, "</svg>"))
+        )
+      })
+
     
     observeEvent(input$zoomDel, {
       # browser()

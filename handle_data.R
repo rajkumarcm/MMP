@@ -197,9 +197,9 @@ preprocess_df <- function(df)
   df$link_id <- 1:nrow(df)
   
   df$title =  ifelse(df$label=="affiliation" | df$label=="alliance", 
-                     paste0("An (lid:)", df$link_id, "", df$label, " occurred in ", df$year, 
+                     paste0("An ", df$label, " occurred in ", df$year, 
                             " between ", df$group1_name, " and ", df$group2_name),
-                     paste0("A (lid:)", df$link_id, "", df$label, " occurred in ", df$year, 
+                     paste0("A ", df$label, " occurred in ", df$year, 
                             " between ",  df$group1_name, " and ", df$group2_name))
   require(scales)
   # Each status will have its own color.

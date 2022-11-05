@@ -222,16 +222,19 @@ u <- shinyUI(fluidPage(
                                        '
                                      ),
                                        
-                                             div(id='footer', 
-                                               uiOutput(outputId="link"),
-                                               HTML("<img src='fullscreen.png' width='30px' height='30px' onmouseover='this.src=\"fullscreen_hover.png\";' onmouseout='this.src=\"fullscreen.png\";' onclick='toggleFS();' >")
-                                             )
+                                         div(id='footer', 
+                                           uiOutput(outputId="link"),
+                                           HTML("<img src='fullscreen.png' width='30px' height='30px' onmouseover='this.src=\"fullscreen_hover.png\";' onmouseout='this.src=\"fullscreen.png\";' onclick='toggleFS();' >")
+                                         )
                                      )
                                      )
                                      ,
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Hierarchical", 
+                                     
+                                     div(id="h_legend", 
+                                         uiOutput(outputId="h_legend_sub")),
                                      
                                      div(id='h_select_map', 
                                        selectInput("h_map_name",
@@ -249,8 +252,6 @@ u <- shinyUI(fluidPage(
                                          visNetworkOutput("visnetworktimeline", 
                                                           width="2477px",
                                                           height="1000px"),
-                                         
-                                         div(id="h_legend", uiOutput("h_legend_sub"))
                                        ),
                                      
                                      tags$script("
