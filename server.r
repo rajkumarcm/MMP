@@ -299,7 +299,6 @@ s <- shinyServer(function(input, output, session){
   })
   
   observeEvent(input$link_nid, {
-    browser()
     tmp.df <- df_nodes[df_nodes$id==input$link_nid, c("URL", "label")]
     url <- tmp.df$URL
     
@@ -397,7 +396,7 @@ s <- shinyServer(function(input, output, session){
       choice <- default_choices[choice_id]
       filtered_choices[[choice]] <- as.numeric(choice_id)
     }
-    updateSelectInput(session, 'selectStatus', label="Highlight one status",
+    updateSelectInput(session, 'selectStatus', label="Highlight one status:",
                       choices=filtered_choices)
   })
   
@@ -696,13 +695,11 @@ s <- shinyServer(function(input, output, session){
       cnames[cnames=='level'] <- 'year'
       colnames(nodes_mn) <- cnames
       
-      dfs <- preprocess_hdata(h_edges, nodes_mn)
-      nodes_mn <- dfs[[1]]
-      h_edges <- dfs[[2]]
-      
-      dfs <- get_all_done(nodes_mn, h_edges)
-      nodes_mn <- dfs[[1]]
-      # browser()
+      tmp.dfs <- preprocess_hdata(h_edges, nodes_mn)
+      nodes_mn <- tmp.dfs[[1]]
+      h_edges <- tmp.dfs[[2]]
+      tmp.dfs <- get_all_done(nodes_mn, h_edges)
+      nodes_mn <- tmp.dfs[[1]]
       nodes_mn<- nodes_mn %>% select(-width)
       # Inspect and understand where value is given to edges and what does this
       # attribute mean
@@ -710,13 +707,31 @@ s <- shinyServer(function(input, output, session){
       return(list(nodes_mn, h_edges))
     })
     
+    output$reg_hideDesc2 <- renderUI({
+      HTML(
+        "<script>
+           divs = document.getElementsByClassName('tab-pane active');
+           div = null;
+            for(i=0; i < divs.length; i++)
+            {
+                if(divs[i].getAttribute('data-value') == 'Hierarchical')
+                    div = divs[i];
+            }
+           div.addEventListener('click', hideDesc2);
+        </script>"
+      )
+    })
+    
     output$visnetworktimeline <- renderVisNetwork({
       tmp.edges <- dfs()[[2]]
       cnames <- colnames(tmp.edges)
+      cnames[cnames=='link_id'] <- 'id'
+      colnames(tmp.edges) <- cnames
       width_idx <- which(cnames=='width')
       tmp.edges <- tmp.edges[, -width_idx]
-
       
+      # debug_var <- dfs()[[1]] # DELETE AFTER INSPECTION...
+      # browser()
       visNetwork(dfs()[[1]], tmp.edges) %>%
         visEdges(
           arrows=list(to=list(enabled=T))) %>%
@@ -727,12 +742,14 @@ s <- shinyServer(function(input, output, session){
                                                        position: {x:650, y:450},
                                                        });
                                           
-                                         }")#,
+                                         }"),#,
                   # afterDrawing="function(){
                   #                           let pos = this.getViewPosition();
                   #                           let posY = pos.y;
                   #                           alert(posY);
                   #                       }"
+                  
+                  
                   ) %>%
         visEvents(zoom = "function(properties){
                             Shiny.setInputValue('zoomDel', properties);
@@ -740,19 +757,33 @@ s <- shinyServer(function(input, output, session){
                   dragEnd = "function(properties)
                               {
                                 Shiny.setInputValue('dragDel', properties);
+                              }",
+                  selectEdge = "function(properties){
+                                  Shiny.setInputValue('showDesc_h', 
+                                  [Math.random(), properties.edges]);
                               }"
                   ) %>%
         visInteraction(zoomView = F) %>%
         visOptions(autoResize=F)
     })
     
+   
+    
     h_networkProxy <- visNetworkProxy("visnetworktimeline")
+    
+     observeEvent(input$showDesc_h, {
+       loginfo('input$showDesc_h triggered')
+       link_id <- input$showDesc_h[[2]]
+       tmp <- dfs()[[2]]
+       description <- tmp[tmp$link_id==link_id, 'description']
+       session$sendCustomMessage('showDesc2', description)
+    })
     
     output$year_ruler_sub <- renderUI({
       
       #--------------------Timeline ruler---------------------------------------
       tmp.nodes <- dfs()[[1]]
-      
+      # browser()
       tmp.levels <- unique(tmp.nodes[, c('year', 'y')])
       tmp.levels <- tmp.levels %>% arrange(year)
       svg_content <- get_h_legend(tmp.levels)

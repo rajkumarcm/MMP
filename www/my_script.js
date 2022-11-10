@@ -42,9 +42,24 @@ function showDesc(label)
   popDiv.style.display ='block';
 }
 
+function showDesc2(description)
+{
+  var popDiv = document.getElementById("popDiv2");
+  popDiv.innerHTML = "<div id='divPopTxt'>"+
+                      description + "</div>" ;
+  popDiv.style.display ='block';
+}
+Shiny.addCustomMessageHandler('showDesc2', showDesc2);
+
 function hideDesc()
 {
   let popDiv = document.getElementById("popDiv");
+  popDiv.style.display ='none';
+}
+
+function hideDesc2()
+{
+  let popDiv = document.getElementById("popDiv2");
   popDiv.style.display ='none';
 }
 

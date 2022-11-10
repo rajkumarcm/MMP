@@ -221,7 +221,7 @@ preprocess_hdata <- function(edges, old_nodes)
         # second_edge represents the clone edge
         # browser()
         second_edge <- data.frame(from=new_edge$from, to=id,
-                                  link_id=NaN, old_link_id=NaN,
+                                  link_id=max(edges$link_id)+1, old_link_id=NaN,
                                   multiple=old_edge$multiple,
                                   status='Splinters', year=old_edge$year,
                                   group1_name=old_edge$group1_name,

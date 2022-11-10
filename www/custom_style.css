@@ -186,6 +186,35 @@ body
   overflow-y:auto;
 }
 
+#popDiv2
+{
+  position:absolute;
+  width:33%;
+  min-width:600px;
+  height:600px;
+  left:600px;
+  display:none;
+  z-index:10;
+  background-color:#404040;
+  border: 2px solid gray;
+  padding: 20px;
+  border-radius: 25px;
+  top:25%;
+  overflow-y:auto;
+  font-family: Merriweather;
+  font-size: 14pt;
+  color: gray;
+  text-align: justify;
+}
+
+#popDiv2 p
+{
+  font-family: Merriweather;
+  font-size: 14pt;
+  color: gray;
+  text-align: justify;
+}
+
 #divPopTxt
 {
   width:80%;
@@ -261,7 +290,7 @@ div:fullscreen
 #year_ruler
 {
   height:950px;
-  width:300px;
+  width:195px;
   overflow-y:clip;
   position:relative;
 }
@@ -278,8 +307,6 @@ div:fullscreen
   height:85px;
   width:400px;
   position:relative;
-  border-left-style:solid;
-  border-left-color:#ddd;
 }
 
 #h_legend_sub

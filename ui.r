@@ -232,6 +232,8 @@ u <- shinyUI(fluidPage(
                                      style = "background-color: #FCFCF3;"),
                             
                             tabPanel("Hierarchical", 
+                                     div(id="popDiv2"),
+                                     uiOutput("reg_hideDesc2"),
                                      
                                      div(id="h_legend", 
                                          uiOutput(outputId="h_legend_sub")),

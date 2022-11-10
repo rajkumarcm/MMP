@@ -597,7 +597,11 @@ get_h_legend <- function(levels)
   {
     prev_y <- levels[i, 'y']
     next_y <- levels[i+1, 'y']
-    edge_y <- prev_y + ((next_y - prev_y)/2) + 20 # 20 = offset
+    edge_y <- NA
+    if(i == 1)
+      edge_y <- prev_y + ((next_y - prev_y)/2) + 40 # 20 = offset
+    else
+      edge_y <- prev_y + ((next_y - prev_y)/2) + 70 # 20 = offset
     row <- data.frame(y=edge_y, year=levels[i+1, 'year'])
     
     if(is.null(new_levels))
