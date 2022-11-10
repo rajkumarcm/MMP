@@ -401,73 +401,73 @@ u <- shinyUI(fluidPage(
              tabPanel(title='Admin', id='admin', value="admin", 
                 mainPanel(
                   tabsetPanel(id = 'admin_tbsp', selected='admin_em',
-                    tabPanel(title='Edit Maps', value='admin_em',
-                     div(id='admin_em_sm',
+                    # tabPanel(title='Edit Maps', value='admin_em',
+                    #  div(id='admin_em_sm',
                          
-                         uiOutput(outputId='em_profiles'),
+                         # uiOutput(outputId='em_profiles'),
                          
-                         div(id='admin_em_mm',
-                           h2('Manage a Map'),
-                           div(class="save_button_container", 
-                              actionButton(inputId='em_mp_save',
-                                           label='Save Changes'),
-                              actionButton(inputId='em_mp_back',
-                                           label='Back')),
-                             # Closing admin_em_mm
-                                                  
-                             HTML('<div id="admin_em_mm_node_details" class="admin_em_mm_container">
-                                   <table class="em_mm_table">
-                                   <tr>
-                                   <td><h4>Name</h4></td>
-                                   <td><input type="text" id="em_mp_name"  name="em_mp_name" class="emfield_input" /></td>
-                                   </tr>
-                                   
-                                   <tr>
-                                   <td><h4>URL</h4></td>
-                                   <td><input type="text" id="em_mp_url"  name="em_mp_url" class="emfield_input" /></td>
-                                   </tr>
-                                   
-                                   <tr>
-                                   <td><h4>Description</h4></td>
-                                   <td><textarea id="em_mp_desc" class="emfield_input" maxlength="500"></textarea></td>
-                                   </tr>
-                                   
-                                   <tr>
-                                   <td><h4>Start year</h4></td>
-                                   <td><input type="text" id="em_mp_sy"  name="em_mp_sy" class="emfield_input" /></td>
-                                   </tr>
-                                   
-                                   <tr>
-                                   <td><h4>End year</h4></td>
-                                   <td><input type="text" id="em_mp_ey"  name="em_mp_ey" class="emfield_input" /></td>
-                                   </tr>
-                                   
-                                   <tr>
-                                   <td><h4>Published</h4></td>
-                                   <td><input type="checkbox" id="em_mp_pub"  name="em_mp_pub" /></td>
-                                   </tr>
-                                   
-                                   </table></br></br></div>
-                                '),
-                                                  
-                             HTML('<div id="admin_em_mm_zoom_levels" class="admin_em_mm_container">
-                                     <h2>ZOOM LEVELS</h2>
-                                     <select name="zoom_levels", id="zoom_levels"></select>
-                                   </div>
-                                  '),
-                            
-                             HTML('
-                                  <div id="admin_em_mm_groups" class="admin_em_mm_container">
-                                    <h2>INCLUDED GROUPS</h2>
-                                    <div id="included_groups" class="admin_em_mm_container" style="width:600px;">'),
-                             dataTableOutput(outputId='includedGroupsTable'),
-                             HTML('            
-                                   </div>
-                                   </div>
-                                 ') 
-                         ),
-                       ) # Closing admin_em_sm
-                      ), # Closing tabPanel(Edit Maps, admin_em)
+                         # div(id='admin_em_mm',
+                      #      h2('Manage a Map'),
+                      #      div(class="save_button_container", 
+                      #         actionButton(inputId='em_mp_save',
+                      #                      label='Save Changes'),
+                      #         actionButton(inputId='em_mp_back',
+                      #                      label='Back')),
+                      #        # Closing admin_em_mm
+                      #                             
+                      #        HTML('<div id="admin_em_mm_node_details" class="admin_em_mm_container">
+                      #              <table class="em_mm_table">
+                      #              <tr>
+                      #              <td><h4>Name</h4></td>
+                      #              <td><input type="text" id="em_mp_name"  name="em_mp_name" class="emfield_input" /></td>
+                      #              </tr>
+                      #              
+                      #              <tr>
+                      #              <td><h4>URL</h4></td>
+                      #              <td><input type="text" id="em_mp_url"  name="em_mp_url" class="emfield_input" /></td>
+                      #              </tr>
+                      #              
+                      #              <tr>
+                      #              <td><h4>Description</h4></td>
+                      #              <td><textarea id="em_mp_desc" class="emfield_input" maxlength="500"></textarea></td>
+                      #              </tr>
+                      #              
+                      #              <tr>
+                      #              <td><h4>Start year</h4></td>
+                      #              <td><input type="text" id="em_mp_sy"  name="em_mp_sy" class="emfield_input" /></td>
+                      #              </tr>
+                      #              
+                      #              <tr>
+                      #              <td><h4>End year</h4></td>
+                      #              <td><input type="text" id="em_mp_ey"  name="em_mp_ey" class="emfield_input" /></td>
+                      #              </tr>
+                      #              
+                      #              <tr>
+                      #              <td><h4>Published</h4></td>
+                      #              <td><input type="checkbox" id="em_mp_pub"  name="em_mp_pub" /></td>
+                      #              </tr>
+                      #              
+                      #              </table></br></br></div>
+                      #           '),
+                      #                             
+                      #        HTML('<div id="admin_em_mm_zoom_levels" class="admin_em_mm_container">
+                      #                <h2>ZOOM LEVELS</h2>
+                      #                <select name="zoom_levels", id="zoom_levels"></select>
+                      #              </div>
+                      #             '),
+                      #       
+                      #        HTML('
+                      #             <div id="admin_em_mm_groups" class="admin_em_mm_container">
+                      #               <h2>INCLUDED GROUPS</h2>
+                      #               <div id="included_groups" class="admin_em_mm_container" style="width:600px;">'),
+                      #        dataTableOutput(outputId='includedGroupsTable'),
+                      #        HTML('            
+                      #              </div>
+                      #              </div>
+                      #            ') 
+                      #    ),
+                      #  ) # Closing admin_em_sm
+                      # ), # Closing tabPanel(Edit Maps, admin_em)
                      tabPanel(title='Edit Profiles', value='admin_ep1',
                         div(id='admin_ep_sp1',
                           HTML('</br>'),

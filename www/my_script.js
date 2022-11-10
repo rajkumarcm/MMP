@@ -280,7 +280,6 @@ function new_rel_trigger(_)
   //let multiple = document.getElementById('new_rel_multiple').value;
   
   jsonObj = {"type":type, "desc":desc, "year":year};
-  console.log('new_rel_trigger triggered')
   
   Shiny.setInputValue('newRel_schanges', jsonObj);
 }

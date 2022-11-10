@@ -718,8 +718,13 @@ s <- shinyServer(function(input, output, session){
                     div = divs[i];
             }
            div.addEventListener('click', hideDesc2);
+           div.addEventListener('click', Shiny.setInputValue('deSelectAll', Math.random()));
         </script>"
       )
+    })
+    
+    observeEvent(input$deSelectAll, {
+      h_networkProxy %>% visUnselectAll()
     })
     
     output$visnetworktimeline <- renderVisNetwork({
@@ -772,7 +777,7 @@ s <- shinyServer(function(input, output, session){
     h_networkProxy <- visNetworkProxy("visnetworktimeline")
     
      observeEvent(input$showDesc_h, {
-       loginfo('input$showDesc_h triggered')
+       # loginfo('input$showDesc_h triggered')
        link_id <- input$showDesc_h[[2]]
        tmp <- dfs()[[2]]
        description <- tmp[tmp$link_id==link_id, 'description']
