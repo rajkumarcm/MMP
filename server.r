@@ -536,7 +536,8 @@ s <- shinyServer(function(input, output, session){
       
       # Embed location information to both first and the second groups in the 
       # edges dataframe.
-      tmp.edges <- unique(df[, c('from', 'to')] )
+      tmp.edges <- unique(df[(df$map_name==input$g_map_name |
+                              input$g_map_name=='All'), c('from', 'to')] )
       tmp.edges <- tmp.edges %>% inner_join(unique(triggered_nodes()[, c('id', 'hq_country')]), 
                                             by=c('from'='id'), copy=T)
       cnames <- colnames(tmp.edges)
