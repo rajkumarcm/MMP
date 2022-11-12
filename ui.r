@@ -27,7 +27,6 @@ u <- shinyUI(fluidPage(
                           HTML("<h2>&nbsp;Mapping Militants Project</h2>")),
                           tags$br(),
                           tags$p("This app lets you manipulate, explore, and download the Mapping Militants Project (MMP) data. It was created in Shiny using R (V 4.2.1)"),
-                          tags$br(),
                           tags$p("MMP records information about 112 different groups and 712 different relationships among these groups across 15 global conflict theaters."),
                           # tags$br(),
                           tags$p("This app has the following main functionalities:"),
