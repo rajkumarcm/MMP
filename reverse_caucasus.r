@@ -2,7 +2,7 @@ original.df <- read.csv('relationshipsmmp.csv', header=T)
 indices <- which(original.df$map_name=='North Caucasus' &
                  original.df$type=='Mergers' &
                  original.df$group1_name=='Caucasus Emirate')
-browser()
+# browser()
 caucasus_emirate <- original.df[indices, ]
 caucasus_emirate <- data.frame(link_id=caucasus_emirate$link_id,
                                type=caucasus_emirate$status,
@@ -18,5 +18,5 @@ caucasus_emirate <- data.frame(link_id=caucasus_emirate$link_id,
 
 original.df <- original.df[-indices,]
 new.df <- rbind(original.df, caucasus_emirate)
-browser()
+# browser()
 write.csv(file='relationship_caucasus_fixed.csv', x=new.df)

@@ -1,7 +1,7 @@
 body
 {
    /*background-color:#eeeeee;*/
-   background-color:#FCFCF3;
+   background-color:#f0f0f0;
    min-width: 1200px;
    min-height:1000px;
    width:1600px;
@@ -15,12 +15,12 @@ body
 
 .navbar-default
 {
-  background-color:#FCFCF9;
+  background-color:#f0f0f0;
 }
 
 .tab-pane 
 {
-  background-color:#FCFCF3;
+  background-color:#f0f0f0;
 }
 
 .tab-pane.active
@@ -35,7 +35,7 @@ body
   height:800px;
   position:relative;
   top:200px;
-  background-color:#d9d9d9;
+  background-color:#f0f0f0;
 }
 
 #sp2
@@ -222,7 +222,7 @@ body
   margin-left:auto;
   margin-right:auto;
   margin-top:8%;
-  color:#FCFCE5;
+  color:#C0C0C0;
   transform:uppercase;
 }
 
@@ -236,7 +236,7 @@ body
 {
   width:100%;
   height:33px;
-  background-color:#FCFCF9;
+  background-color:#f0f0f0;
   opacity:0.5;
   display:flex;
 }
@@ -266,7 +266,7 @@ body
 
 div:fullscreen
 {
-  background-color:#FCFCF3;
+  background-color:#f0f0f0;
 }
 
 #h_select_map
@@ -468,7 +468,7 @@ div.outerBorder {
 {
   height:100%;
   width:100%;
-  background-color:#FCFCF3;
+  background-color:#f0f0f0;
 }
 
 .admin_table {

@@ -254,7 +254,7 @@ profile_names <- profile_names[profile_names != "" & !is.na(profile_names)]
 profile_names <- data.frame(label=profile_names) %>% arrange(label)
 profile_names <- profile_names$label
 # browser()
-loginfo('Finished global.R')
+# loginfo('Finished global.R')
 
 
 

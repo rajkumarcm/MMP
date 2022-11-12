@@ -228,7 +228,7 @@ u <- shinyUI(fluidPage(
                                      )
                                      )
                                      ,
-                                     style = "background-color: #FCFCF3;"),
+                                     style = "background-color: #f0f0f0;"),
                             
                             tabPanel("Hierarchical", 
                                      div(id="popDiv2"),
@@ -284,7 +284,7 @@ u <- shinyUI(fluidPage(
                                     
                                     "),
                                      
-                                     style = "background-color: #FCFCF3;"),
+                                     style = "background-color: #f0f0f0;"),
                             
 
                             tabPanel("Geographical",
@@ -292,7 +292,7 @@ u <- shinyUI(fluidPage(
                                                  choices=maps,
                                                   selected=maps[1]),
                                      plotOutput("geoMap", height="810px", width="1411px"),
-                                     style = "background-color: #FCFCF3;"),
+                                     style = "background-color: #f0f0f0;"),
 
                             tabPanel("Statistics",
 
@@ -303,8 +303,9 @@ u <- shinyUI(fluidPage(
                                                        choices=c('General'='General',
                                                                  'Map'='Map',
                                                                  'Active Groups'='ActiveGroups',
-                                                                 'Number of Profiles/Map'='NProfilesInMap',
-                                                                 'Top 5 Profiles'='top5profiles'),
+                                                                 'Number of Profiles/Map'='NProfilesInMap'#,
+                                                                 #'Top 5 Profiles'='top5profiles'
+                                                                 ),
                                                        selected='General'),
                                            width=4
                                          ),
@@ -355,10 +356,10 @@ u <- shinyUI(fluidPage(
                                                             )
                                                             
                                            ),
-                                           
-                                           conditionalPanel('input.stat_level=="top5profiles"',
-                                                            plotOutput("top.profiles.most.edges")
-                                                            ),
+                                           # 
+                                           # conditionalPanel('input.stat_level=="top5profiles"',
+                                           #                  plotOutput("top.profiles.most.edges")
+                                           #                  ),
                                            
                                            conditionalPanel('input.stat_level="ttest"',
                                                             textOutput("showTtest")
@@ -379,7 +380,7 @@ u <- shinyUI(fluidPage(
              
              tabPanel(title='Admin', id='admin', value="admin", 
                 mainPanel(
-                  tabsetPanel(id = 'admin_tbsp', selected='admin_em',
+                  tabsetPanel(id = 'admin_tbsp', selected='admin_ep1',
                     
                      tabPanel(title='Edit Profiles', value='admin_ep1',
                         div(id='admin_ep_sp1',
@@ -592,7 +593,7 @@ u <- shinyUI(fluidPage(
   ),
   
   div(id='logo_div', 
-      HTML('<img src="mmp-white.png" style="width:10%; margin-left:90%;" alt="MMP Logo">')
+      HTML('<img src="mmp-white.png" style="width:7%; margin-left:0%;" alt="MMP Logo">')
       )
   
   )

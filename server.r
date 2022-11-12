@@ -44,7 +44,7 @@ s <- shinyServer(function(input, output, session){
   
   reactive_df <- reactive({
     tmp <- observe(triggered_df(), {
-      loginfo('df triggered')
+      # loginfo('df triggered')
       return(triggered_df())
     })
     return(tmp)
@@ -52,7 +52,7 @@ s <- shinyServer(function(input, output, session){
   
   triggered_nodes <- reactive({
     tmp <- observe(reactive_df_node(), {
-      loginfo('nodes triggered')
+      # loginfo('nodes triggered')
       return(reactive_df_node())
     })
     return(tmp)
@@ -130,7 +130,7 @@ s <- shinyServer(function(input, output, session){
   # edges data.frame for legend
   # browser()
   ledges <- reactive({
-    loginfo('ledges reactive block is triggered...')
+    # loginfo('ledges reactive block is triggered...')
     tmp_df <- unique(filtered_df()[, c('status', 'color')])
     data.frame(color = tmp_df$color,
                label = tmp_df$status)
@@ -560,7 +560,7 @@ s <- shinyServer(function(input, output, session){
       
       # Assign ID for HQC as if you would for nodes
       tmp.nodes <- unique(c(tmp.edges$g1_hqc, tmp.edges$g2_hqc))
-      loginfo(sprintf('tmp.nodes %d',nrow(tmp.nodes)))
+      # loginfo(sprintf('tmp.nodes %d',nrow(tmp.nodes)))
       
       tmp.nodes <- data.frame(id=seq(1,length(tmp.nodes)), hqc=tmp.nodes)
       
@@ -881,8 +881,9 @@ s <- shinyServer(function(input, output, session){
     })
       
       growth_by_prof <- reactive({
-        tmp.df <- triggered_nodes() %>% inner_join(nodes[, c('id', 'between')], by='id')
-        tmp.df <- unique(tmp.df[, c('label', 'init_size_members', 
+        # tmp.df <- df_nodes %>% inner_join(nodes[, c('id', 'between')], by='id')
+        # browser()
+        tmp.df <- unique(df_nodes[, c('label', 'init_size_members', 
                                     'max_size_members', 'between', 
                                     'level', 'endyear')])
         tmp.df <- tmp.df[(!is.na(tmp.df$init_size_members)) & 
@@ -899,12 +900,14 @@ s <- shinyServer(function(input, output, session){
         tmp.df$max_size_members <- clean_size_members(tmp.df$max_size_members)
         tmp.df$max_size_members <- as.integer(tmp.df$max_size_members)
         
-        growth_by_profile <- tmp.df %>%
-          group_by(label) %>% 
-          summarise(init_size=mean(init_size_members),
-                    max_size=mean(max_size_members),
-                    between=mean(between),
-                    period=mean(period))
+        growth_by_profile <- tmp.df[, c('label', 'init_size_members',
+                                        'max_size_members', 'between',
+                                        'period')] %>%
+                                group_by(label) %>% 
+                                summarise(init_size=mean(init_size_members),
+                                          max_size=mean(max_size_members),
+                                          between=mean(between),
+                                          period=mean(period))
         attach(growth_by_profile)
         growth_by_profile$growth <- (max_size-init_size)/period
         detach(growth_by_profile)
@@ -914,7 +917,7 @@ s <- shinyServer(function(input, output, session){
       })
       
       output$membersGrowth <- renderPlot({
-        
+        # browser()
         ggplot(growth_by_prof(), aes(x=reorder(label, growth), 
                                              y=growth, fill=between)) +
         geom_bar(stat='identity') +
@@ -978,12 +981,26 @@ s <- shinyServer(function(input, output, session){
       
       #----------Number of active groups per year-------------------------------
       output$activeg_year <- renderPlot({
-
-        ag_df <- unique(triggered_nodes()[triggered_nodes()$active==1 & 
-                                          triggered_nodes()$level!=0 &
-                                          !is.na(triggered_nodes()$map_name), 
-                                 c('label', 'map_name', 'level', 'active')]) %>% 
-                    
+        # browser()
+        
+        tmp.df_nodes <- NULL
+        for(map_name in maps[2:length(maps)])
+        {
+          tmp.df <- df[df$primary==map_name, c('from', 'to')]
+          tmp.nodes <- unique(c(tmp.df$from, tmp.df$to))
+          tmp.nodes <- data.frame(id=tmp.nodes, map_name=map_name)
+          tmp.nodes <- tmp.nodes %>% inner_join(df_nodes, by='id')
+          if(is.null(tmp.df_nodes))
+            tmp.df_nodes <- tmp.nodes
+          else
+            tmp.df_nodes <- rbind(tmp.df_nodes, data.frame(tmp.nodes))
+        }
+        tmp.df_nodes <- data.frame(tmp.df_nodes)
+        # browser()
+        
+        ag_df <- unique(tmp.df_nodes[tmp.df_nodes$active==1 & 
+                                     tmp.df_nodes$level!=0,
+                                     c('label', 'map_name', 'level', 'active')]) %>% 
                  group_by(map_name, level) %>% summarise(count=n())
         ag_df <- drop_na(ag_df)
         # ag_df <- data.frame(ag_df) %>% filter(level != 0)
@@ -1005,10 +1022,23 @@ s <- shinyServer(function(input, output, session){
       #-------------Number of profiles per map----------------------------------
       
       output$nprofiles_map <- renderPlot({
-        tmp.df_nodes <- unique(triggered_nodes()[triggered_nodes()$active==1 & 
-                                                   triggered_nodes()$level!=0 &
-                                          !is.na(triggered_nodes()$map_name), 
-                                        c('label', 'map_name', 'level', 'active')])
+        tmp.df_nodes <- NULL
+        for(map_name in maps[2:length(maps)])
+        {
+          tmp.df <- df[df$primary==map_name, c('from', 'to')]
+          tmp.nodes <- unique(c(tmp.df$from, tmp.df$to))
+          tmp.nodes <- data.frame(id=tmp.nodes, map_name=map_name)
+          tmp.nodes <- tmp.nodes %>% inner_join(df_nodes, by='id')
+          if(is.null(tmp.df_nodes))
+            tmp.df_nodes <- tmp.nodes
+          else
+            tmp.df_nodes <- rbind(tmp.df_nodes, data.frame(tmp.nodes))
+        }
+        tmp.df_nodes <- data.frame(tmp.df_nodes)
+        
+        tmp.df_nodes <-unique(tmp.df_nodes[tmp.df_nodes$active==1 & 
+                                           tmp.df_nodes$level!=0,
+                                           c('label', 'map_name', 'level', 'active')])
         tmp.df_nodes <- tmp.df_nodes %>% group_by(map_name) %>%
                                          summarise(count=n()) %>%
                                          arrange(desc(count))
@@ -1037,47 +1067,50 @@ s <- shinyServer(function(input, output, session){
         
       })
       
-      output$top.profiles.most.edges <- renderPlot({
-        
-        top_profiles <- NULL
-        for(i in 2:length(maps))
-        {
-          mname <- maps[i]
-          unique.nodes <- unique(triggered_nodes()[triggered_nodes()$map_name==mname, 'label'])
-          tmp.profiles <- NULL
-          for(j in 1:length(unique.nodes))
-          {
-            node_label <- unique.nodes[j]
-            n <- nrow(unique(df[df$group1_name == node_label |
-                         df$group2_name == node_label,]))
-            # browser()
-            if(is.null(tmp.profiles))
-              tmp.profiles <- data.frame(map_name=mname, label=node_label, n=n)
-            else
-              tmp.profiles <- rbind(top_profiles, 
-                                    data.frame(map_name=mname, label=node_label, n=n))
-          }
-          tmp.profiles <- tmp.profiles %>% arrange(desc(n))
-          tmp.profiles <- tmp.profiles[1:5,]
-          
-          if(is.null(top_profiles))
-            top_profiles <- tmp.profiles
-          else
-            top_profiles <- rbind(top_profiles, tmp.profiles)
-        }
-        
-        ggplot(top_profiles, aes(x=label, y=n)) +
-        geom_bar(stat='identity') +
-          xlab('Profile Name') +
-          ylab('Number of edges') +
-          ggtitle('Number of unique profiles in each map')
-          # theme(axis.text = element_text(size = 20, angle=90),
-          #       plot.title = element_text(size=30),
-          #       axis.title.x = element_text(size=20),
-          #       axis.title.y = element_text(size=20)) +
-          # facet_wrap(~map_name, scales='free')
-        
-      })
+      # output$top.profiles.most.edges <- renderPlot({
+      #   
+      #   top_profiles <- NULL
+      #   for(i in 2:length(maps))
+      #   {
+      #     mname <- maps[i]
+      #     tmp.df_nodes <- NULL
+      # 
+      #     unique.nodes <- unique(df[df$primary==mname, 'label'])
+      # 
+      #     tmp.profiles <- NULL
+      #     for(j in 1:length(unique.nodes))
+      #     {
+      #       node_label <- unique.nodes[j]
+      #       n <- nrow(unique(df[df$group1_name == node_label |
+      #                           df$group2_name == node_label,]))
+      #       # browser()
+      #       if(is.null(tmp.profiles))
+      #         tmp.profiles <- data.frame(map_name=mname, label=node_label, n=n)
+      #       else
+      #         tmp.profiles <- rbind(top_profiles, 
+      #                               data.frame(map_name=mname, label=node_label, n=n))
+      #     }
+      #     tmp.profiles <- tmp.profiles %>% arrange(desc(n))
+      #     tmp.profiles <- tmp.profiles[1:5,]
+      #     
+      #     if(is.null(top_profiles))
+      #       top_profiles <- tmp.profiles
+      #     else
+      #       top_profiles <- rbind(top_profiles, tmp.profiles)
+      #   }
+      #   
+      #   ggplot(top_profiles, aes(x=label, y=n)) +
+      #   geom_bar(stat='identity') +
+      #     xlab('Profile Name') +
+      #     ylab('Number of edges') +
+      #     ggtitle('Number of unique profiles in each map')
+      #     # theme(axis.text = element_text(size = 20, angle=90),
+      #     #       plot.title = element_text(size=30),
+      #     #       axis.title.x = element_text(size=20),
+      #     #       axis.title.y = element_text(size=20)) +
+      #     # facet_wrap(~map_name, scales='free')
+      #   
+      # })
       
       # For t-test
       # browser()
@@ -1412,7 +1445,7 @@ s <- shinyServer(function(input, output, session){
     observeEvent(input$showIncludedGroups, {
       map_name <- input$showIncludedGroups
       map_name <- str_split(map_name, '~@~')[[1]][1]
-      logging::loginfo(map_name)
+      # logging::loginfo(map_name)
       nodes_under_mn <- data.frame(Profile=triggered_nodes()[triggered_nodes()$map_name==map_name, c('label')])
       output$includedGroupsTable <- renderDataTable(
         nodes_under_mn
@@ -1588,7 +1621,7 @@ s <- shinyServer(function(input, output, session){
         d.profile_names <<- NULL
         
         # Re-assign....
-        browser()
+        # browser()
         df_nodes.copy <<- unique(triggered_nodes()[, c('id', 'label', 'level', 'active', 
                                                    'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy
