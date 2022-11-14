@@ -26,22 +26,24 @@ u <- shinyUI(fluidPage(
                           tags$div(id='about_title_div',
                           HTML("<h2>&nbsp;Mapping Militants Project</h2>")),
                           tags$br(),
-                          tags$p("This app lets you manipulate, explore, and download the Mapping Militants Project (MMP) data. It was created in Shiny using R (V 4.2.1)"),
-                          tags$p("MMP records information about 112 different groups and 712 different relationships among these groups across 15 global conflict theaters."),
-                          # tags$br(),
-                          tags$p("This app has the following main functionalities:"),
-                          tags$ul(
-                                   tags$li("The Download the Data tab generates downloadable portions of the MMP relational edge and node data."),
-                                   tags$li("The Visualize the Data tab generates different network diagrams including a spatial, hierarchical, and geographic map. You can choose the maps, groups, and relationships to visualize. There is also an option to generate descriptive statistics and information regarding the MMP data")
-                                  ),
-                          tags$br(),
+                          
                           tags$div(id="mpp_video", 
                                     HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/5Gj_l0x-SEQ" title="CISAC Who We Are REVISED" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
                                    ),
                           tags$br(),
                           tags$p("The MMP research project traces the evolution of militant organizations and the interactions that develop among them over time. Findings are presented in interactive “maps,” which provide both (1) visual representations of how relationships among militant organizations change over time and (2) links to in-depth profiles of individual groups. The project provides uniquely accessible and clear genealogical information about violent extremist organizations that, combined with the detailed group profiles, is an invaluable resource to students, scholars, journalists, policy analysts, and others interested in violent oppositional organizations. The project helps identify patterns in, as well as causes and consequences of, violent extremist group evolution by describing and comparing the genealogy of different families of organizations. Genealogies are presented in interactive diagrams or “maps” that detail how groups form, split, merge, collaborate, compete, shift ideological direction, adopt or renounce violence, grow, shrink, and eventually decline over time.  The MMP research project also provides a database of detailed and documented group profiles. It develops computer software to assemble, organize, and display the profiles and genealogical information that researchers have produced."),
                           tags$br(),
-                          tags$p("From 2009 to 2012, MMP was funded by an award from the Social and Behavioral Dimensions of National Security, Conflict, and Cooperation competition, a joint venture between the National Science Foundation and the Department of Defense. From 2012 to 2019 the research was supported by Stanford University, including the Freeman Spogli Institute for International Studies Policy Implementation Lab. In 2019, the project received funding from the", tags$a(href = "https://www.unomaha.edu/ncite/index.php", "National Counterterrorism, Innovation, Technology, and Education Center (NCITE)", .noWS = "outside"), " a U.S. Department of Homeland Security Center of Excellence.  The project relies primarily on research assistance from Stanford undergraduate and graduate students.", '!', .noWS = c("after-begin", "before-end"))
+                          tags$p("From 2009 to 2012, MMP was funded by an award from the Social and Behavioral Dimensions of National Security, Conflict, and Cooperation competition, a joint venture between the National Science Foundation and the Department of Defense. From 2012 to 2019 the research was supported by Stanford University, including the Freeman Spogli Institute for International Studies Policy Implementation Lab. In 2019, the project received funding from the", tags$a(href = "https://www.unomaha.edu/ncite/index.php", "National Counterterrorism, Innovation, Technology, and Education Center (NCITE)", .noWS = "outside"), " a U.S. Department of Homeland Security Center of Excellence.  The project relies primarily on research assistance from Stanford undergraduate and graduate students.", '!', .noWS = c("after-begin", "before-end")),
+                          tags$br(),
+                          tags$p("This app lets you manipulate, explore, and download the Mapping Militants Project (MMP) data. It was created in Shiny using R (V 4.2.1)"),
+                          tags$p("MMP records information about 112 different groups and 712 different relationships among these groups across 15 global conflict theaters."),
+                          # tags$br(),
+                          tags$p("This app has the following main functionalities:"),
+                          tags$ul(
+                            tags$li("The Download the Data tab generates downloadable portions of the MMP relational edge and node data."),
+                            tags$li("The Visualize the Data tab generates different network diagrams including a spatial, hierarchical, and geographic map. You can choose the maps, groups, and relationships to visualize. There is also an option to generate descriptive statistics and information regarding the MMP data")
+                          ),
+                          tags$br(),
                           )
                       ),
              
@@ -50,7 +52,7 @@ u <- shinyUI(fluidPage(
                         div(id="dd_sp",
                             
                           selectInput("dd_map_name",
-                                      "Select map:",
+                                      "Select Map:",
                                       # For debugging purposes change to maps[1] once finished
                                       selected = maps[1],
                                       choices = maps),
@@ -85,22 +87,22 @@ u <- shinyUI(fluidPage(
                                            div(id="spatial_legend",
                                                h2("Options"),
                                                selectInput("map_name",
-                                                           "Select map:",
+                                                           "Select Map:",
                                                            # For debugging purposes change to maps[1] once finished
-                                                           selected = maps[map_idx],
+                                                           selected = maps[1],
                                                            choices = maps),
                                                
                                                HTML('</br>'),
                                                
                                                # input group name
-                                               textInput(inputId = 'inputGN', label='Search profile:'),
+                                               textInput(inputId = 'inputGN', label='Search Profile:'),
                                                conditionalPanel(condition='input.inputGN != ""',
                                                                 htmlOutput(outputId='gn_list')),
                                                
                                                div(id="chkbx_filter_div",
                                                    div(class="sub_chkbx_filter_div",
                                                      checkboxGroupInput("filterEdges",
-                                                                        "Filter relationship:",
+                                                                        "Filter Relationship:",
                                                                         selected = unique(df$status_id),
                                                                         choices = c("Affiliates"=5, 
                                                                                     "Allies"=2, 
@@ -111,7 +113,7 @@ u <- shinyUI(fluidPage(
                                                        ),
                                                    div(class="sub_chkbx_filter_div", 
                                                        checkboxGroupInput("filterDesig",
-                                                                          label='Filter Designation',
+                                                                          label='Filter Designation:',
                                                                           choices=c('All','US','UN', 'State', 'Others'),
                                                                           selected=c('All','US','UN', 'State', 'Others')
                                                                          )
@@ -239,7 +241,7 @@ u <- shinyUI(fluidPage(
                                      
                                      div(id='h_select_map', 
                                        selectInput("h_map_name",
-                                                   "Select map:",
+                                                   "Select Map:",
                                                    # For debugging purposes change to maps[1] once finished
                                                    selected = 'Iraq',
                                                    choices = unique(df$map_name),
@@ -299,7 +301,7 @@ u <- shinyUI(fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(
                                            selectInput(inputId='stat_level',
-                                                       label='Information',
+                                                       label='Summary Statistics',
                                                        choices=c('General'='General',
                                                                  'Map'='Map',
                                                                  'Active Groups'='ActiveGroups',
@@ -314,7 +316,7 @@ u <- shinyUI(fluidPage(
                                                div(id='generalStats',
                                                    div(id='generalStats_mapController',
                                                        sliderInput(inputId='stats_sample_size',
-                                                                   label='Sample size',
+                                                                   label='Sample Size: Number of profiles to include in the following plot',
                                                                    min=10, max=30, step=5,
                                                                    value=10),
                                                        HTML("</br>")
@@ -577,7 +579,6 @@ u <- shinyUI(fluidPage(
                                 </table>
                                 <div class="save_button">
                                   <button id="new_rel_sc_button", onclick="new_rel_trigger();">Create edge</button>
-                                  <button id="refreshData", onclick="refresh_page(_);">Refresh Data</button>
                                 </div>
                                 </br><br/>
                                 <div id="new_rel_warnings_container" class="warnings_div">'),
