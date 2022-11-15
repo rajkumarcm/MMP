@@ -764,7 +764,11 @@ s <- shinyServer(function(input, output, session){
       
       # debug_var <- dfs()[[1]] # DELETE AFTER INSPECTION...
       # browser()
-      visNetwork(dfs()[[1]], tmp.edges) %>%
+      tmp.nodes <- dfs()[[1]]
+      browser()
+      tmp.nodes <- tmp.nodes %>% inner_join(df_nodes[, c('label', 'old_description')])
+      tmp.nodes <- set_border_color(tmp.nodes)
+      visNetwork(tmp.nodes, tmp.edges) %>%
         visEdges(
           arrows=list(to=list(enabled=T))) %>%
         visPhysics(enabled = F) %>% 
@@ -788,8 +792,9 @@ s <- shinyServer(function(input, output, session){
                                   Shiny.setInputValue('showDesc_h', 
                                   [Math.random(), properties.edges]);
                               }"
+                  
                   ) %>%
-        visInteraction(zoomView = F) %>%
+        visInteraction(zoomView = F, hover=T) %>%
         visOptions(autoResize=F)
     })
     

@@ -252,3 +252,66 @@ preprocess_hdata <- function(edges, old_nodes)
   edges <- edges %>% arrange(year)
   return(list(nodes, edges))
 }
+
+set_border_color <- function(nodes)
+{
+  unique.labels <- unique(nodes$label)
+  
+  require(RColorBrewer)
+  colorPalette <- brewer.pal(length(unique.labels), 'Paired')
+  # detach(RColorBrewer, unload=T)
+  
+  nodes$color.border <- 'black'
+  nodes$borderWidth <- 4
+  for(i in 1:length(unique.labels))
+  {
+    label <- unique.labels[i]
+    color <- colorPalette[i]
+    nodes[nodes$label == label, 'color.border'] <- color
+  }
+  nodes
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
