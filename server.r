@@ -765,7 +765,6 @@ s <- shinyServer(function(input, output, session){
       # debug_var <- dfs()[[1]] # DELETE AFTER INSPECTION...
       # browser()
       tmp.nodes <- dfs()[[1]]
-      browser()
       tmp.nodes <- tmp.nodes %>% inner_join(df_nodes[, c('label', 'old_description')])
       tmp.nodes <- set_border_color(tmp.nodes)
       visNetwork(tmp.nodes, tmp.edges) %>%

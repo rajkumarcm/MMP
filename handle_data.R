@@ -97,10 +97,31 @@ populate_shape <- function(df_nodes)
 
 load_nodes_data <- function()
 {
-  latest_fname <- get_latest_file('data/groups/', 'groups')
-  df_nodes <- read.csv(paste0('data/groups/',latest_fname), 
+  
+  # Partial groups
+  latest_fname <- get_latest_file('data/groups0/', 'groups')
+  partial_nodes <- read.csv(paste0('data/groups0/',latest_fname), 
                        header=T, strip.white=T, blank.lines.skip=T,
                        fileEncoding='UTF-8-BOM', check.names=T)
+  
+  
+  latest_fname <- get_latest_file('data/groups/', 'groups')
+  full_nodes <- read.csv(paste0('data/groups/',latest_fname), 
+                         header=T, strip.white=T, blank.lines.skip=T,
+                         fileEncoding='UTF-8-BOM', check.names=T)
+  
+  retain_cols <- data.frame(x=colnames(full_nodes)) %>% 
+                    anti_join(data.frame(x=colnames(partial_nodes)))
+  indices <- which(retain_cols$x %in% c('start_year', 'end_year'))
+  retain_cols <- retain_cols[-indices,]
+  retain_cols <- c('group_id', retain_cols)
+  
+  df_nodes <- partial_nodes %>% left_join(full_nodes[, retain_cols])
+  cnames <- colnames(df_nodes)
+  cnames[cnames == 'startyear'] <- 'start_year'
+  cnames[cnames == 'endyear'] <- 'end_year'
+  colnames(df_nodes) <- cnames
+  
   df_nodes$group_id <- as.integer(df_nodes$group_id)
   
   # Having NULL in start_year cannot be tolerated
