@@ -233,20 +233,35 @@ function new_prof_sc()
   
   // R server must collect map_name
   let first_attack = document.getElementById('new_prof_fatt').value;
+  let last_attack = document.getElementById('new_prof_latt').value;
+  let last_updated = document.getElementById('new_prof_lupdated').value;
+  let od_names = document.getElementById('new_prof_od_names').value;
   let city = document.getElementById('new_prof_city').value;
   let country = document.getElementById('new_prof_country').value;
   let province = document.getElementById('new_prof_province').value;
-  let ism = document.getElementById('new_prof_ism').value;
+  // Initial member size
+  let ims = document.getElementById('new_prof_ims').value;
+  // Min Size members
   let msm = document.getElementById('new_prof_msm').value;
+  let max_sm = document.getElementById('new_prof_max_sm').value;
+  // Latest member size
+  let isy = document.getElementById('new_prof_isy').value;
+  // Min size year
+  let msy = document.getElementById('new_prof_msy').value;
+  let max_sy = document.getElementById('new_prof_max_sy').value;
+  
   let published = document.getElementById('new_prof_pub').checked;
   let spons_names = document.getElementById('new_prof_spons_names').value;
   let comments = document.getElementById('new_prof_comments').value;
+  
+  //let isy = document.getElementById('new_prof_is').value;
     
   jsonObj = {"name":name, "url":url, "desc":desc, "sy":sy, "ey":ey,
              "active":active, "complete":complete, "first_attack":first_attack,
-             "city":city, "country":country, "province":province, "ism":ism, 
-             "msm":msm, "published":published, 'spons_names':spons_names,
-             "comments":comments};
+             "city":city, "country":country, "province":province, "published":published, 'spons_names':spons_names, "comments":comments, "last_attack":last_attack, 
+             "last_updated":last_updated, "other_names":od_names,
+             "ims":ims, "isy":isy, "msm":msm, "msy":msy, "max_sm":max_sm,
+             "max_sy":max_sy};
   
   Shiny.setInputValue('newProf_schanges', jsonObj);
   

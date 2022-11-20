@@ -89,7 +89,7 @@ u <- shinyUI(fluidPage(
                                                selectInput("map_name",
                                                            "Select Map:",
                                                            # For debugging purposes change to maps[1] once finished
-                                                           selected = maps[1],
+                                                           selected = maps[2],
                                                            choices = maps),
                                                
                                                HTML('</br>'),
@@ -452,6 +452,20 @@ u <- shinyUI(fluidPage(
                                     <input type="number" id="new_prof_fatt" min="1700" max="2022" class="emfield_input_small" />
                                   </td>
                                 </tr>
+                                </tr>
+                                <tr>
+                                  <td><h4>Last attack</h4></td>
+                                  <td>
+                                    <input type="number" id="new_prof_latt" min="1700" max="2022" class="emfield_input_small" />
+                                  </td>
+                                </tr>
+                                </tr>
+                                <tr>
+                                  <td><h4>Last updated</h4></td>
+                                  <td>
+                                    <input type="number" id="new_prof_lupdated" min="1700" max="2022" class="emfield_input_small" />
+                                  </td>
+                                </tr>
                                 <tr>
                                   <td><h4>HQ City</h4></td>
                                   <td><input type="text" id="new_prof_city" class="emfield_input_small" /></td>
@@ -466,11 +480,31 @@ u <- shinyUI(fluidPage(
                                 </tr>
                                 <tr>
                                   <td><h4>Initial member size</h4></td>
-                                  <td><input type="number" id="new_prof_ism" min="0" class="emfield_input_small" /></td>
+                                  <td><input type="number" id="new_prof_ims" min="0" class="emfield_input_small" /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Latest member size</h4></td>
+                                  <td><h4>Initial member size</h4></td>
+                                  <td><input type="number" id="new_prof_isy" min="0" class="emfield_input_small" /></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Initial size year</h4></td>
+                                  <td><input id="new_prof_isy" type="number" min="0" class="emfield_input_small"/></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Min size members</h4></td>
                                   <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Max size members</h4></td>
+                                  <td><input id="new_prof_max_sm" type="number" min="0" class="emfield_input_small"/></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Min size year</h4></td>
+                                  <td><input id="new_prof_msy" type="number" min="0" class="emfield_input_small"/></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Max size year</h4></td>
+                                  <td><input id="new_prof_max_sy" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
                                 <tr>
                                   <td><h4>Sponsor types</h4></td>
@@ -488,6 +522,14 @@ u <- shinyUI(fluidPage(
                                 <tr>
                                   <td><h4>Sponsor Names</h4></td>
                                   <td><input type="text" id="new_prof_spons_names" class="emfield_input_small" /></td>
+                                </tr>
+                                <tr>
+                                  <td><h4>Other designated names</h4></td>
+                                  <td><input type="text" id="new_prof_od_names" class="emfield_input_small" /></td>
+                                </tr>
+                                <tr>
+                                  <td></td>
+                                  <td><label style="margin-left:100px; color:maroon; font-style:italic;">Sponsor names must be seperated by a comma</label></td>
                                 </tr>
                                 <tr>
                                   <td><h4>Published</h4></td>

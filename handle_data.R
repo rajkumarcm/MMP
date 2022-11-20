@@ -95,40 +95,15 @@ populate_shape <- function(df_nodes)
   df_nodes
 }
 
-load_nodes_data <- function()
+preprocess_df_nodes <- function(df_nodes)
 {
-  
-  # Partial groups
-  latest_fname <- get_latest_file('data/groups0/', 'groups')
-  partial_nodes <- read.csv(paste0('data/groups0/',latest_fname), 
-                       header=T, strip.white=T, blank.lines.skip=T,
-                       fileEncoding='UTF-8-BOM', check.names=T)
-  
-  
-  latest_fname <- get_latest_file('data/groups/', 'groups')
-  full_nodes <- read.csv(paste0('data/groups/',latest_fname), 
-                         header=T, strip.white=T, blank.lines.skip=T,
-                         fileEncoding='UTF-8-BOM', check.names=T)
-  
-  retain_cols <- data.frame(x=colnames(full_nodes)) %>% 
-                    anti_join(data.frame(x=colnames(partial_nodes)))
-  indices <- which(retain_cols$x %in% c('start_year', 'end_year'))
-  retain_cols <- retain_cols[-indices,]
-  retain_cols <- c('group_id', retain_cols)
-  
-  df_nodes <- partial_nodes %>% left_join(full_nodes[, retain_cols])
-  cnames <- colnames(df_nodes)
-  cnames[cnames == 'startyear'] <- 'start_year'
-  cnames[cnames == 'endyear'] <- 'end_year'
-  colnames(df_nodes) <- cnames
-  
   df_nodes$group_id <- as.integer(df_nodes$group_id)
   
   # Having NULL in start_year cannot be tolerated
   df_nodes$start_year <- as.integer(df_nodes$start_year)
   
   df_nodes[is.null(df_nodes$end_year) |
-           is.na(df_nodes$end_year), 'end_year'] <- 0
+             is.na(df_nodes$end_year), 'end_year'] <- 0
   df_nodes$end_year <- as.integer(df_nodes$end_year)
   
   df_nodes$active <- as.factor(df_nodes$active)
@@ -136,39 +111,39 @@ load_nodes_data <- function()
   df_nodes$on_any_map <- as.factor(df_nodes$on_any_map)
   
   df_nodes[is.null(df_nodes$first_attack) | 
-           is.na(df_nodes$first_attack), 'first_attack'] <- 0
+             is.na(df_nodes$first_attack), 'first_attack'] <- 0
   df_nodes$first_attack <- as.integer(df_nodes$first_attack)
   
   df_nodes[is.null(df_nodes$last_attack) |
-           is.na(df_nodes$last_attack), 'last_attack'] <- 0
+             is.na(df_nodes$last_attack), 'last_attack'] <- 0
   df_nodes$last_attack <- as.integer(df_nodes$last_attack)
   
   df_nodes[is.null(df_nodes$init_size_members) |
-           is.na(df_nodes$init_size_members), 'init_size_members'] <- 0
+             is.na(df_nodes$init_size_members), 'init_size_members'] <- 0
   df_nodes$init_size_members <- as.integer(df_nodes$init_size_members)
   
   df_nodes[is.null(df_nodes$max_size_members) |
-           is.na(df_nodes$max_size_members), 'max_size_members'] <- 0
+             is.na(df_nodes$max_size_members), 'max_size_members'] <- 0
   df_nodes$max_size_members <- as.integer(df_nodes$max_size_members)
   
   df_nodes[is.null(df_nodes$max_size_year) |
-           is.na(df_nodes$max_size_year), 'max_size_year'] <- 0
+             is.na(df_nodes$max_size_year), 'max_size_year'] <- 0
   df_nodes$max_size_year <- as.integer(df_nodes$max_size_year)
   
   df_nodes[is.null(df_nodes$us_designated) |
-           is.na(df_nodes$us_designated), 'us_designated'] <- 0
+             is.na(df_nodes$us_designated), 'us_designated'] <- 0
   df_nodes$us_designated <- as.integer(df_nodes$us_designated)
   
   df_nodes[is.null(df_nodes$un_designated) |
-           is.na(df_nodes$un_designated), 'un_designated'] <- 0
+             is.na(df_nodes$un_designated), 'un_designated'] <- 0
   df_nodes$un_designated <- as.integer(df_nodes$un_designated)
   
   df_nodes[is.null(df_nodes$other_designated) |
-           is.na(df_nodes$other_designated), 'other_designated'] <- 0
+             is.na(df_nodes$other_designated), 'other_designated'] <- 0
   df_nodes$other_designated <- as.integer(df_nodes$other_designated)
   
   df_nodes[is.null(df_nodes$state_sponsor) |
-           is.na(df_nodes$state_sponsor), 'state_sponsor'] <- 0
+             is.na(df_nodes$state_sponsor), 'state_sponsor'] <- 0
   df_nodes$state_sponsor <- as.integer(df_nodes$state_sponsor)
   
   cnames <- colnames(df_nodes)
@@ -185,7 +160,17 @@ load_nodes_data <- function()
   colnames(df_nodes) <- cnames
   
   df_nodes <- populate_shape(df_nodes)
+  df_nodes
+}
+
+load_nodes_data <- function()
+{
+  latest_fname <- get_latest_file('data/groups/', 'groups')
+  df_nodes <- read.csv(paste0('data/groups/',latest_fname), 
+                       header=T, strip.white=T, blank.lines.skip=T,
+                       fileEncoding='UTF-8-BOM', check.names=T)
   
+  df_nodes <- preprocess_df_nodes(df_nodes)
   df_nodes
 }
 

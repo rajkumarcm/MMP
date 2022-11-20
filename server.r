@@ -1188,9 +1188,18 @@ s <- shinyServer(function(input, output, session){
       warnings <- c()
       end_year <- as.integer(input$newProf_schanges['ey'][[1]])
       start_year <- as.integer(input$newProf_schanges['sy'][[1]])
-      init_size_members <- as.integer(input$newProf_schanges['ism'][[1]])
-      max_size_members <- as.integer(input$newProf_schanges['msm'][[1]])
+      init_size_year <- as.integer(input$newProf_schanges['isy'][[1]])
+      init_size_members <- as.integer(input$newProf_schanges['ims'][[1]])
+      max_size_members <- as.integer(input$newProf_schanges['max_sm'][[1]])
+      min_size_members <- as.integer(input$newProf_schanges['msm'][[1]])
+      min_size_year <- as.integer(input$newProf_schanges['msy'][[1]])
+      max_size_year <- as.integer(input$newProf_schanges['max_sy'][[1]])
+      
       first_attack <- as.integer(input$newProf_schanges['first_attack'][[1]])
+      last_attack <- as.integer(input$newProf_schanges['last_attack'][[1]])
+      last_updated <- as.integer(input$newProf_schanges['last_updated'][[1]])
+      # browser()
+      
       name <- str_trim(input$newProf_schanges['name'][[1]])
       url <- str_trim(input$newProf_schanges['url'][[1]])
       desc <- str_trim(input$newProf_schanges['desc'][[1]])
@@ -1202,6 +1211,7 @@ s <- shinyServer(function(input, output, session){
       country <- str_trim(input$newProf_schanges['country'][[1]])
       spons_names <- str_trim(input$newProf_schanges['spons_names'][[1]])
       spons_types <- input$new_prof_spons_types
+      other_designated_names <- input$newProf_schanges['other_names'][[1]]
       comments <- input$newProf_schanges[['comments']][[1]]
       
       if(map_name == "Other")
@@ -1271,7 +1281,15 @@ s <- shinyServer(function(input, output, session){
         {
           warnings <- c(warnings, 'Invalid sponsor names')
         }
-        
+      }
+      
+      if(last_updated < start_year)
+      {
+        warnings <- c(warnings, 'Last updated cannot be before the start of the group')
+      }
+      if(last_attack < start_year)
+      {
+        warnings <- c(warnings, 'Last attack cannot be before the start of the group')
       }
       
       us_sponsored = 0
@@ -1311,123 +1329,73 @@ s <- shinyServer(function(input, output, session){
      
         # Before writing the changes, check for duplicates in the df_nodes
         node_record <- data.frame(group_id=(max(df_nodes$id)+1), group_name=name, 
-                                   startyear=start_year, endyear=end_year,
-                                   active=active, complete=complete,
-                                   title=name, on_any_map=1, map_name=map_name,
-                                   X=NA,
-                                   X_merge='matched(3)', URL=url, Anchor='',
-                                   description=desc, new_description=desc,
-                                   href=url, 
-                                   first_attack =first_attack, hq_city=city,
-                                   hq_province=province, hq_country=country,
-                                   init_size_members=init_size_members,
-                                   max_size_members=max_size_members, 
-                                   avg_size_members=NA, 
-                                   us_designated=us_sponsored,
-                                   un_designated=un_sponsored,
-                                   other_designated=other_designated,
-                                   state_sponsor=state_sponsored,
-                                   state_sponsor_names=spons_names,
-                                   merged='matched(3)', Notes=comments, shape='square'
-                                   )
+                                  start_year=start_year, end_year=end_year,
+                                  active=active, complete=complete,
+                                  description=desc, on_any_map=1,
+                                  page_url=url, old_description=name,
+                                  last_updated=last_updated,
+                                  first_attack = first_attack,
+                                  last_attack = last_attack,
+                                  init_size_year=init_size_year,
+                                  init_size_members=init_size_members,
+                                  max_size_members=max_size_members, 
+                                  min_size_members=min_size_members,
+                                  min_size_year = min_size_year,
+                                  max_size_year = max_size_year,
+                                  founding_city=city,
+                                  founding_province=province,
+                                  founding_country=country,
+                                  founding_notes=comments,
+                                  us_designated=us_sponsored,
+                                  un_designated=un_sponsored,
+                                  other_designated=other_designated,
+                                  other_designated_names = other_designated_names,
+                                  state_sponsor=state_sponsored,
+                                  state_sponsor_names=spons_names,
+                                  Notes=comments
+        )
         # browser()
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
-        latest_ge_fname <- get_latest_file('data/groups_extra/', 'groups_extra')
-        
-        # Append changes to the nodes file
         tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
-        tmp.df_nodes <- rbind(tmp.df_nodes, node_record[, c('group_id', 'group_name',
-                                                            'startyear',
-                                                            'endyear',
-                                                            'active',
-                                                            'complete',
-                                                            'description',
-                                                            'on_any_map',
-                                                            'map_name',
-                                                            'merged')])
         
-        nodes_extra <<- rbind(nodes_extra, node_record[, c('group_id', 'group_name',
-                                                           'startyear',
-                                                           'endyear',
-                                                           'active',
-                                                           'complete',
-                                                           'description',
-                                                           'new_description',
-                                                           'on_any_map',
-                                                           'map_name',
-                                                           'href', 'first_attack',
-                                                           'hq_city', 'hq_province',
-                                                           'hq_country', 
-                                                           'init_size_members',
-                                                           'max_size_members',
-                                                           'us_designated',
-                                                           'un_designated',
-                                                           'other_designated',
-                                                           'state_sponsor',
-                                                           'state_sponsor_names',
-                                                           'Notes')])
+        # Append new information onto the existing dataframe
+        # browser()
+        tmp.df_nodes <- rbind(tmp.df_nodes, node_record)
         
+        # Get the latest date time
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
         time_str <- gsub(":", "_", time_str)
         date_str <- gsub("-", "_", Sys.Date())
         date_time <- paste0(date_str, paste0('-', time_str))
         
+        # Write changes to the file
         g.fname <- paste0(paste0("groups", date_time), ".csv")
-        ge.fname <- paste0(paste0("groups_extra", date_time), ".csv")
-        
         write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname), row.names=F)
-        write.csv(nodes_extra, file=paste0('data/groups_extra/', ge.fname), row.names=F)
-        session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
-        # session$sendCustomMessage('refresh_page', '')
         
-        cnames <- colnames(node_record)
-        cnames[cnames %in% c('group_id', 'group_name',
-                             'startyear', 'X_merge')] <- c('id', 'label', 'level', 'merged')
-        colnames(node_record) <- cnames
+        tmp.df_nodes <- preprocess_df_nodes(tmp.df_nodes)
+        tmp.df_nodes$shape <- 'square'
+        tmp.df_nodes$value <- NA
+        tmp.df_nodes$central_color <- NA
+        tmp.df_nodes$color.border <- NA
+        tmp.df_nodes$color.highlight.background <- NA
+        tmp.df_nodes$color.hover.border <- NA
+        tmp.df_nodes$color.hover.background <- NA
+        tmp.df_nodes$between <- NA
+        tmp.df_nodes$between_color <- NA
         
-        # Overwrite (append changes to) df_nodes
+        # so that they are in same order
+        # browser()
         
-        node_record$title <- node_record$label
-        df_nodes <<- rbind(df_nodes, node_record[, c('id', 'label',
-                                                     'level',
-                                                     'endyear',
-                                                     'active',
-                                                     'complete',
-                                                     'title',
-                                                     'on_any_map', 'map_name',
-                                                     'merged', 'URL', 'Anchor',
-                                                     'new_description', 
-                                                     'href', 'first_attack',
-                                                     'hq_city', 'hq_province',
-                                                     'hq_country',
-                                                     'init_size_members',
-                                                     'max_size_members',
-                                                     'us_designated',
-                                                     'un_designated',
-                                                     'other_designated',
-                                                     'state_sponsor',
-                                                     'state_sponsor_names',
-                                                     'Notes', 'shape')])
-        
-        # Here I have used id instead of group_id since the column names
-        # gets changed already...
-        nodes.temp <- data.frame(id=node_record$id, 
-                                 value=min(nodes$value), 
-                                 central_color='yellow',
-                                 between=nodes$between[1],
-                                 between_color=nodes$between_color[1],
-                                 color.border=nodes$color.border[1],
-                                 color.highlight.background=nodes$color.highlight.background[1],
-                                 color.hover.background=nodes$color.hover.background[1],
-                                 color.hover.border=nodes$color.hover.border[1])
-        
-        nodes <<- rbind(nodes, nodes.temp)
+        tmp.df_nodes <- tmp.df_nodes[, colnames(df_nodes)]
+        df_nodes <<- rbind(df_nodes, tmp.df_nodes)
+        df_nodes <<- generate_node_properties(df_nodes, df)
         
         profile_names <- c(profile_names, name)
         profile_names <- data.frame(x=profile_names) %>% arrange(x)
         profile_names <<- profile_names$x
+        browser()
         reactive_df_node(df_nodes)
       }
 
