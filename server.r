@@ -1358,11 +1358,12 @@ s <- shinyServer(function(input, output, session){
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
-        tmp.df_nodes <- read.csv(paste0('data/groups/',latest_fname), header=T,)
+        original.df_nodes <- read.csv(paste0('data/groups/',latest_fname), 
+                                      header=T,)
         
         # Append new information onto the existing dataframe
         # browser()
-        tmp.df_nodes <- rbind(tmp.df_nodes, node_record)
+        original.df_nodes.binded <- rbind(original.df_nodes, node_record)
         
         # Get the latest date time
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
@@ -1372,30 +1373,29 @@ s <- shinyServer(function(input, output, session){
         
         # Write changes to the file
         g.fname <- paste0(paste0("groups", date_time), ".csv")
-        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname), row.names=F)
+        write.csv(original.df_nodes.binded, file=paste0('data/groups/', 
+                                                        g.fname), row.names=F)
         
-        tmp.df_nodes <- preprocess_df_nodes(tmp.df_nodes)
-        tmp.df_nodes$shape <- 'square'
-        tmp.df_nodes$value <- NA
-        tmp.df_nodes$central_color <- NA
-        tmp.df_nodes$color.border <- NA
-        tmp.df_nodes$color.highlight.background <- NA
-        tmp.df_nodes$color.hover.border <- NA
-        tmp.df_nodes$color.hover.background <- NA
-        tmp.df_nodes$between <- NA
-        tmp.df_nodes$between_color <- NA
+        original.df_nodes.binded <- preprocess_df_nodes(original.df_nodes.binded)
+        original.df_nodes.binded$value <- 1
+        original.df_nodes.binded$central_color <- NA
+        original.df_nodes.binded$color.border <- 'orange'
+        original.df_nodes.binded$color.highlight.background <- 'tomato'
+        original.df_nodes.binded$color.hover.border <- 'orange'
+        original.df_nodes.binded$color.hover.background <- 'tomato'
+        original.df_nodes.binded$between <- 1
+        original.df_nodes.binded$between_color <- 'yellow'
         
         # so that they are in same order
         # browser()
         
-        tmp.df_nodes <- tmp.df_nodes[, colnames(df_nodes)]
-        df_nodes <<- rbind(df_nodes, tmp.df_nodes)
-        df_nodes <<- generate_node_properties(df_nodes, df)
-        
         profile_names <- c(profile_names, name)
         profile_names <- data.frame(x=profile_names) %>% arrange(x)
         profile_names <<- profile_names$x
-        browser()
+        # browser()
+        
+        df_nodes <<- original.df_nodes.binded
+        session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
         reactive_df_node(df_nodes)
       }
 

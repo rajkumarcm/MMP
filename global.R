@@ -32,7 +32,7 @@ df <- remove_edges_ry(df)
 df <- make_undirected(df)
 df$width <- 9
 
-generate_node_properties <- function(df_nodes, df)
+generate_node_properties <- function(df)
 {
   tmp_edges <- data.frame(from = df$from, 
                           to = df$to, 
@@ -107,7 +107,7 @@ df_nodes <- load_nodes_data()
 
 # nodes dataframe includes information about background.color,
 # size of the node, etc.,
-nodes <- generate_node_properties(df_nodes, df)
+nodes <- generate_node_properties(df)
 
 df_nodes <- df_nodes %>% inner_join(nodes, by='id', keep=F)
 
