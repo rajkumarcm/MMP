@@ -1326,7 +1326,8 @@ s <- shinyServer(function(input, output, session){
       {
         output$new_prof_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_prof_warnings_container')
-     
+        
+        # browser()
         # Before writing the changes, check for duplicates in the df_nodes
         node_record <- data.frame(group_id=(max(df_nodes$id)+1), group_name=name, 
                                   start_year=start_year, end_year=end_year,
@@ -1377,6 +1378,8 @@ s <- shinyServer(function(input, output, session){
                                                         g.fname), row.names=F)
         
         original.df_nodes.binded <- preprocess_df_nodes(original.df_nodes.binded)
+        df_nodes.full <<- original.df_nodes.binded
+        
         original.df_nodes.binded$value <- 1
         original.df_nodes.binded$central_color <- NA
         original.df_nodes.binded$color.border <- 'orange'
@@ -1395,6 +1398,7 @@ s <- shinyServer(function(input, output, session){
         # browser()
         
         df_nodes <<- original.df_nodes.binded
+        
         session$sendCustomMessage('sendAlert', 'New profile has been successfully added')
         reactive_df_node(df_nodes)
       }
@@ -1628,12 +1632,13 @@ s <- shinyServer(function(input, output, session){
         warnings <- c(warnings, 'Loop connection is not allowed')
       }
       
-      group1_syear <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'level'])
-      group2_syear <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'level'])
-      group1_eyear <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'endyear'])
-      group2_eyear <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'endyear'])
+      group1_syear <- unique(df_nodes.full[df_nodes.full$label==group1_name, 'level'])
+      group2_syear <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'level'])
+      group1_eyear <- unique(df_nodes.full[df_nodes.full$label==group1_name, 'endyear'])
+      group2_eyear <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'endyear'])
       min_year <- min(c(group1_syear, group2_syear))
       max_year <- 0
+      # browser()
       if(group1_eyear == 0 & group2_eyear == 0)
       {
         max_year <- -1
@@ -1693,12 +1698,11 @@ s <- shinyServer(function(input, output, session){
         output$new_rel_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_rel_warnings_container')
         
-        group1_id <- unique(triggered_nodes()[triggered_nodes()$label==group1_name, 'id'])
-        group2_id <- unique(triggered_nodes()[triggered_nodes()$label==group2_name, 'id'])
+        group1_id <- unique(df_nodes.full[df_nodes.full$label==group1_name, 'id'])
+        group2_id <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'id'])
         link_id <- max(df$link_id)+1
         
-        
-        # browser()
+        browser()
         # label, status_id, old_link_id, title, color, actor_color, value, width
         
         # Write changes onto the edges dataframe (df)---------------------------
@@ -1766,11 +1770,20 @@ s <- shinyServer(function(input, output, session){
         
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname), row.names=F)
-        session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
         # session$sendCustomMessage('refresh_page', '')
         # browser()
+        browser()
         df <<- rbind(df, tmp.df2[, colnames(df)])
+        
+        
+        tmp.df_nodes <- load_nodes_data()
+        nodes <- generate_node_properties(df)
+        tmp.df_nodes <- tmp.df_nodes %>% inner_join(nodes, by='id', keep=F)
+        df_nodes <<- tmp.df_nodes
+        browser()
+        session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
         triggered_df(df)
+        reactive_df_node(df_nodes)
       }
     })
     
