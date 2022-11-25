@@ -17,15 +17,17 @@ get_nodes <- function(edges.df)
                                               'un_designated', 
                                               'us_designated',
                                               'state_sponsor',
-                                              'other_designated')],
+                                              'other_designated',
+                                              'between_color', 'value', 
+                                              'color.border', 'color.highlight.background',
+                                              'color.hover.background',
+                                              'color.hover.border'
+                                              )],
                                   by="id", keep=F)
   
   # nodes dataframe is created using correct inner join
-  tmp_df <- inner_join(tmp_df, nodes[, c('id', 'between_color', 'value', 
-                                    'color.border', 'color.highlight.background',
-                                    'color.hover.background',
-                                    'color.hover.border')], 
-                  by='id', keep=F)
+  # tmp_df <- inner_join(tmp_df, nodes[, c('id', )], 
+  #                 by='id', keep=F)
   cnames <- colnames(tmp_df)
   cnames[cnames == 'between_color'] <- 'color.background'
   colnames(tmp_df) <- cnames

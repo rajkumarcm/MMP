@@ -44,7 +44,8 @@ s <- shinyServer(function(input, output, session){
   
   reactive_df <- reactive({
     tmp <- observe(triggered_df(), {
-      # loginfo('df triggered')
+      loginfo('triggered_df triggered')
+      # browser()
       return(triggered_df())
     })
     return(tmp)
@@ -52,7 +53,7 @@ s <- shinyServer(function(input, output, session){
   
   triggered_nodes <- reactive({
     tmp <- observe(reactive_df_node(), {
-      # loginfo('nodes triggered')
+      loginfo('reactive_df_node triggered')
       return(reactive_df_node())
     })
     return(tmp)
@@ -87,12 +88,6 @@ s <- shinyServer(function(input, output, session){
   })
   
   edges <- reactive({
-    
-    # When edges do not have a unique identifier, then visnetwork
-    # cannot be asked to remove or add them back to the network. Any form
-    # of manipulation that happens without unique ID will be erroneous. 
-    # I have included an ID that made the status filter to now work under both
-    # map=All and map=any map_name
     data.frame(
                id = filtered_df()$link_id,
                from = filtered_df()$from, 
@@ -106,12 +101,7 @@ s <- shinyServer(function(input, output, session){
                color=filtered_df()$color
     )
   })
-  
-  # Once again, as I mentioned earlier in one of the places where nodes
-  # data frame was originally created, I do not agree with the way id and
-  # label attributes are associated given unique function is used that will
-  # perhaps erase the order. There are chances that one relationship is
-  # given label of another relationship.
+
   nodes2 <- reactive({
     tmp.nodes <- get_nodes(filtered_df())
   })
@@ -1702,7 +1692,7 @@ s <- shinyServer(function(input, output, session){
         group2_id <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'id'])
         link_id <- max(df$link_id)+1
         
-        browser()
+        # browser()
         # label, status_id, old_link_id, title, color, actor_color, value, width
         
         # Write changes onto the edges dataframe (df)---------------------------
@@ -1772,7 +1762,7 @@ s <- shinyServer(function(input, output, session){
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname), row.names=F)
         # session$sendCustomMessage('refresh_page', '')
         # browser()
-        browser()
+        # browser()
         df <<- rbind(df, tmp.df2[, colnames(df)])
         
         
@@ -1780,10 +1770,10 @@ s <- shinyServer(function(input, output, session){
         nodes <- generate_node_properties(df)
         tmp.df_nodes <- tmp.df_nodes %>% inner_join(nodes, by='id', keep=F)
         df_nodes <<- tmp.df_nodes
-        browser()
-        session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
+        # browser()
+        reactive_df_node(tmp.df_nodes)
         triggered_df(df)
-        reactive_df_node(df_nodes)
+        session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
       }
     })
     
