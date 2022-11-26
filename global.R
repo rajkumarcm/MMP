@@ -125,8 +125,10 @@ status_dict <- status_dict[status_dict$status=='Mergers' |
                            status_dict$status=='Splinters',]
 
 # Coordinates information for ggplot geography plot-----------------------------
-coords <- read.csv('data/maps_coord.csv', header=T)
-colnames(coords) <- c('hq_country', 'latitude', 'longitude')
+# coords <- read.csv('data/maps_coord.csv', header=T)
+# colnames(coords) <- c('hq_country', 'latitude', 'longitude')
+load(file='lat_longs.RData')
+
 
 remove_loop <- function(nodes, edges)
 {

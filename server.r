@@ -12,7 +12,7 @@ source('filter_medges_all.R', local=T)
 source('preprocess_h.R', local=T)
 source('spatial.R', local=T)
 source('hierarchical.R', local=T)
-
+source('geocoder_helper.R')
 
 #---------------------------SERVER CODE-----------------------------------------
 
@@ -504,12 +504,12 @@ s <- shinyServer(function(input, output, session){
     
     remove_loop2 <- function(nodes, edges)
     {
-      hqcs <- nodes$hqc
+      addresses() <- nodes$addr
       rejection_list <- c()
-      for(i in 1:length(hqcs))
+      for(i in 1:length(addresses))
       {
-        hq <- hqcs[i]
-        indices <- which(edges$g1_hqc==hq & edges$g2_hqc==hq)
+        addr <- addresses[i]
+        indices <- which(edges$g1_addr==addr & edges$g2_addr==addr)
         # We do not want these edges
         if(length(indices) > 0)
         {
@@ -522,56 +522,153 @@ s <- shinyServer(function(input, output, session){
     # Purpose of this part of the code is to provide unique edges between
     # two headquarter countries that handles both NA, empty strings, loop
     # connection and bidirectional edges.
-    geo.edges <- reactive({
+    geo.df <- reactive({
       
-      # Embed location information to both first and the second groups in the 
-      # edges dataframe.
+      # Extract from and to IDs from the df_nodes----------------------------
       tmp.edges <- unique(df[(df$map_name==input$g_map_name |
                               input$g_map_name=='All'), c('from', 'to')] )
+      #----------------------------------------------------------------------
       # browser()
       
-      tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_country')]), 
+      #----------------------------------------------------------------------
+      # Create an edges data frame using the from, and to extracted from the
+      # previous step, and join it with it's respective 
+      # geo information.
+      
+      # For the "from" profile
+      tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_city',
+                                                                'hq_province',
+                                                                'hq_country')]), 
                                             by=c('from'='id'), copy=T)
       cnames <- colnames(tmp.edges)
-      cnames[cnames=='hq_country'] <- 'g1_hqc'
+      cnames[cnames=='hq_city'] <- 'g1_city'
+      cnames[cnames=='hq_province'] <- 'g1_province'
+      cnames[cnames=='hq_country'] <- 'g1_country'
       colnames(tmp.edges) <- cnames
       tmp.edges <- drop_na(tmp.edges)
-      tmp.edges <- tmp.edges[str_trim(tmp.edges$g1_hqc, side='both') != "",]
       
-      tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_country')]), 
-                                            by=c('to'='id'), copy=T)
+      # For the "to" profile
+      tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_city',
+                                                                'hq_province',
+                                                                'hq_country')]), 
+                                            by=c('from'='id'), copy=T)
       cnames <- colnames(tmp.edges)
-      cnames[cnames=='hq_country'] <- 'g2_hqc'
+      cnames[cnames=='hq_city'] <- 'g2_city'
+      cnames[cnames=='hq_province'] <- 'g2_province'
+      cnames[cnames=='hq_country'] <- 'g2_country'
       colnames(tmp.edges) <- cnames
+      #-------------------------------------------------------------------------
+      
+      # Drop from and to that corresponds to the profile identifier
+      drop.col.indices <- which(cnames %in% c('from', 'to'))
+      tmp.edges <- tmp.edges[, -drop.col.indices]
+      
+      # Drop NA observations
       tmp.edges <- drop_na(tmp.edges)
-      tmp.edges <- tmp.edges[str_trim(tmp.edges$g2_hqc, side='both') != "",]
+      
+      # Clone a copy of edges dataframe to nonunique.edges for other purposes
       nonunique.edges <- tmp.edges
-      tmp.edges <- unique(tmp.edges[, c('g1_hqc', 'g2_hqc')])
       
-      # Assign ID for HQC as if you would for nodes
-      tmp.nodes <- unique(c(tmp.edges$g1_hqc, tmp.edges$g2_hqc))
-      # loginfo(sprintf('tmp.nodes %d',nrow(tmp.nodes)))
+      #-------------------------------------------------------------------------
+      # Encode edges dataframe with city, province, and country information.
+      # At the same time, also create nodes dataframe with info 
+      # extracted from edges
       
-      tmp.nodes <- data.frame(id=seq(1,length(tmp.nodes)), hqc=tmp.nodes)
+      # For "from" profile
+      tmp.edges <- unique(tmp.edges[, c('g1_city', 'g1_province', 'g1_country',
+                                        'g2_city', 'g2_province', 'g2_country')])
       
-      # Join for creating from and to in tmp.edges
-      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes, by=c("g1_hqc"="hqc"))
+      tmp.nodes1 <- tmp.edges[, c('g1_city', 'g1_province', 'g1_country')]
+      
+      # Create an addr attribute based on city, province, and country attributes
+      tmp.nodes1 <- encode_address(tmp.nodes1)
+      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes1, 
+                                            by=c('g1_city'='hq_city',
+                                                           'g1_province'='hq_province',
+                                                           'g1_country'='hq_country'))
+      cnames <- colnames(tmp.edges)
+      cnames[cnames=='addr'] <- 'g1_addr'
+      colnames(tmp.edges) <- cnames
+      
+      # For "to" profile
+      tmp.nodes2 <- tmp.edges[, c('g2_city', 'g2_province', 'g2_country')]
+      
+      # Create an addr attribute based on city, province, and country attributes
+      tmp.nodes2 <- encode_address(tmp.nodes2)
+      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes2, 
+                                            by=c('g2_city'='hq_city',
+                                                 'g2_province'='hq_province',
+                                                 'g2_country'='hq_country'))
+      cnames <- colnames(tmp.edges)
+      cnames[cnames=='addr'] <- 'g2_addr'
+      colnames(tmp.edges) <- cnames
+      
+      tmp.nodes <- unique(rbind(tmp.nodes1, tmp.nodes2))
+      #-------------------------------------------------------------------------
+      
+      
+      #-------------------------------------------------------------------------
+      # Encode latitude, longitude information in nodes dataframe by 
+      # joining tmp.nodes dataframe with lat_longs data frame
+      tmp.nodes <- tmp.nodes %>% inner_join(lat_longs, by='addr')
+      
+      # Attach latitude, longitude for the "from" profile
+      # browser()
+      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes[, c('addr', 'latitude',
+                                                          'longitude')],
+                                            by=c('g1_addr'='addr'))
+      # Rename latitude, longitude to g1_latitude, g2_longitude
+      cnames <- colnames(tmp.edges)
+      cnames[cnames %in% c('latitude', 'longitude')] <- c('g1_latitude',
+                                                          'g1_longitude')
+      colnames(tmp.edges) <- cnames
+      
+      # Attach latitude, longitude for the "to" profile
+      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes[, c('addr', 'latitude',
+                                                          'longitude')],
+                                            by=c('g2_addr'='addr'))
+      # Rename latitude, longitude to g2_latitude, g2_longitude
+      cnames <- colnames(tmp.edges)
+      cnames[cnames %in% c('latitude', 'longitude')] <- c('g2_latitude',
+                                                          'g2_longitude')
+      colnames(tmp.edges) <- cnames
+      #-------------------------------------------------------------------------
+      
+      # In order to embed df_nodes with from, and to identifier information
+      # first the nodes dataframe must have an id column that is auto-generated
+      tmp.nodes$id <- seq(1, nrow(tmp.nodes))
+      
+      # Now join tmp.edges with tmp.nodes to encode group1_addr with 
+      # an identifier and call it "from" and "to"
+      # FROM
+      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes[, c('id', 'addr')], 
+                                                      by=c('g1_addr'='addr'))
       cnames <- colnames(tmp.edges)
       cnames[cnames=='id'] <- 'from'
       colnames(tmp.edges) <- cnames
       
-      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes, by=c("g2_hqc"="hqc"))
+      # TO
+      tmp.edges <- tmp.edges %>% inner_join(tmp.nodes[, c('id', 'addr')], 
+                                                     by=c('g2_addr'='addr'))
       cnames <- colnames(tmp.edges)
       cnames[cnames=='id'] <- 'to'
       colnames(tmp.edges) <- cnames
       
-      tmp.edges$id <- seq(1, nrow(tmp.edges))
-      # browser()
+      # Remove loop connection such as from=Baghdad to=Baghdad
       if(nrow(tmp.edges) > 0)
       {
+        browser()
         tmp.edges <- remove_loop2(tmp.nodes, tmp.edges)
       }
       
+      # Remove bidirectional edges such as
+      # edge1: from=Baghdad to=Egypt
+      # edge2: from=Egypt, to=Baghdad
+      # We do not want these in edges as this would create multiple 
+      # lines in geographical plot, and I think it would be nice to have
+      # a single line between two distinct geolocations to elegantly display
+      # the connection between them, and it's strength i.e., the number of
+      # edges between them using different edge colors.
       if(nrow(tmp.edges) > 0)
       {
         tmp.edges <- remove_bidirection(tmp.edges)
@@ -579,33 +676,25 @@ s <- shinyServer(function(input, output, session){
       
       if(nrow(tmp.edges) > 0)
       {
-        # Embed coordinate information
-        tmp.edges <- tmp.edges %>% inner_join(coords, by=c('g1_hqc'='hq_country'))
-        cnames <- colnames(tmp.edges)
-        cnames[cnames=='latitude'] <- 'latitude1'
-        cnames[cnames=='longitude'] <- 'longitude1'
-        colnames(tmp.edges) <- cnames
-        
-        
-        tmp.edges <- tmp.edges %>% inner_join(coords, by=c('g2_hqc'='hq_country'))
-        cnames <- colnames(tmp.edges)
-        cnames[cnames=='latitude'] <- 'latitude2' 
-        cnames[cnames=='longitude'] <- 'longitude2'
-        colnames(tmp.edges) <- cnames
-        return(list(tmp.edges, nonunique.edges)) # tmp.edges is unique edges
+        browser()
+        return(list(tmp.edges, nonunique.edges, tmp.nodes)) # tmp.edges is unique edges
       }
       else
-        return(list(data.frame(), data.frame()))
+      {
+        # Some map not have adequate information geolocation for which cases
+        # we just need to return empty data frames to avoid program from
+        # crashing
+        return(list(data.frame(), data.frame(), data.frame()))
+      }
       
     })
     
-    
     nodes_geo <- reactive({
       
-      if(nrow(geo.edges()[[1]]) > 0)
+      if(nrow(geo.df()[[1]]) > 0)
       {
-        unique.edges <- geo.edges()[[1]]
-        tmp.df <- geo.edges()[[2]]
+        unique.edges <- geo.info()[[1]]
+        tmp.df <- geo.info()[[2]]
         
         unique_hq <- unique(c(unique.edges$g1_hqc, unique.edges$g2_hqc))
         
@@ -632,7 +721,6 @@ s <- shinyServer(function(input, output, session){
           # Use betweenness centrality to color the nodes
           # browser()
           mp_coords[mp_coords$hq_country==hq, 'degree'] <- avg_degree
-          # mp_coords[mp_coords$map_name==mn, 'count'] <- n_edges
         }
         # browser()
         tmp.colorPalette <- colorRampPalette(c('blue', 'red'))(7)
@@ -648,8 +736,8 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$geoMap <- renderPlot({
-      
-      if(nrow(geo.edges()[[1]]) > 0 & nrow(nodes_geo()) > 0)
+      # browser()
+      if(nrow(geo.df()[[1]]) > 0 & nrow(nodes_geo()) > 0)
       {
         lat_range <- range(nodes_geo()$lat)
         lon_range <- range(nodes_geo()$long)
