@@ -504,11 +504,12 @@ s <- shinyServer(function(input, output, session){
     
     remove_loop2 <- function(nodes, edges)
     {
-      addresses() <- nodes$addr
+      # browser()
+      unique.addresses <- unique(nodes$addr)
       rejection_list <- c()
-      for(i in 1:length(addresses))
+      for(i in 1:length(unique.addresses))
       {
-        addr <- addresses[i]
+        addr <- unique.addresses[i]
         indices <- which(edges$g1_addr==addr & edges$g2_addr==addr)
         # We do not want these edges
         if(length(indices) > 0)
@@ -516,7 +517,12 @@ s <- shinyServer(function(input, output, session){
           rejection_list <- c(rejection_list, indices)
         }
       }
-      edges <- edges[-rejection_list,]
+      if(length(rejection_list) > 0)
+      {
+        edges <- edges[-rejection_list,] 
+      }
+      else
+        edges
      }
     
     # Purpose of this part of the code is to provide unique edges between
@@ -551,7 +557,7 @@ s <- shinyServer(function(input, output, session){
       tmp.edges <- tmp.edges %>% inner_join(unique(df_nodes[, c('id', 'hq_city',
                                                                 'hq_province',
                                                                 'hq_country')]), 
-                                            by=c('from'='id'), copy=T)
+                                            by=c('to'='id'), copy=T)
       cnames <- colnames(tmp.edges)
       cnames[cnames=='hq_city'] <- 'g2_city'
       cnames[cnames=='hq_province'] <- 'g2_province'
@@ -559,15 +565,15 @@ s <- shinyServer(function(input, output, session){
       colnames(tmp.edges) <- cnames
       #-------------------------------------------------------------------------
       
-      # Drop from and to that corresponds to the profile identifier
-      drop.col.indices <- which(cnames %in% c('from', 'to'))
-      tmp.edges <- tmp.edges[, -drop.col.indices]
-      
       # Drop NA observations
       tmp.edges <- drop_na(tmp.edges)
       
       # Clone a copy of edges dataframe to nonunique.edges for other purposes
       nonunique.edges <- tmp.edges
+      
+      # Drop from and to that corresponds to the profile identifier
+      drop.col.indices <- which(cnames %in% c('from', 'to'))
+      tmp.edges <- tmp.edges[, -drop.col.indices]
       
       #-------------------------------------------------------------------------
       # Encode edges dataframe with city, province, and country information.
@@ -578,27 +584,30 @@ s <- shinyServer(function(input, output, session){
       tmp.edges <- unique(tmp.edges[, c('g1_city', 'g1_province', 'g1_country',
                                         'g2_city', 'g2_province', 'g2_country')])
       
-      tmp.nodes1 <- tmp.edges[, c('g1_city', 'g1_province', 'g1_country')]
+      tmp.nodes1 <- unique(tmp.edges[, c('g1_city', 'g1_province', 'g1_country')])
       
       # Create an addr attribute based on city, province, and country attributes
       tmp.nodes1 <- encode_address(tmp.nodes1)
+      # browser()
       tmp.edges <- tmp.edges %>% inner_join(tmp.nodes1, 
                                             by=c('g1_city'='hq_city',
-                                                           'g1_province'='hq_province',
-                                                           'g1_country'='hq_country'))
+                                                 'g1_province'='hq_province',
+                                                 'g1_country'='hq_country'), 
+                                            keep=F)
       cnames <- colnames(tmp.edges)
       cnames[cnames=='addr'] <- 'g1_addr'
       colnames(tmp.edges) <- cnames
       
       # For "to" profile
-      tmp.nodes2 <- tmp.edges[, c('g2_city', 'g2_province', 'g2_country')]
+      tmp.nodes2 <- unique(tmp.edges[, c('g2_city', 'g2_province', 'g2_country')])
       
       # Create an addr attribute based on city, province, and country attributes
       tmp.nodes2 <- encode_address(tmp.nodes2)
       tmp.edges <- tmp.edges %>% inner_join(tmp.nodes2, 
                                             by=c('g2_city'='hq_city',
                                                  'g2_province'='hq_province',
-                                                 'g2_country'='hq_country'))
+                                                 'g2_country'='hq_country'),
+                                            keep=F)
       cnames <- colnames(tmp.edges)
       cnames[cnames=='addr'] <- 'g2_addr'
       colnames(tmp.edges) <- cnames
@@ -661,6 +670,10 @@ s <- shinyServer(function(input, output, session){
         tmp.edges <- remove_loop2(tmp.nodes, tmp.edges)
       }
       
+      # Before we remove bidirectional edges we need to include
+      # id column that the function requires the edges data frame to work
+      tmp.edges$id <- seq(1, nrow(tmp.edges))
+      
       # Remove bidirectional edges such as
       # edge1: from=Baghdad to=Egypt
       # edge2: from=Egypt, to=Baghdad
@@ -676,7 +689,7 @@ s <- shinyServer(function(input, output, session){
       
       if(nrow(tmp.edges) > 0)
       {
-        browser()
+        # browser()
         return(list(tmp.edges, nonunique.edges, tmp.nodes)) # tmp.edges is unique edges
       }
       else
@@ -691,94 +704,174 @@ s <- shinyServer(function(input, output, session){
     
     nodes_geo <- reactive({
       
+      # The goal here is to present visNetwork with nodes data frame
+      # where the each node is a location, and we need color to represent
+      # the amount of connection between two geographical coordinates.
+      # We would like to use color to show the traffic since we are using
+      # set of unique edges and using all edges could overload the geographical
+      # plot with too many lines between different places and may compromise
+      # interpretability. Hence, in order to keep the connections simple and
+      # more transparent, unique edges are used.
+      
       if(nrow(geo.df()[[1]]) > 0)
       {
-        unique.edges <- geo.info()[[1]]
-        tmp.df <- geo.info()[[2]]
+        geo_unique_edges <- geo.df()[[1]]
+        geo_nonunique_edges <- geo.df()[[2]]
         
-        unique_hq <- unique(c(unique.edges$g1_hqc, unique.edges$g2_hqc))
+        # In order to endow nodes with color, we need to first include
+        # degree of centrality measure based on which a color will be allocated.
+        # At this point, geo_nodes may not be able to join with df_nodes
+        # since they do not share an uniquely identifiable attribute in common. 
+        # However, we can utilize the location information such as city, province,
+        # and country to extract edges whose "from", and "to" profiles belong to.
+        # From that, we could use those IDs ("from", and "to") and create a 
+        # data frame that can then be joined with df_nodes.
         
-        mp_coords <- data.frame(hq_country=unique_hq)
-        mp_coords$lat <- 0
-        mp_coords$long <- 0
-        mp_betweenness <- 0
+        geo_nonunique_edges <- geo_nonunique_edges %>% 
+                            inner_join(geo_unique_edges[, c('g1_city',
+                                                            'g1_province',
+                                                            'g1_country',
+                                                            'g2_city',
+                                                            'g2_province',
+                                                            'g2_country',
+                                                            'g1_addr',
+                                                            'g2_addr')],
+                                       by=c('g1_city',
+                                            'g1_province',
+                                            'g1_country',
+                                            'g2_city',
+                                            'g2_province',
+                                            'g2_country'))
         
-        for(i in 1:length(unique_hq))
+        geo_nodes <- geo.df()[[3]]
+        unique.addr <- geo_nodes$addr
+        geo.maps <- c()
+        
+        for(i in 1:length(unique.addr))
         {
-          hq <- unique_hq[i]
-          tmp.edges <- tmp.df[tmp.df$g2_hqc==hq, c('from', 'to')]
-          tmp.nodes <- unique(c(tmp.edges$from, tmp.edges$to))
+          addr <- unique.addr[i]
+          corresponding_edges <- geo_nonunique_edges[geo_nonunique_edges$g1_addr==addr | 
+                                           geo_nonunique_edges$g2_addr==addr, 
+                                           c('from', 'to')]
           # browser()
-          tmp.nodes <- data.frame(id=tmp.nodes) %>% 
-                          inner_join(df_nodes[, c('id', 'value')], by='id')
-          avg_degree <- mean(tmp.nodes$value, na.rm=T)
+          corresponding_node_ids <- unique(c(corresponding_edges$from, 
+                                             corresponding_edges$to))
+          node_values <- df_nodes[df_nodes$id %in% corresponding_node_ids, 
+                                                                      'value']
+          corresponding_maps <- unique(df[df$from %in% corresponding_node_ids |
+                                   df$to %in% corresponding_node_ids, 'map_name'])
+          geo.maps <- unique(c(geo.maps, corresponding_maps))
           
-          coord <- coords[coords$hq_country==hq,]
+          avg_degree <- mean(node_values, na.rm=T)
+          geo_nodes[geo_nodes$addr==addr, 'degree'] <- avg_degree
           
-          mp_coords[mp_coords$hq_country==hq, c('lat', 'long')] <- 
-                                coord[, c('latitude', 'longitude')]
-          
-          # Use betweenness centrality to color the nodes
-          # browser()
-          mp_coords[mp_coords$hq_country==hq, 'degree'] <- avg_degree
         }
         # browser()
         tmp.colorPalette <- colorRampPalette(c('blue', 'red'))(7)
-        counts_cut <- cut(mp_coords$degree, 7)
+        counts_cut <- cut(geo_nodes$degree, 7)
         node.color <- tmp.colorPalette[as.numeric(counts_cut)]
-        mp_coords$color <- node.color
+        geo_nodes$color <- node.color
         
-        mp_coords
+        list(geo_nodes, geo.maps)
       }
       else
-        return(data.frame())
+        return(data.frame(),)
       
     })
-    
     output$geoMap <- renderPlot({
+      tmp.result <- nodes_geo()
+      geo.nodes <- tmp.result[[1]]
+      geo.maps <- tmp.result[[2]]
       # browser()
-      if(nrow(geo.df()[[1]]) > 0 & nrow(nodes_geo()) > 0)
+      geo.nodes <- geo.nodes[(!is.na(geo.nodes$latitude)) &
+                             (!is.na(geo.nodes$longitude)),]
+      geo.unique_edges <- geo.df()[[1]]
+      geo.unique_edges <- geo.unique_edges[(!is.na(geo.unique_edges$g1_latitude)) &
+                                           (!is.na(geo.unique_edges$g1_longitude)) &
+                                           (!is.na(geo.unique_edges$g2_latitude)) &
+                                           (!is.na(geo.unique_edges$g2_longitude)), ]
+      
+      geo.nonunique_edges <- geo.df()[[2]]
+      if(nrow(geo.unique_edges) > 0 & nrow(geo.nodes) > 0)
       {
-        lat_range <- range(nodes_geo()$lat)
-        lon_range <- range(nodes_geo()$long)
+        lat_range <- range(geo.nodes$latitude, na.rm=T)
         
-        maps::map(database="world", 
-                  border="gray10", fill=T, bg='black', col="grey20")
+        lon_range <- range(geo.nodes$longitude, na.rm=T)
+        
+        browser()
+        
+        if(input$g_map_name=='All')
+        {
+          lat_range[1] <- lat_range[1]-15 # Minimum on negative axis
+          lat_range[2] <- lat_range[2]+15 # Maximum on positive axis
+          lon_range[1] <- lon_range[1]-36 # Minimum on negative axis
+          lon_range[2] <- lon_range[2]+36 # Maximum on positive axis
+          maps::map(database="world", 
+                    border="gray10", fill=T, bg='black', col="grey20",
+                    xlim=lon_range, ylim=lat_range)  
+        }
+        else
+        {
+          lat_range[1] <- lat_range[1]-10 # Minimum on negative axis
+          lat_range[2] <- lat_range[2]+10 # Maximum on positive axis
+          lon_range[1] <- lon_range[1]-10 # Minimum on negative axis
+          lon_range[2] <- lon_range[2]+10 # Maximum on positive axis
+          maps::map(database="world", 
+                    border="gray10", fill=T, bg='black', col="grey20",
+                    xlim=lon_range, ylim=lat_range)
+        }
+        
         # browser()
-        points(x=nodes_geo()$long, y=nodes_geo()$lat, pch=19, 
-               col=nodes_geo()$color, cex=2)
-        text(x=nodes_geo()$long, y=nodes_geo()$lat-5, label=nodes_geo()$hq_country, 
-             cex=1.24, col='white')
+        points(x=geo.nodes$longitude, y=geo.nodes$latitude, pch=19, 
+               col=geo.nodes$color, cex=2)
+        text(x=geo.nodes$longitude, y=(geo.nodes$latitude)-0.8, 
+              label=sprintf('%s, %s',geo.nodes$hq_city, geo.nodes$hq_province),
+              cex=1, col='white')
         
-        unique.edges <- geo.edges()[[1]]
-        tmp.edges <- geo.edges()[[2]] # non unique edges so we can get the count of
+        tmp.edges <- geo.nonunique_edges # non unique edges so we can get the count of
         # connections between two hq countries
         
         # Color the edges---------------------------------------------------------
         
-        unique.edges$count <- 0
-        for(i in 1:nrow(unique.edges))
+        geo.unique_edges$count <- 0
+        for(i in 1:nrow(geo.unique_edges))
         {
           # browser()
-          m1_m2 <- unique.edges[i,]
-          count <- nrow(tmp.edges[tmp.edges$g1_hqc==m1_m2$g1_hqc &
-                                  tmp.edges$g2_hqc==m1_m2$g2_hqc,])
+          m1_m2 <- geo.unique_edges[i, c('g1_addr', 'g2_addr')]
+          count1 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g1_addr &
+                                             geo.nonunique_edges$g2_addr==m1_m2$g2_addr,])
+          count2 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g2_addr &
+                                             geo.nonunique_edges$g2_addr==m1_m2$g1_addr,])
+          count <- count1 + count2
           
-          unique.edges[unique.edges$g1_hqc==m1_m2$g1_hqc & 
-                       unique.edges$g2_hqc==m1_m2$g2_hqc, 'count'] <- count
+          geo.unique_edges[geo.unique_edges$g1_addr==m1_m2$g1_addr & 
+                           geo.unique_edges$g2_addr==m1_m2$g2_addr, 'count'] <- count
         }
-        tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
-        count_binned <- cut(unique.edges$count, 7)
-        unique.edges$color <- tmp.colorPalette[as.numeric(count_binned)]
         
-        for(mn_idx in 1:nrow(unique.edges))
+        tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
+        count_binned <- cut(geo.unique_edges$count, 7)
+        geo.unique_edges$color <- tmp.colorPalette[as.numeric(count_binned)]
+        
+        for(mn_idx in 1:nrow(geo.unique_edges))
         {
-          coord1 <- unique.edges[mn_idx, c('longitude1', 'latitude1')]
-          coord2 <- unique.edges[mn_idx, c('longitude2', 'latitude2')]
-          color <- unique.edges[mn_idx, 'color']
+          coord1 <- geo.unique_edges[mn_idx, c('g1_longitude', 'g1_latitude')]
+          coord2 <- geo.unique_edges[mn_idx, c('g2_longitude', 'g2_latitude')]
+          color <- geo.unique_edges[mn_idx, 'color']
           # browser()
           intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
           lines(intEdges, col=color, lwd=2)
+        }
+        
+        if(input$g_map_name == "All")
+        {
+          browser()
+          # Safe time to update list of available map names in geographical plot
+          # List of maps that are possible to display for geographical map
+          # as some maps have no profile with valid coordinates, and this may crash 
+          # the program. Hence, display map names only those that have profiles with
+          # valid coordinates
+          updateSelectInput(session=session, inputId="g_map_name", label="Map Name:",
+                            choices=c("All", geo.maps))
         }
       }
       

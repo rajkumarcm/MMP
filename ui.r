@@ -78,9 +78,9 @@ u <- shinyUI(fluidPage(
                     mainPanel(
                       div(id = "mp", class="mp", 
                           h2("Network Plots"),
-                          tabsetPanel(
+                          tabsetPanel(id='vz_tbsp', selected='vz_spatial',
                             
-                            tabPanel("Spatial",
+                            tabPanel(title="Spatial", value="vz_spatial",
                                      div(id="nvf_body",
                                          div(id="nvf_legend",
                                             
@@ -232,7 +232,7 @@ u <- shinyUI(fluidPage(
                                      ,
                                      style = "background-color: #f0f0f0;"),
                             
-                            tabPanel("Hierarchical", 
+                            tabPanel(title="Hierarchical", value="vz_hierarchical",
                                      div(id="popDiv2"),
                                      uiOutput("reg_hideDesc2"),
                                      
@@ -289,14 +289,14 @@ u <- shinyUI(fluidPage(
                                      style = "background-color: #f0f0f0;"),
                             
 
-                            tabPanel("Geographical",
+                            tabPanel(title="Geographical", value="vz_geo",
                                      selectInput(inputId='g_map_name', label='Map Name:',
                                                  choices=maps,
                                                   selected=maps[1]),
                                      plotOutput("geoMap", height="810px", width="1411px"),
                                      style = "background-color: #f0f0f0;"),
 
-                            tabPanel("Statistics",
+                            tabPanel(title="Statistics", value="vz_stats",
 
                                        sidebarLayout(
                                          sidebarPanel(

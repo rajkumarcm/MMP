@@ -128,6 +128,8 @@ status_dict <- status_dict[status_dict$status=='Mergers' |
 # coords <- read.csv('data/maps_coord.csv', header=T)
 # colnames(coords) <- c('hq_country', 'latitude', 'longitude')
 load(file='lat_longs.RData')
+lat_longs <- lat_longs[(!is.na(lat_longs$latitude)) & 
+                       (!is.na(lat_longs$longitude)), ]
 
 
 remove_loop <- function(nodes, edges)
@@ -162,17 +164,13 @@ remove_bidirection <- function(edges)
     reverse_edge_id <- edges[edges$from==edge$to &
                                edges$to==edge$from, 'id']
     count <- length(reverse_edge_id)
-    if(count == 1)
+    if(count >= 1)
     {
       # browser()
-      if(!reverse_edge_id %in% accepted_list)
+      if(sum(reverse_edge_id %in% accepted_list) == 0)
       {
         accepted_list <- c(accepted_list, edge$id)
       }
-    }
-    else if(count > 1)
-    {
-      print('catch me... this should not happen...')
     }
     else
       accepted_list <- c(accepted_list, edge$id)
@@ -256,6 +254,7 @@ valid.countries.list2[valid.countries.list2=='United States'] <- 'United States 
 valid.countries.list2[valid.countries.list2=='New York'] <- 'United States of America'
 valid.countries.list <- data.frame(hq_country_old=valid.countries.list1, 
                                    hq_country_new=valid.countries.list2)
+
 
 
 # browser()
