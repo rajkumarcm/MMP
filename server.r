@@ -45,7 +45,7 @@ s <- shinyServer(function(input, output, session){
   reactive_df <- reactive({
     tmp <- observe(triggered_df(), {
       loginfo('triggered_df triggered')
-      # browser()
+      #  
       return(triggered_df())
     })
     return(tmp)
@@ -118,7 +118,7 @@ s <- shinyServer(function(input, output, session){
   # ledges is created & used for the sake of displaying legend
   # that aid in understanding the edges
   # edges data.frame for legend
-  # browser()
+  #  
   ledges <- reactive({
     # loginfo('ledges reactive block is triggered...')
     tmp_df <- unique(filtered_df()[, c('status', 'color')])
@@ -149,7 +149,7 @@ s <- shinyServer(function(input, output, session){
                                label='Filter Designation',
                                choices=checkbox_choices,
                                selected=checkbox_choices)
-    # browser()
+    #  
     get_spatial_visNetwork(nodes2(), edges())
   })
   
@@ -210,13 +210,13 @@ s <- shinyServer(function(input, output, session){
   #------------Have to duplicate call to visNetwork for Animation---------------
   observeEvent(input$animateBtn, {
     
-    # browser()
+    #  
     tmp.edges <- edges()
     tmp.edges <- tmp.edges %>% filter(year <= f_years()[1])
     tmp.nodes <- get_nodes(tmp.edges)
     if(input$animate_spatial==T)
     {
-      # browser()
+      #  
       visRemoveEdges(myVisNetworkProxy, edges()$id)
       visRemoveNodes(myVisNetworkProxy, nodes2()$id)
       visUpdateNodes(myVisNetworkProxy, tmp.nodes)
@@ -225,7 +225,7 @@ s <- shinyServer(function(input, output, session){
       
       for(i in 2:length(f_years()))
       {
-        # browser()
+        #  
         session$sendCustomMessage('tmpAnimate', i)
         Sys.sleep(2)
         tmp.edges <- edges()
@@ -263,12 +263,12 @@ s <- shinyServer(function(input, output, session){
   
   alreadyClustered <- F
   observeEvent(input$clusterNodes, {
-    # browser()
+    #  
     # logging::loginfo(input$clusterNodes[['scale']])
     if(input$clusterNodes[['scale']] < 0.08 & alreadyClustered==F & 
        input$map_name=='All')
     {
-      # browser()
+      #  
       alreadyClustered <<- T
       session$sendCustomMessage('toggleSL', '')
       visRemoveEdges(myVisNetworkProxy, edges()$id)
@@ -394,7 +394,7 @@ s <- shinyServer(function(input, output, session){
     selectedStatus <- as.numeric(input$selectStatus)
     if(selectedStatus > 0){
       selectedEdgesId <- edges()[edges()$status_id == selectedStatus, 'id']
-      # browser()
+      #  
       visSelectEdges(myVisNetworkProxy, selectedEdgesId)
     }
     else
@@ -457,7 +457,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$diagram <- renderSankeyNetwork({
-      # browser()
+      #  
       sankeyNetwork(
         Links = links_sankey(),
         Nodes = nodes_sankey(),
@@ -475,7 +475,7 @@ s <- shinyServer(function(input, output, session){
     
     output$nvf_legend_sub <- renderUI({
       
-      # browser()
+      #  
       svg_content <- get_legend(ledges())
       HTML(
         paste0("
@@ -504,7 +504,7 @@ s <- shinyServer(function(input, output, session){
     
     remove_loop2 <- function(nodes, edges)
     {
-      # browser()
+      #  
       unique.addresses <- unique(nodes$addr)
       rejection_list <- c()
       for(i in 1:length(unique.addresses))
@@ -534,7 +534,7 @@ s <- shinyServer(function(input, output, session){
       tmp.edges <- unique(df[(df$map_name==input$g_map_name |
                               input$g_map_name=='All'), c('from', 'to')] )
       #----------------------------------------------------------------------
-      # browser()
+      #  
       
       #----------------------------------------------------------------------
       # Create an edges data frame using the from, and to extracted from the
@@ -588,7 +588,7 @@ s <- shinyServer(function(input, output, session){
       
       # Create an addr attribute based on city, province, and country attributes
       tmp.nodes1 <- encode_address(tmp.nodes1)
-      # browser()
+      #  
       tmp.edges <- tmp.edges %>% inner_join(tmp.nodes1, 
                                             by=c('g1_city'='hq_city',
                                                  'g1_province'='hq_province',
@@ -622,7 +622,7 @@ s <- shinyServer(function(input, output, session){
       tmp.nodes <- tmp.nodes %>% inner_join(lat_longs, by='addr')
       
       # Attach latitude, longitude for the "from" profile
-      # browser()
+      #  
       tmp.edges <- tmp.edges %>% inner_join(tmp.nodes[, c('addr', 'latitude',
                                                           'longitude')],
                                             by=c('g1_addr'='addr'))
@@ -666,7 +666,7 @@ s <- shinyServer(function(input, output, session){
       # Remove loop connection such as from=Baghdad to=Baghdad
       if(nrow(tmp.edges) > 0)
       {
-        browser()
+        #  
         tmp.edges <- remove_loop2(tmp.nodes, tmp.edges)
       }
       
@@ -689,7 +689,7 @@ s <- shinyServer(function(input, output, session){
       
       if(nrow(tmp.edges) > 0)
       {
-        # browser()
+        #  
         return(list(tmp.edges, nonunique.edges, tmp.nodes)) # tmp.edges is unique edges
       }
       else
@@ -753,7 +753,7 @@ s <- shinyServer(function(input, output, session){
           corresponding_edges <- geo_nonunique_edges[geo_nonunique_edges$g1_addr==addr | 
                                            geo_nonunique_edges$g2_addr==addr, 
                                            c('from', 'to')]
-          # browser()
+          #  
           corresponding_node_ids <- unique(c(corresponding_edges$from, 
                                              corresponding_edges$to))
           node_values <- df_nodes[df_nodes$id %in% corresponding_node_ids, 
@@ -766,7 +766,7 @@ s <- shinyServer(function(input, output, session){
           geo_nodes[geo_nodes$addr==addr, 'degree'] <- avg_degree
           
         }
-        # browser()
+        #  
         tmp.colorPalette <- colorRampPalette(c('blue', 'red'))(7)
         counts_cut <- cut(geo_nodes$degree, 7)
         node.color <- tmp.colorPalette[as.numeric(counts_cut)]
@@ -782,7 +782,7 @@ s <- shinyServer(function(input, output, session){
       tmp.result <- nodes_geo()
       geo.nodes <- tmp.result[[1]]
       geo.maps <- tmp.result[[2]]
-      # browser()
+      #  
       geo.nodes <- geo.nodes[(!is.na(geo.nodes$latitude)) &
                              (!is.na(geo.nodes$longitude)),]
       geo.unique_edges <- geo.df()[[1]]
@@ -798,7 +798,7 @@ s <- shinyServer(function(input, output, session){
         
         lon_range <- range(geo.nodes$longitude, na.rm=T)
         
-        browser()
+        #  
         
         if(input$g_map_name=='All')
         {
@@ -821,7 +821,7 @@ s <- shinyServer(function(input, output, session){
                     xlim=lon_range, ylim=lat_range)
         }
         
-        # browser()
+        #  
         points(x=geo.nodes$longitude, y=geo.nodes$latitude, pch=19, 
                col=geo.nodes$color, cex=2)
         text(x=geo.nodes$longitude, y=(geo.nodes$latitude)-0.8, 
@@ -836,7 +836,7 @@ s <- shinyServer(function(input, output, session){
         geo.unique_edges$count <- 0
         for(i in 1:nrow(geo.unique_edges))
         {
-          # browser()
+          #  
           m1_m2 <- geo.unique_edges[i, c('g1_addr', 'g2_addr')]
           count1 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g1_addr &
                                              geo.nonunique_edges$g2_addr==m1_m2$g2_addr,])
@@ -857,14 +857,14 @@ s <- shinyServer(function(input, output, session){
           coord1 <- geo.unique_edges[mn_idx, c('g1_longitude', 'g1_latitude')]
           coord2 <- geo.unique_edges[mn_idx, c('g2_longitude', 'g2_latitude')]
           color <- geo.unique_edges[mn_idx, 'color']
-          # browser()
+          #  
           intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
           lines(intEdges, col=color, lwd=2)
         }
         
         if(input$g_map_name == "All")
         {
-          browser()
+          #  
           # Safe time to update list of available map names in geographical plot
           # List of maps that are possible to display for geographical map
           # as some maps have no profile with valid coordinates, and this may crash 
@@ -885,7 +885,7 @@ s <- shinyServer(function(input, output, session){
       
       h_edges <- df[df$map_name==input$h_map_name & (df$status=='Splinters' | 
                                                      df$status=='Mergers'), ]
-      # browser()
+      #  
       nodes_mn <- unique(c(h_edges$from, h_edges$to))
       nodes_mn <- data.frame(id=nodes_mn) %>% 
                         inner_join(nodes, by='id', copy=T)
@@ -934,7 +934,7 @@ s <- shinyServer(function(input, output, session){
       tmp.edges <- tmp.edges[, -width_idx]
       
       # debug_var <- dfs()[[1]] # DELETE AFTER INSPECTION...
-      # browser()
+      #  
       tmp.nodes <- dfs()[[1]]
       tmp.nodes <- tmp.nodes %>% inner_join(df_nodes[, c('label', 'old_description')])
       tmp.nodes <- set_border_color(tmp.nodes)
@@ -984,7 +984,7 @@ s <- shinyServer(function(input, output, session){
       
       #--------------------Timeline ruler---------------------------------------
       tmp.nodes <- dfs()[[1]]
-      # browser()
+      #  
       tmp.levels <- unique(tmp.nodes[, c('year', 'y')])
       tmp.levels <- tmp.levels %>% arrange(year)
       svg_content <- get_h_legend(tmp.levels)
@@ -1005,7 +1005,7 @@ s <- shinyServer(function(input, output, session){
 
       output$h_legend_sub <- renderUI({
         loginfo('h_legend_sub triggered')
-        # browser()
+        #  
         
         # svg_content1 <- get_legend(ledges(), include_second_line=F)
         svg_content2 <- "
@@ -1033,14 +1033,14 @@ s <- shinyServer(function(input, output, session){
 
     
     observeEvent(input$zoomDel, {
-      # browser()
+      #  
       direction <- input$zoomDel[['direction']]
       
       session$sendCustomMessage('scaleLegend', direction)
     })
     
     observeEvent(input$dragDel, {
-      # browser()
+      #  
       # logging::loginfo(input$dragDel)
       deltaY <- (input$dragDel[['event']])$deltaY
       # angle <- ((input$dragDel[['event']])$center)$y
@@ -1057,7 +1057,7 @@ s <- shinyServer(function(input, output, session){
       
       growth_by_prof <- reactive({
         # tmp.df <- df_nodes %>% inner_join(nodes[, c('id', 'between')], by='id')
-        # browser()
+        #  
         tmp.df <- unique(df_nodes[, c('label', 'init_size_members', 
                                     'max_size_members', 'between', 
                                     'level', 'endyear')])
@@ -1092,7 +1092,7 @@ s <- shinyServer(function(input, output, session){
       })
       
       output$membersGrowth <- renderPlot({
-        # browser()
+        #  
         ggplot(growth_by_prof(), aes(x=reorder(label, growth), 
                                              y=growth, fill=between)) +
         geom_bar(stat='identity') +
@@ -1156,7 +1156,7 @@ s <- shinyServer(function(input, output, session){
       
       #----------Number of active groups per year-------------------------------
       output$activeg_year <- renderPlot({
-        # browser()
+        #  
         
         tmp.df_nodes <- NULL
         for(map_name in maps[2:length(maps)])
@@ -1171,7 +1171,7 @@ s <- shinyServer(function(input, output, session){
             tmp.df_nodes <- rbind(tmp.df_nodes, data.frame(tmp.nodes))
         }
         tmp.df_nodes <- data.frame(tmp.df_nodes)
-        # browser()
+        #  
         
         ag_df <- unique(tmp.df_nodes[tmp.df_nodes$active==1 & 
                                      tmp.df_nodes$level!=0,
@@ -1258,7 +1258,7 @@ s <- shinyServer(function(input, output, session){
       #       node_label <- unique.nodes[j]
       #       n <- nrow(unique(df[df$group1_name == node_label |
       #                           df$group2_name == node_label,]))
-      #       # browser()
+      #       #  
       #       if(is.null(tmp.profiles))
       #         tmp.profiles <- data.frame(map_name=mname, label=node_label, n=n)
       #       else
@@ -1288,7 +1288,7 @@ s <- shinyServer(function(input, output, session){
       # })
       
       # For t-test
-      # browser()
+      #  
       # n_edges.map_name <- df %>% group_by(primary) %>% summarise(count=n())
       output$showTtest <- renderText({
         
@@ -1307,7 +1307,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$em_profiles <- renderUI({
-      # browser()
+      #  
       html.table <- "<table class='admin_table'><tr class='tr_class'><th class='th_class'>Map Name</th><th class='th_class'>Edit Links</th><th class='th_class'>Manage</th></tr>"
       html.inner <- ""
         for(i in 1:nrow(admin.maps()))
@@ -1355,7 +1355,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$newProf_schanges, {
-      # browser()
+      #  
       warnings <- c()
       end_year <- as.integer(input$newProf_schanges['ey'][[1]])
       start_year <- as.integer(input$newProf_schanges['sy'][[1]])
@@ -1369,7 +1369,7 @@ s <- shinyServer(function(input, output, session){
       first_attack <- as.integer(input$newProf_schanges['first_attack'][[1]])
       last_attack <- as.integer(input$newProf_schanges['last_attack'][[1]])
       last_updated <- as.integer(input$newProf_schanges['last_updated'][[1]])
-      # browser()
+      #  
       
       name <- str_trim(input$newProf_schanges['name'][[1]])
       url <- str_trim(input$newProf_schanges['url'][[1]])
@@ -1487,7 +1487,7 @@ s <- shinyServer(function(input, output, session){
         other_designated = 1
       }
       
-      # browser()
+      #  
       if(length(warnings) > 0)
       {
         session$sendCustomMessage('showWarnings', 'new_prof_warnings_container')
@@ -1498,7 +1498,7 @@ s <- shinyServer(function(input, output, session){
         output$new_prof_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_prof_warnings_container')
         
-        # browser()
+        #  
         # Before writing the changes, check for duplicates in the df_nodes
         node_record <- data.frame(group_id=(max(df_nodes$id)+1), group_name=name, 
                                   start_year=start_year, end_year=end_year,
@@ -1526,7 +1526,7 @@ s <- shinyServer(function(input, output, session){
                                   state_sponsor_names=spons_names,
                                   Notes=comments
         )
-        # browser()
+        #  
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
@@ -1534,7 +1534,7 @@ s <- shinyServer(function(input, output, session){
                                       header=T,)
         
         # Append new information onto the existing dataframe
-        # browser()
+        #  
         original.df_nodes.binded <- rbind(original.df_nodes, node_record)
         
         # Get the latest date time
@@ -1561,12 +1561,12 @@ s <- shinyServer(function(input, output, session){
         original.df_nodes.binded$between_color <- 'yellow'
         
         # so that they are in same order
-        # browser()
+        #  
         
         profile_names <- c(profile_names, name)
         profile_names <- data.frame(x=profile_names) %>% arrange(x)
         profile_names <<- profile_names$x
-        # browser()
+        #  
         
         df_nodes <<- original.df_nodes.binded
         
@@ -1617,7 +1617,7 @@ s <- shinyServer(function(input, output, session){
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
                                      tmp.profiles$endyear)
       tmp.profiles
-      # browser()
+      #  
     })
 
     output$ep_profiles <- renderPrint({
@@ -1641,7 +1641,7 @@ s <- shinyServer(function(input, output, session){
         name <- profile$label
         level <- profile$level
         active <- profile$activeC
-        # browser()
+        #  
         hidden <- ifelse(name %in% h.profile_names, T, F)
         hidden.html <- ""
         if(hidden==T)
@@ -1707,7 +1707,7 @@ s <- shinyServer(function(input, output, session){
       # that you had deleted. This would enable you to retrieve the remaining
       # columns instead of saving the file with just 4 or 5 selective columns
       # and losing invaluable information.
-      # browser()
+      #  
       if(ep_changes_made==T)
       {
         # Delete profiles section-----------------------------------------------
@@ -1768,7 +1768,7 @@ s <- shinyServer(function(input, output, session){
         d.profile_names <<- NULL
         
         # Re-assign....
-        # browser()
+        #  
         df_nodes.copy <<- unique(triggered_nodes()[, c('id', 'label', 'level', 'active', 
                                                    'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy
@@ -1796,7 +1796,7 @@ s <- shinyServer(function(input, output, session){
       description <- input$newRel_schanges[['desc']][[1]]
       year <- as.integer(input$newRel_schanges[['year']][[1]])
       multiple <- 0
-      # browser()
+      #  
       warnings <- c()
       if(group1_name == group2_name)
       {
@@ -1809,7 +1809,7 @@ s <- shinyServer(function(input, output, session){
       group2_eyear <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'endyear'])
       min_year <- min(c(group1_syear, group2_syear))
       max_year <- 0
-      # browser()
+      #  
       if(group1_eyear == 0 & group2_eyear == 0)
       {
         max_year <- -1
@@ -1827,7 +1827,7 @@ s <- shinyServer(function(input, output, session){
         max_year <- max(c(group1_eyear, group2_eyear))
       }
       
-      # browser()
+      #  
       if(max_year != -1)
       {
         if(year < min_year | year > max_year)
@@ -1847,7 +1847,7 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'map name must be supplied')
       }
-      # browser()
+      #  
       
       # Check for duplicates
       if(nrow(df[df$group1_name==group1_name & 
@@ -1873,7 +1873,7 @@ s <- shinyServer(function(input, output, session){
         group2_id <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'id'])
         link_id <- max(df$link_id)+1
         
-        # browser()
+        #  
         # label, status_id, old_link_id, title, color, actor_color, value, width
         
         # Write changes onto the edges dataframe (df)---------------------------
@@ -1931,7 +1931,7 @@ s <- shinyServer(function(input, output, session){
         tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 
                            header=T, fileEncoding = 'UTF-8-BOM', check.names=T,
                            colClasses=c('multiple'='factor'))
-        # browser()
+        #  
         tmp.df <- rbind(tmp.df, rel_record)
         
         time_str <- str_extract(Sys.time(), '\\d{2}:\\d{2}:\\d{2}')
@@ -1942,8 +1942,8 @@ s <- shinyServer(function(input, output, session){
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname), row.names=F)
         # session$sendCustomMessage('refresh_page', '')
-        # browser()
-        # browser()
+        #  
+        #  
         df <<- rbind(df, tmp.df2[, colnames(df)])
         
         
@@ -1951,7 +1951,7 @@ s <- shinyServer(function(input, output, session){
         nodes <- generate_node_properties(df)
         tmp.df_nodes <- tmp.df_nodes %>% inner_join(nodes, by='id', keep=F)
         df_nodes <<- tmp.df_nodes
-        # browser()
+        #  
         reactive_df_node(tmp.df_nodes)
         triggered_df(df)
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
