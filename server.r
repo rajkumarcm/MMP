@@ -912,7 +912,7 @@ s <- shinyServer(function(input, output, session){
            div = null;
             for(i=0; i < divs.length; i++)
             {
-                if(divs[i].getAttribute('data-value') == 'Hierarchical')
+                if(divs[i].getAttribute('data-value') == 'vz_hierarchical')
                     div = divs[i];
             }
            div.addEventListener('click', hideDesc2);
