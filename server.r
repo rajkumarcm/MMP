@@ -817,8 +817,9 @@ s <- shinyServer(function(input, output, session){
           lon_range[1] <- lon_range[1]-10 # Minimum on negative axis
           lon_range[2] <- lon_range[2]+10 # Maximum on positive axis
           maps::map(database="world", 
-                    border="gray10", fill=T, bg='black', col="grey20",
-                    xlim=lon_range, ylim=lat_range)
+                    border="gray10", fill=T, bg='black', col="grey20"#,
+                    #xlim=lon_range, ylim=lat_range
+                    )
         }
         
         #  
@@ -961,6 +962,9 @@ s <- shinyServer(function(input, output, session){
                   selectEdge = "function(properties){
                                   Shiny.setInputValue('showDesc_h', 
                                   [Math.random(), properties.edges]);
+                              }",
+                  selectNode = "function(properties){
+                                  Shiny.setInputValue('traceBackNode', properties);
                               }"
                   
                   ) %>%
@@ -968,9 +972,14 @@ s <- shinyServer(function(input, output, session){
         visOptions(autoResize=F)
     })
     
-   
     
     h_networkProxy <- visNetworkProxy("visnetworktimeline")
+    
+    observeEvent(input$traceBackNode, {
+      output$h_traceback <- reactive({
+        
+      })
+    })
     
      observeEvent(input$showDesc_h, {
        # loginfo('input$showDesc_h triggered')
@@ -984,7 +993,7 @@ s <- shinyServer(function(input, output, session){
       
       #--------------------Timeline ruler---------------------------------------
       tmp.nodes <- dfs()[[1]]
-      #  
+      # browser()
       tmp.levels <- unique(tmp.nodes[, c('year', 'y')])
       tmp.levels <- tmp.levels %>% arrange(year)
       svg_content <- get_h_legend(tmp.levels)
@@ -1004,7 +1013,7 @@ s <- shinyServer(function(input, output, session){
     
 
       output$h_legend_sub <- renderUI({
-        loginfo('h_legend_sub triggered')
+        # loginfo('h_legend_sub triggered')
         #  
         
         # svg_content1 <- get_legend(ledges(), include_second_line=F)
@@ -1901,9 +1910,9 @@ s <- shinyServer(function(input, output, session){
         tmp.df2$status_id <- unique(df[df$status==status, 'status_id'])
         tmp.df2$old_link_id <- link_id
         tmp.df2$title <- ifelse(tmp.df2$label=="affiliation" | tmp.df2$label=="alliance", 
-                                paste0("An (lid:)", tmp.df2$link_id, "", tmp.df2$label, " occurred in ", tmp.df2$year, 
+                                paste0("An ", tmp.df2$label, " occurred in ", tmp.df2$year, 
                                        " between ", tmp.df2$group1_name, " and ", tmp.df2$group2_name),
-                                paste0("A (lid:)", tmp.df2$link_id, "", tmp.df2$label, " occurred in ", tmp.df2$year, 
+                                paste0("A ", tmp.df2$label, " occurred in ", tmp.df2$year, 
                                        " between ",  tmp.df2$group1_name, " and ", tmp.df2$group2_name))
         
         require(scales)

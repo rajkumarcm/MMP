@@ -257,6 +257,14 @@ u <- shinyUI(fluidPage(
                                                           height="1000px"),
                                        ),
                                      
+                                     div(id="h_tb_container",
+                                         div(id="tb_year_ruler_container", 
+                                             uiOutput("tb_year_ruler")),
+                                         
+                                         visNetworkOutput("h_traceback",
+                                                          width="1660px")
+                                         ),
+                                     
                                      tags$script("
                                                  
                                       var year_ruler_sub = document.getElementById('year_ruler_sub');
