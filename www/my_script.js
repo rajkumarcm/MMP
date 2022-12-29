@@ -299,7 +299,39 @@ function new_rel_trigger(_)
   Shiny.setInputValue('newRel_schanges', jsonObj);
 }
 
-
+function debug_newProf()
+{
+  document.getElementById('new_prof_name').value = "Dummy";
+  document.getElementById('new_prof_url').value = "dummy.com";
+  document.getElementById('new_prof_desc').value = "Test profile";
+  document.getElementById('new_prof_sy').value = 2010;
+  document.getElementById('new_prof_ey').value = 2015;
+  document.getElementById('new_prof_active').checked=true;
+  document.getElementById('new_prof_complete').value="yes";
+  
+  // R server must collect map_name
+  document.getElementById('new_prof_fatt').value=2011;
+  document.getElementById('new_prof_latt').value=2014;
+  document.getElementById('new_prof_lupdated').value=2014;
+  document.getElementById('new_prof_od_names').value="A,B,C,D";
+  document.getElementById('new_prof_city').value="District of Columbia";
+  document.getElementById('new_prof_country').value="United States";
+  document.getElementById('new_prof_province').value="Washington";
+  // Initial member size
+  document.getElementById('new_prof_ims').value=1;
+  // Min Size members
+  document.getElementById('new_prof_msm').value=1;
+  document.getElementById('new_prof_max_sm').value=100;
+  // Latest member size
+  document.getElementById('new_prof_isy').value=1;
+  // Min size year
+  document.getElementById('new_prof_msy').value=1;
+  document.getElementById('new_prof_max_sy').value=100;
+  
+  document.getElementById('new_prof_pub').checked=true;
+  document.getElementById('new_prof_spons_names').value="A,B,C,D";
+  document.getElementById('new_prof_comments').value="Other comments";
+}
 
 
 

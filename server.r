@@ -1360,6 +1360,31 @@ s <- shinyServer(function(input, output, session){
                           selected=profile_names[1])
         updateSelectInput(session, 'new_rel_tgn', choices=profile_names,
                           selected=profile_names[1])
+        updateSelectInput(session, 'new_rel_map_name', choices=maps,
+                          selected=maps[1])
+        updateSelectInput(session, 'new_rel_primary', 
+                          choices=maps[2:length(maps)],
+                          selected=maps[2])
+      }
+      else if(input$admin_tbsp == "admin_np")
+      {
+        updateSelectInput(session, 'new_prof_map', 
+                          choices=c(maps[2:length(maps)], 'Other'),
+                          selected=maps[2])
+      }
+    })
+    
+    observeEvent(input$vz_tbsp, {
+      browser()
+      if(input$vz_tbsp == "vz_spatial")
+      {
+        updateSelectInput(session, 'map_name',
+                          choices=maps, selected=maps[2])
+      }
+      else if(input$vz_tbsp == "vz_hierarchical")
+      {
+        updateSelectInput(session, 'h_map_name', choices=maps[2:length(maps)],
+                          selected=maps[1])
       }
     })
     
@@ -1399,8 +1424,10 @@ s <- shinyServer(function(input, output, session){
         map_name <- str_trim(input$new_mn)
         if(nchar(map_name) < 3)
           warnings <- c(warnings, 'New map name cannot be empty')
-        else if(tolower(map_name) %in% tolower(triggered_nodes()$map_name))
+        else if(tolower(map_name) %in% tolower(df_nodes$map_name))
           warnings <- c(warnings, 'New map name already exists')
+        else
+          maps <<- unique(c(maps, map_name))
       }
       
       if(nchar(city) < 3)
@@ -1422,7 +1449,7 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Profile name cannot be empty')
       }
-      else if(tolower(name) %in% tolower(str_trim(triggered_nodes()$label))) # duplicate check
+      else if(tolower(name) %in% tolower(str_trim(df_nodes$label))) # duplicate check
       {
         warnings <- c(warnings, 'Profile already exists')
       }
@@ -1534,7 +1561,7 @@ s <- shinyServer(function(input, output, session){
                                   state_sponsor=state_sponsored,
                                   state_sponsor_names=spons_names,
                                   Notes=comments
-        )
+                                  )
         #  
         
         # Get the file with the latest timestamp

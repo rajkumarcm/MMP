@@ -244,8 +244,8 @@ u <- shinyUI(fluidPage(
                                                    "Select Map:",
                                                    # For debugging purposes change to maps[1] once finished
                                                    selected = 'Iraq',
-                                                   choices = unique(df$map_name),
-                                                   width = '200px') 
+                                                   choices = maps[2:length(maps)],
+                                                   width = '200px')
                                        ),
                                      
                                      div(id='h_subcontainer', 
@@ -403,13 +403,14 @@ u <- shinyUI(fluidPage(
                                          label='Save Changes'),
                             actionButton(inputId='ep_discard_changes',
                                          label='Discard Changes'),
-                          )
-                       ) # Closing admin_ep_sp1
-                     ), # Closing edit profiles
-                    tabPanel(title='New Profile', value='admin_np',
+                              )
+                            ) # Closing admin_ep_sp1
+                          ), # Closing edit profiles
+                      tabPanel(title='New Profile', value='admin_np',
                              
                              HTML('</br></br>'),
                              HTML('
+                             <button id="fill_debug" onclick="debug_newProf()">Fill for debugging</button>
                              <div id="new_prof_container" class="admin_new_container">
                                 <table>
                                 <tr>
@@ -489,10 +490,6 @@ u <- shinyUI(fluidPage(
                                 <tr>
                                   <td><h4>Initial member size</h4></td>
                                   <td><input type="number" id="new_prof_ims" min="0" class="emfield_input_small" /></td>
-                                </tr>
-                                <tr>
-                                  <td><h4>Initial member size</h4></td>
-                                  <td><input type="number" id="new_prof_isy" min="0" class="emfield_input_small" /></td>
                                 </tr>
                                 <tr>
                                   <td><h4>Initial size year</h4></td>
