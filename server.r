@@ -402,6 +402,15 @@ s <- shinyServer(function(input, output, session){
   })
   
   # For Download data
+  
+  observeEvent(input$nbp, {
+    if(input$nbp == "downloadNM")
+    {
+      updateSelectInput(session, 'dd_map_name', choices=maps,
+                        selected=maps[2])
+    }
+  })
+  
   fdf <- reactive({
     # fe = filtered_edges
     tmp_df <- df[df$map_name==input$dd_map_name | 
