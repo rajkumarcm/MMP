@@ -889,7 +889,7 @@ s <- shinyServer(function(input, output, session){
       #  
       nodes_mn <- unique(c(h_edges$from, h_edges$to))
       nodes_mn <- data.frame(id=nodes_mn) %>% 
-                        inner_join(nodes, by='id', copy=T)
+                        inner_join(df_nodes, by='id', copy=T)
       cnames <- colnames(nodes_mn)
       cnames[cnames=='level'] <- 'year'
       colnames(nodes_mn) <- cnames
@@ -897,6 +897,7 @@ s <- shinyServer(function(input, output, session){
       tmp.dfs <- preprocess_hdata(h_edges, nodes_mn)
       nodes_mn <- tmp.dfs[[1]]
       h_edges <- tmp.dfs[[2]]
+      # browser()
       tmp.dfs <- get_all_done(nodes_mn, h_edges)
       nodes_mn <- tmp.dfs[[1]]
       nodes_mn<- nodes_mn %>% select(-width)
@@ -927,6 +928,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$visnetworktimeline <- renderVisNetwork({
+      # browser()
       tmp.edges <- dfs()[[2]]
       cnames <- colnames(tmp.edges)
       cnames[cnames=='link_id'] <- 'id'
@@ -1384,7 +1386,7 @@ s <- shinyServer(function(input, output, session){
       else if(input$vz_tbsp == "vz_hierarchical")
       {
         updateSelectInput(session, 'h_map_name', choices=maps[2:length(maps)],
-                          selected=maps[1])
+                          selected=maps[2])
       }
     })
     
