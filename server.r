@@ -1354,7 +1354,9 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$new_prof_map, {
-      if(input$new_prof_map == "Other")
+      maps_local <- input$new_prof_map
+      
+      if("Other" %in% maps_local)
       {
         shinyjs::enable('new_mn')
       }
@@ -1430,8 +1432,10 @@ s <- shinyServer(function(input, output, session){
       other_designated_names <- input$newProf_schanges['other_names'][[1]]
       comments <- input$newProf_schanges[['comments']][[1]]
       
-      if(map_name == "Other")
+      if("Other" %in% map_name)
       {
+        loginfo('Trace multiple maps behavior')
+        browser()
         map_name <- str_trim(input$new_mn)
         if(nchar(map_name) < 3)
           warnings <- c(warnings, 'New map name cannot be empty')
@@ -1835,13 +1839,15 @@ s <- shinyServer(function(input, output, session){
     
     observeEvent(input$newRel_schanges, {
       
+      newRel_schanges <- input$newRel_schanges[[0]]
+      
       group1_name <- input$new_rel_fgn
       group2_name <- input$new_rel_tgn
       map_name <- input$new_rel_map_name
       primary <- input$new_rel_primary
-      status <- input$newRel_schanges[['type']][[1]]
-      description <- input$newRel_schanges[['desc']][[1]]
-      year <- as.integer(input$newRel_schanges[['year']][[1]])
+      status <- newRel_schanges[['type']][[1]]
+      description <- newRel_schanges[['desc']][[1]]
+      year <- as.integer(newRel_schanges[['year']][[1]])
       multiple <- 0
       #  
       warnings <- c()

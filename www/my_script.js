@@ -293,10 +293,11 @@ function new_rel_trigger(_)
   let desc = document.getElementById('new_rel_desc').value;
   let year = document.getElementById('new_rel_year').value;
   //let multiple = document.getElementById('new_rel_multiple').value;
+  let ran = Math.random()
   
   jsonObj = {"type":type, "desc":desc, "year":year};
   
-  Shiny.setInputValue('newRel_schanges', jsonObj);
+  Shiny.setInputValue('newRel_schanges', [jsonObj, ran]);
 }
 
 function debug_newProf()

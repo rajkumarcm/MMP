@@ -449,7 +449,7 @@ u <- shinyUI(fluidPage(
                              selectInput(inputId='new_prof_map',
                                          label="",
                                          choices=c(maps[2:length(maps)], 'Other'),
-                                         selected=maps[1]),
+                                         selected=maps[1], multiple=TRUE),
                              
                              # Make textinput HTML itself rather than using Shiny
                              textInput(inputId='new_mn', label=''),
