@@ -648,18 +648,18 @@ div.outerBorder {
   display:None;
 }
 
-#new_prof_nm_flex
+#new_rel_nm_flex
 {
   display:flex;
   flex-direction:row;
 }
 
-#new_prof_nm_flex > div
+#new_rel_nm_flex > div
 {
   position:relative;
 }
 
-#new_prof_nm_flex > div:nth-child(2)
+#new_rel_nm_flex > div:nth-child(2)
 {
   position:relative;
   margin-left:40px;

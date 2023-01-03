@@ -1353,8 +1353,8 @@ s <- shinyServer(function(input, output, session){
       session$sendCustomMessage('toggleNewProf_div', input$newProf_btn)
     })
     
-    observeEvent(input$new_prof_map, {
-      maps_local <- input$new_prof_map
+    observeEvent(input$new_rel_map_name, {
+      maps_local <- input$new_rel_map_name
       
       if("Other" %in% maps_local)
       {
@@ -1373,8 +1373,9 @@ s <- shinyServer(function(input, output, session){
                           selected=profile_names[1])
         updateSelectInput(session, 'new_rel_tgn', choices=profile_names,
                           selected=profile_names[1])
-        updateSelectInput(session, 'new_rel_map_name', choices=maps,
-                          selected=maps[1])
+        updateSelectInput(session, 'new_rel_map_name', 
+                          choices=c(maps[2:length(maps)], 'Other'),
+                          selected=maps[2])
         updateSelectInput(session, 'new_rel_primary', 
                           choices=maps[2:length(maps)],
                           selected=maps[2])
@@ -1387,8 +1388,17 @@ s <- shinyServer(function(input, output, session){
       }
     })
     
+    observeEvent(input$new_rel_mns_update, {
+    
+      new_mn <- str_squish(input$new_mn)
+      new_mn <- str_split(new_mn, ",")[[1]]
+      updateSelectInput(session, 'new_rel_primary',
+                        choices=c(maps[2:length(maps)], new_mn),
+                        selected=maps[2])
+    })
+    
     observeEvent(input$vz_tbsp, {
-      browser()
+      # browser()
       if(input$vz_tbsp == "vz_spatial")
       {
         updateSelectInput(session, 'map_name',
@@ -1423,7 +1433,7 @@ s <- shinyServer(function(input, output, session){
       desc <- str_trim(input$newProf_schanges['desc'][[1]])
       active <- input$newProf_schanges['active'][[1]]
       complete <- input$newProf_schanges['complete'][[1]]
-      map_name <- input$new_prof_map
+      
       city <- str_trim(input$newProf_schanges['city'][[1]])
       province <- str_trim(input$newProf_schanges['province'][[1]])
       country <- str_trim(input$newProf_schanges['country'][[1]])
@@ -1431,19 +1441,7 @@ s <- shinyServer(function(input, output, session){
       spons_types <- input$new_prof_spons_types
       other_designated_names <- input$newProf_schanges['other_names'][[1]]
       comments <- input$newProf_schanges[['comments']][[1]]
-      
-      if("Other" %in% map_name)
-      {
-        loginfo('Trace multiple maps behavior')
-        browser()
-        map_name <- str_trim(input$new_mn)
-        if(nchar(map_name) < 3)
-          warnings <- c(warnings, 'New map name cannot be empty')
-        else if(tolower(map_name) %in% tolower(df_nodes$map_name))
-          warnings <- c(warnings, 'New map name already exists')
-        else
-          maps <<- unique(c(maps, map_name))
-      }
+
       
       if(nchar(city) < 3)
       {
@@ -1577,7 +1575,6 @@ s <- shinyServer(function(input, output, session){
                                   state_sponsor_names=spons_names,
                                   Notes=comments
                                   )
-        #  
         
         # Get the file with the latest timestamp
         latest_fname <- get_latest_file('data/groups/', 'groups')
@@ -1838,16 +1835,16 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$newRel_schanges, {
-      
-      newRel_schanges <- input$newRel_schanges[[0]]
+      # browser()
+      newRel_schanges <- input$newRel_schanges
       
       group1_name <- input$new_rel_fgn
       group2_name <- input$new_rel_tgn
-      map_name <- input$new_rel_map_name
+      map_names <- input$new_rel_map_name
       primary <- input$new_rel_primary
-      status <- newRel_schanges[['type']][[1]]
-      description <- newRel_schanges[['desc']][[1]]
-      year <- as.integer(newRel_schanges[['year']][[1]])
+      status <- newRel_schanges[['type']]
+      description <- newRel_schanges[['desc']]
+      year <- as.integer(newRel_schanges[['year']])
       multiple <- 0
       #  
       warnings <- c()
@@ -1855,6 +1852,46 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Loop connection is not allowed')
       }
+      # browser()
+      if("Other" %in% map_names)
+      {
+        # loginfo('Trace multiple maps behavior')
+        # browser()
+        new_mn <- str_squish(input$new_mn)
+        new_mn <- str_split(new_mn, ",")[[1]]
+        map_warnings <- F
+        for(i in 1:length(new_mn))
+        {
+          # browser()
+          if(nchar(new_mn[i]) < 3)
+          {
+            warnings <- c(warnings, 'New map name cannot be empty')
+            map_warnings <- T
+            break
+          }
+          else if(tolower(new_mn[i]) %in% tolower(df_nodes$map_name))
+          {
+            warnings <- c(warnings, 'New map name already exists')
+            map_warnings <- T
+            break
+          }
+        }
+      }
+      
+      if(length(map_names) > 1 & "Other" %in% map_names)
+      {
+        map_names <- c(map_names, new_mn)
+      }
+      else if(length(map_names) == 1 & map_names[1] == "Other")
+      {
+        map_names <- new_mn
+      }
+      else
+      {
+        loginfo(paste('line number 1880: Map names: ', map_names))
+      }
+      map_names <- map_names[map_names != "Other"]
+      # browser()
       
       group1_syear <- unique(df_nodes.full[df_nodes.full$label==group1_name, 'level'])
       group2_syear <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'level'])
@@ -1895,21 +1932,22 @@ s <- shinyServer(function(input, output, session){
           warnings <- c(warnings, 'Invalid year')
         }
       }
-      
-      if(nchar(map_name) <= 2)
-      {
-        warnings <- c(warnings, 'map name must be supplied')
-      }
+
       #  
       
       # Check for duplicates
-      if(nrow(df[df$group1_name==group1_name & 
-                 df$group2_name==group2_name &
-                 df$map_name==map_name &
-                 df$status==status &
-                 df$year==year,]) > 0)
+      for(i in 1:length(map_names))
       {
-        warnings <- c(warnings, 'This relationship already exists')
+        map_name <- map_names[i]
+        if(nrow(df[df$group1_name==group1_name & 
+                   df$group2_name==group2_name &
+                   df$map_name==map_name &
+                   df$status==status &
+                   df$year==year,]) > 0)
+        {
+          warnings <- c(warnings, 'This relationship already exists')
+          break
+        }
       }
       
       if(length(warnings) > 0)
@@ -1919,24 +1957,39 @@ s <- shinyServer(function(input, output, session){
       }
       else
       {
+        if(!is.na(map_warnings))
+        {
+          maps <<- unique(c(maps, new_mn))
+        }
         output$new_rel_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_rel_warnings_container')
         
         group1_id <- unique(df_nodes.full[df_nodes.full$label==group1_name, 'id'])
         group2_id <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'id'])
         link_id <- max(df$link_id)+1
+        link_id.backup <- link_id
         
-        #  
-        # label, status_id, old_link_id, title, color, actor_color, value, width
-        
-        # Write changes onto the edges dataframe (df)---------------------------
-        tmp.df2 <- data.frame(link_id=link_id, status=status, 
-                              label=status,
-                              from=group1_id, to=group2_id,
-                              description=description, group1_name=group1_name,
-                              group2_name=group2_name, year=year,
-                              multiple=multiple, map_name=map_name,
-                              primary=primary)
+        tmp.df2 <- NA
+        for(i in 1:length(map_names))
+        {
+          map_name <- map_names[i]
+          record <- data.frame(link_id=link_id, status=status, 
+                               label=status,
+                               from=group1_id, to=group2_id,
+                               description=description, group1_name=group1_name,
+                               group2_name=group2_name, year=year,
+                               multiple=multiple, map_name=map_name,
+                               primary=primary)
+          browser()
+          if(anyNA(tmp.df2, recursive=T))
+          {
+            tmp.df2 <- record
+          }
+          else
+            tmp.df2 <- rbind(tmp.df2, record)
+          
+          link_id <- link_id + 1
+        }
         
         # Status in verb for displaying in title
         label <- ""
@@ -1972,13 +2025,25 @@ s <- shinyServer(function(input, output, session){
         
         
         # Write changes onto the csv file---------------------------------------
-        
-        rel_record <- data.frame(link_id=link_id, type=status, 
-                                 group1_id=group1_id, group2_id=group2_id,
-                                 description=description, group1_name=group1_name,
-                                 group2_name=group2_name, year=year,
-                                 multiple=multiple, map_name=map_name,
-                                 primary=primary)
+        link_id <- link_id.backup
+        rel_record <- NA
+        for(i in 1:length(map_names))
+        {
+          map_name <- map_names[i]
+          record <- data.frame(link_id=link_id, type=status, 
+                               group1_id=group1_id, group2_id=group2_id,
+                               description=description, group1_name=group1_name,
+                               group2_name=group2_name, year=year,
+                               multiple=multiple, map_name=map_name,
+                               primary=primary)
+          if(anyNA(rel_record, recursive=T))
+          {
+            rel_record <- record
+          }
+          else
+            rel_record <- rbind(rel_record, record)
+          link_id <- link_id + 1
+        }
         
         l_rel_fname <- get_latest_file('data/relationships', 'relationships')
         tmp.df <- read.csv(paste0('data/relationships/',l_rel_fname), sep=',', 

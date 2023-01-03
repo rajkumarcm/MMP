@@ -441,20 +441,7 @@ u <- shinyUI(fluidPage(
                                   <td><h4>Complete</h4></td>
                                   <td><input type="checbox" id="new_prof_complete" class="emfield_input_small" /></td>
                                 </tr>
-                                <tr>
-                                  <td><h4>Map</h4></td>
-                                  <td><div id="new_prof_nm_flex" style="flex-direction:row; margin-left:100px;">
-                                  <!--  Use Shiny\'s object here-->'),
-                             
-                             selectInput(inputId='new_prof_map',
-                                         label="",
-                                         choices=c(maps[2:length(maps)], 'Other'),
-                                         selected=maps[1], multiple=TRUE),
-                             
-                             # Make textinput HTML itself rather than using Shiny
-                             textInput(inputId='new_mn', label=''),
-                             HTML('</div>
-                                </tr>
+
                                 <tr>
                                   <td><h4>First attack</h4></td>
                                   <td>
@@ -595,13 +582,15 @@ u <- shinyUI(fluidPage(
                                  </tr>
                                   <tr>
                                     <td><h4>Map name</h4></td>
-                                    <td>'
+                                    <td><div id="new_rel_nm_flex" style="flex-direction:row; margin-left:100px;">'
                               ),
+                              
                               selectInput(inputId='new_rel_map_name', label='',
-                                          choices=maps[2:length(maps)], selected=maps[2]
-                                          ),
+                                          choices=c(maps[2:length(maps)], 'Other'),
+                                          selected=maps[2], multiple=T),
+                              textInput(inputId='new_mn', label=''),
                                     
-                              HTML('</td>
+                              HTML('</div></td>
                                   </tr>
                                   
                                   <tr>
@@ -621,6 +610,10 @@ u <- shinyUI(fluidPage(
                              selectInput(inputId='new_rel_primary', label='',
                                          choices=maps[2:length(maps)],
                                          selected=maps[2]),
+                             actionButton(inputId="new_rel_mns_update", 
+                                          label="Update Map Name"
+                                          ),
+                             
                              HTML('</td>
                                   </tr>
                                 </table>
