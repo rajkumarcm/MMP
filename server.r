@@ -149,7 +149,7 @@ s <- shinyServer(function(input, output, session){
                                label='Filter Designation',
                                choices=checkbox_choices,
                                selected=checkbox_choices)
-    #  
+    # browser()
     get_spatial_visNetwork(nodes2(), edges())
   })
   
@@ -409,6 +409,11 @@ s <- shinyServer(function(input, output, session){
       updateSelectInput(session, 'dd_map_name', choices=maps,
                         selected=maps[2])
     }
+    if(input$nbp=='vizNM'){
+      updateSelectInput(session, 'map_name',
+                        choices=maps, selected=maps[2])
+    }
+    
   })
   
   fdf <- reactive({
@@ -1748,6 +1753,13 @@ s <- shinyServer(function(input, output, session){
       ep_changes_made <<- T
     })
     
+    # observeEvent(input$vizNM, {
+    #   if(input$vizNM == "vz_tbsp")
+    #   {
+    #     browser()
+    #     
+    # })
+    
     observeEvent(input$ep_save_changes, {
       
       # Here before you apply the changes, get the anti-join between the
@@ -1758,6 +1770,7 @@ s <- shinyServer(function(input, output, session){
       #  
       if(ep_changes_made==T)
       {
+        # browser()
         # Delete profiles section-----------------------------------------------
  
         # Restoring column names so that when we reload the file
@@ -1804,26 +1817,30 @@ s <- shinyServer(function(input, output, session){
         
         # Apply the changes to the local variables for continuous use...
         # Delete profiles from df_nodes
-        d.profile_names
-        indices <- which(triggered_nodes()$label %in% d.profile_names)
-        df_nodes <<- triggered_nodes()[-indices,]
+        if(length(d.profile_names) > 0)
+        {
+          indices <- which(triggered_nodes()$label %in% d.profile_names)
+          df_nodes <<- triggered_nodes()[-indices,]
+        }
         
         # Delete edges related to the discarded profile
         indices <- which(df$group1_name %in% d.profile_names |
                          df$group2_name %in% d.profile_names)
         
-        df <<- df[-indices,]
+        if(length(indices) > 0)
+        {
+          df <<- df[-indices,]
+        }
         d.profile_names <<- NULL
         
         # Re-assign....
         #  
         df_nodes.copy <<- unique(triggered_nodes()[, c('id', 'label', 'level', 'active', 
-                                                   'URL', 'endyear')])
+                                                       'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy
         df.copy <<- df
         triggered_df(df)
         # session$sendCustomMessage('refresh_page', '')
-        
       }
     })
     

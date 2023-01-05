@@ -582,7 +582,7 @@ u <- shinyUI(fluidPage(
                                  </tr>
                                   <tr>
                                     <td><h4>Map name</h4></td>
-                                    <td><div id="new_rel_nm_flex" style="flex-direction:row; margin-left:100px;">'
+                                    <td><div id="new_rel_nm_flex" style="flex-direction:row;">'
                               ),
                               
                               selectInput(inputId='new_rel_map_name', label='',
