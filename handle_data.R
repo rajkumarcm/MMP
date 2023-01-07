@@ -300,24 +300,39 @@ remove_edges_ry <- function(df, undirected=T)
     # tmp has link id of all duplicates of each (i.e., ith) unique edge.
     tmp <- df[df$from == edge$from & 
               df$to == edge$to & 
-              df$status == edge$status & 
+              # df$status == edge$status & 
               df$map_name == edge$map_name & 
               df$primary == edge$primary, 'link_id']
     
-    # if(245 %in% tmp)
-    # {
-    #   print('breakpoint...')
-    # }
+    loginfo(tmp)
+    # browser()
+    if(116 %in% tmp)
+    {
+      browser()
+    }
     tmp_forward_df <- get_row_lyear(tmp, c())
-    
+    if(nrow(tmp_forward_df) > 1)
+    {
+      tmp_forward_df <- tmp_forward_df[1,]
+    }
+    # browser()
     reverse_lids <- df[df$from == edge$to & 
                        df$to == edge$from & 
-                       df$status == edge$status & 
+                       # df$status == edge$status & 
                        df$map_name == edge$map_name & 
                        df$primary == edge$primary, 'link_id']
-    tmp_reverse_df <- get_row_lyear(reverse_lids, c())
+    if(length(reverse_lids) > 0)
+    {
+      tmp_reverse_df <- get_row_lyear(reverse_lids, c())
+      if(nrow(tmp_reverse_df) > 1)
+      {
+        tmp_reverse_df <- tmp_reverse_df[1,]
+      }
+    }
+    else
+      tmp_reverse_df <- NA
     
-    if(undirected & nrow(tmp_reverse_df) != 0)
+    if(undirected & length(reverse_lids) > 0)
     {
       if(tmp_forward_df$year < tmp_reverse_df$year)
       {
@@ -330,6 +345,7 @@ remove_edges_ry <- function(df, undirected=T)
       }
       else
       {
+        # browser()
         if(!tmp_reverse_df$link_id %in% accepted)
         {
           tmp_df <- tmp_reverse_df
@@ -346,6 +362,7 @@ remove_edges_ry <- function(df, undirected=T)
         new_df <- rbind(new_df, tmp_forward_df)
         accepted <- c(accepted, tmp_forward_df$link_id)
       }
+
       
     }
     # if(nrow(new_df[new_df$link_id==245,])>0)
