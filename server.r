@@ -44,8 +44,10 @@ s <- shinyServer(function(input, output, session){
   
   reactive_df <- reactive({
     tmp <- observe(triggered_df(), {
-      loginfo('triggered_df triggered')
-      #  
+      # loginfo('triggered_df triggered')
+      latest.map_names <- c('All', unique(triggered_df()$map_name))
+      updateSelectInput(session, 'map_name', choices=latest.map_names,
+                        selected=latest.map_names[2])
       return(triggered_df())
     })
     return(tmp)
@@ -53,7 +55,7 @@ s <- shinyServer(function(input, output, session){
   
   triggered_nodes <- reactive({
     tmp <- observe(reactive_df_node(), {
-      loginfo('reactive_df_node triggered')
+      # loginfo('reactive_df_node triggered')
       return(reactive_df_node())
     })
     return(tmp)
@@ -105,7 +107,6 @@ s <- shinyServer(function(input, output, session){
   nodes2 <- reactive({
     tmp.nodes <- get_nodes(filtered_df())
   })
- 
   
   f_years <- reactive({
     years <- unique(edges()$year)
@@ -149,7 +150,6 @@ s <- shinyServer(function(input, output, session){
                                label='Filter Designation',
                                choices=checkbox_choices,
                                selected=checkbox_choices)
-    # browser()
     get_spatial_visNetwork(nodes2(), edges())
   })
   
@@ -409,10 +409,10 @@ s <- shinyServer(function(input, output, session){
       updateSelectInput(session, 'dd_map_name', choices=maps,
                         selected=maps[2])
     }
-    if(input$nbp=='vizNM'){
-      updateSelectInput(session, 'map_name',
-                        choices=maps, selected=maps[2])
-    }
+    # if(input$nbp=='vizNM'){
+    #   updateSelectInput(session, 'map_name',
+    #                     choices=maps, selected=maps[2])
+    # }
     
   })
   
@@ -907,11 +907,9 @@ s <- shinyServer(function(input, output, session){
       cnames <- colnames(nodes_mn)
       cnames[cnames=='level'] <- 'year'
       colnames(nodes_mn) <- cnames
-      # browser()
       tmp.dfs <- preprocess_hdata(h_edges, nodes_mn)
       nodes_mn <- tmp.dfs[[1]]
       h_edges <- tmp.dfs[[2]]
-      # browser()
       tmp.dfs <- get_all_done(nodes_mn, h_edges)
       nodes_mn <- tmp.dfs[[1]]
       nodes_mn<- nodes_mn %>% select(-width)
@@ -942,7 +940,6 @@ s <- shinyServer(function(input, output, session){
     })
     
     output$visnetworktimeline <- renderVisNetwork({
-      # browser()
       tmp.edges <- dfs()[[2]]
       cnames <- colnames(tmp.edges)
       cnames[cnames=='link_id'] <- 'id'
@@ -1009,7 +1006,6 @@ s <- shinyServer(function(input, output, session){
       
       #--------------------Timeline ruler---------------------------------------
       tmp.nodes <- dfs()[[1]]
-      # browser()
       tmp.levels <- unique(tmp.nodes[, c('year', 'y')])
       tmp.levels <- tmp.levels %>% arrange(year)
       svg_content <- get_h_legend(tmp.levels)
@@ -1029,8 +1025,6 @@ s <- shinyServer(function(input, output, session){
     
 
       output$h_legend_sub <- renderUI({
-        # loginfo('h_legend_sub triggered')
-        #  
         
         # svg_content1 <- get_legend(ledges(), include_second_line=F)
         svg_content2 <- "
@@ -1058,17 +1052,13 @@ s <- shinyServer(function(input, output, session){
 
     
     observeEvent(input$zoomDel, {
-      #  
       direction <- input$zoomDel[['direction']]
       
       session$sendCustomMessage('scaleLegend', direction)
     })
     
     observeEvent(input$dragDel, {
-      #  
-      # logging::loginfo(input$dragDel)
       deltaY <- (input$dragDel[['event']])$deltaY
-      # angle <- ((input$dragDel[['event']])$center)$y
       session$sendCustomMessage('moveLegend', deltaY)
     })
     
@@ -1081,8 +1071,6 @@ s <- shinyServer(function(input, output, session){
     })
       
       growth_by_prof <- reactive({
-        # tmp.df <- df_nodes %>% inner_join(nodes[, c('id', 'between')], by='id')
-        #  
         tmp.df <- unique(df_nodes[, c('label', 'init_size_members', 
                                     'max_size_members', 'between', 
                                     'level', 'endyear')])
@@ -1203,7 +1191,6 @@ s <- shinyServer(function(input, output, session){
                                      c('label', 'map_name', 'level', 'active')]) %>% 
                  group_by(map_name, level) %>% summarise(count=n())
         ag_df <- drop_na(ag_df)
-        # ag_df <- data.frame(ag_df) %>% filter(level != 0)
         
         ggplot(ag_df, aes(x=level, y=count, color=count)) +
           geom_point(color='steelblue', size=2) +
@@ -1403,7 +1390,6 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$vz_tbsp, {
-      # browser()
       if(input$vz_tbsp == "vz_spatial")
       {
         updateSelectInput(session, 'map_name',
@@ -1808,8 +1794,10 @@ s <- shinyServer(function(input, output, session){
         
         g.fname <- paste0(paste0("groups", date_time), ".csv")
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
-        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname, row.names=F))
-        write.csv(tmp.df, file=paste0('data/relationships/', r.fname, row.names=F))
+        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname), 
+                  row.names=F)
+        write.csv(tmp.df, file=paste0('data/relationships/', r.fname), 
+                  row.names=F)
         
         # Once changes are saved, then we can reset these parameters
         ep_changes_made <<- F
