@@ -304,11 +304,11 @@ remove_edges_ry <- function(df, undirected=T)
               df$map_name == edge$map_name & 
               df$primary == edge$primary, 'link_id']
     
-    loginfo(tmp)
+    # loginfo(tmp)
     # browser()
     if(116 %in% tmp)
     {
-      browser()
+      # browser()
     }
     tmp_forward_df <- get_row_lyear(tmp, c())
     if(nrow(tmp_forward_df) > 1)

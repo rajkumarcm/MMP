@@ -831,8 +831,8 @@ s <- shinyServer(function(input, output, session){
           lon_range[1] <- lon_range[1]-10 # Minimum on negative axis
           lon_range[2] <- lon_range[2]+10 # Maximum on positive axis
           maps::map(database="world", 
-                    border="gray10", fill=T, bg='black', col="grey20"#,
-                    #xlim=lon_range, ylim=lat_range
+                    border="gray10", fill=T, bg='black', col="grey20",
+                    xlim=lon_range, ylim=lat_range
                     )
         }
         
@@ -907,7 +907,7 @@ s <- shinyServer(function(input, output, session){
       cnames <- colnames(nodes_mn)
       cnames[cnames=='level'] <- 'year'
       colnames(nodes_mn) <- cnames
-      
+      # browser()
       tmp.dfs <- preprocess_hdata(h_edges, nodes_mn)
       nodes_mn <- tmp.dfs[[1]]
       h_edges <- tmp.dfs[[2]]
@@ -1808,8 +1808,8 @@ s <- shinyServer(function(input, output, session){
         
         g.fname <- paste0(paste0("groups", date_time), ".csv")
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
-        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname))
-        write.csv(tmp.df, file=paste0('data/relationships/', r.fname))
+        write.csv(tmp.df_nodes, file=paste0('data/groups/', g.fname, row.names=F))
+        write.csv(tmp.df, file=paste0('data/relationships/', r.fname, row.names=F))
         
         # Once changes are saved, then we can reset these parameters
         ep_changes_made <<- F
@@ -1997,7 +1997,7 @@ s <- shinyServer(function(input, output, session){
                                group2_name=group2_name, year=year,
                                multiple=multiple, map_name=map_name,
                                primary=primary)
-          browser()
+          # browser()
           if(anyNA(tmp.df2, recursive=T))
           {
             tmp.df2 <- record
