@@ -1359,6 +1359,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$admin_tbsp, {
+      # browser()
       if(input$admin_tbsp == "admin_nr")
       {
         updateSelectInput(session, 'new_rel_fgn', choices=profile_names,
@@ -1377,6 +1378,56 @@ s <- shinyServer(function(input, output, session){
         updateSelectInput(session, 'new_prof_map', 
                           choices=c(maps[2:length(maps)], 'Other'),
                           selected=maps[2])
+      }
+      else if(input$admin_tbsp == "admin_ep1")
+      {
+        browser()
+        output$ep_profiles <- renderPrint({
+          profiles <- admin.profiles()
+          html.table <- "<table class='admin_table' id='edit_profiles'>
+                      <tr class='tr_class'>
+                        <th class='th_class'>Name</th>
+                        <th class='th_class'>Founded</th>
+                        <th class='th_class'>Dislanded</th>
+                        <th class='th_class'>Hide</th>
+                        <th class='th_class'>View</th>
+                        <th class='th_class'>Backup</th>
+                        <th class='th_class'>Delete</th>
+                      </tr>"
+          
+          html.inner <- ""
+          for(i in 1:nrow(profiles))
+          {
+            profile <- profiles[i,]
+            name <- profile$label
+            level <- profile$level
+            active <- profile$activeC
+            #  
+            hidden <- ifelse(name %in% h.profile_names, T, F)
+            hidden.html <- ""
+            if(hidden==T)
+            {
+              hidden.html <- sprintf("<td class='td_class'><input type='checkbox'  onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\" checked></td>", name) 
+            }
+            else
+            {
+              hidden.html <- sprintf("<td class='td_class'><input type='checkbox'  onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>", name) 
+            }
+            
+            html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
+                                                    <td class='td_class'>%s</td>
+                                                    <td class='td_class'>%d</td>
+                                                    <td class='td_class'>%s</td>
+                                                    %s
+                                                    <td class='td_class'><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');\"><i class=\"fa fa-eye\"></i></a></td>
+                                                    <td class='td_class'><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
+                                                    <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
+                                                 </tr>", name, level, active, hidden.html,
+                                                     name, name, name, name, quote=F))
+          }
+          html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
+          cat(html.inner)
+        })
       }
     })
     
@@ -1540,7 +1591,8 @@ s <- shinyServer(function(input, output, session){
         
         #  
         # Before writing the changes, check for duplicates in the df_nodes
-        node_record <- data.frame(group_id=(max(df_nodes$id)+1), group_name=name, 
+        new.group_id <- (max(df_nodes$id)+1)
+        node_record <- data.frame(group_id=new.group_id, group_name=name, 
                                   start_year=start_year, end_year=end_year,
                                   active=active, complete=complete,
                                   description=desc, on_any_map=1,
@@ -1652,59 +1704,13 @@ s <- shinyServer(function(input, output, session){
     })
     
     admin.profiles <- reactive({
+      browser()
+      logging::loginfo(paste('rendering admin.profiles', Sys.time()))
       tmp.profiles <- df_nodes.copy
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
                                      tmp.profiles$endyear)
       tmp.profiles
       #  
-    })
-
-    output$ep_profiles <- renderPrint({
-
-      profiles <- admin.profiles()
-      html.table <- "<table class='admin_table' id='edit_profiles'>
-                      <tr class='tr_class'>
-                        <th class='th_class'>Name</th>
-                        <th class='th_class'>Founded</th>
-                        <th class='th_class'>Dislanded</th>
-                        <th class='th_class'>Hide</th>
-                        <th class='th_class'>View</th>
-                        <th class='th_class'>Backup</th>
-                        <th class='th_class'>Delete</th>
-                      </tr>"
-
-      html.inner <- ""
-      for(i in 1:nrow(profiles))
-      {
-        profile <- profiles[i,]
-        name <- profile$label
-        level <- profile$level
-        active <- profile$activeC
-        #  
-        hidden <- ifelse(name %in% h.profile_names, T, F)
-        hidden.html <- ""
-        if(hidden==T)
-        {
-          hidden.html <- sprintf("<td class='td_class'><input type='checkbox'  onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\" checked></td>", name) 
-        }
-        else
-        {
-          hidden.html <- sprintf("<td class='td_class'><input type='checkbox'  onchange=\"javascript:Shiny.setInputValue('hide_profile', '%s');\"></td>", name) 
-        }
-        
-        html.inner <- paste0(html.inner, sprintf("<tr class='tr_class'>
-                                                    <td class='td_class'>%s</td>
-                                                    <td class='td_class'>%d</td>
-                                                    <td class='td_class'>%s</td>
-                                                    %s
-                                                    <td class='td_class'><a href=\"javascript:Shiny.setInputValue('view_profile', '%s');\"><i class=\"fa fa-eye\"></i></a></td>
-                                                    <td class='td_class'><a href=\"javascript:Shiny.setInputValue('backup_profile', '%s');\">Backup</a></td>
-                                                    <td class='td_class'><button type='button' onclick=\"javascript:Shiny.setInputValue('delete_profile', '%s');\">Delete</button></td>
-                                                 </tr>", name, level, active, hidden.html,
-                                                 name, name, name, name, quote=F))
-      }
-      html.inner <- paste0(html.table, paste0(html.inner, "</table>"))
-      cat(html.inner)
     })
     
     observeEvent(input$hide_profile, {
@@ -1823,6 +1829,7 @@ s <- shinyServer(function(input, output, session){
         
         # Re-assign....
         #  
+        loginfo('Inside ep_save_changes, df_nodes.copy is overwritten')
         df_nodes.copy <<- unique(triggered_nodes()[, c('id', 'label', 'level', 'active', 
                                                        'URL', 'endyear')])
         df_nodes.copy.original <<- df_nodes.copy
@@ -1856,6 +1863,13 @@ s <- shinyServer(function(input, output, session){
       if(group1_name == group2_name)
       {
         warnings <- c(warnings, 'Loop connection is not allowed')
+      }
+      reverse_lid <- df[df$group1_name==group2_name & 
+                        df$group2_name==group1_name &
+                        df$status==status & df$year==year, 'link_id']
+      if(length(reverse_lid) > 0)
+      {
+        warnings <- c(warnings, 'Reverse relationship already exists')
       }
       # browser()
       if("Other" %in% map_names)
@@ -2069,11 +2083,25 @@ s <- shinyServer(function(input, output, session){
         #  
         df <<- rbind(df, tmp.df2[, colnames(df)])
         
-        
         tmp.df_nodes <- load_nodes_data()
         nodes <- generate_node_properties(df)
         tmp.df_nodes <- tmp.df_nodes %>% inner_join(nodes, by='id', keep=F)
         df_nodes <<- tmp.df_nodes
+        
+        #"""""-----------------------------------------------------------------
+        #Append information onto df_nodes.copy so that edit profiles can
+        #reflect on the new information, if new profiles involved.
+        #"""""
+        browser()
+        new.profiles <- df_nodes[df_nodes$label %in% c(group1_name, group2_name),
+                                 c('id', 'label', 'level', 'active',
+                                   'URL', 'endyear')]
+        
+        df_nodes.copy <<- rbind(df_nodes.copy, new.profiles)
+        #----------------------------------------------------------------------
+    
+        
+        
         #  
         reactive_df_node(tmp.df_nodes)
         triggered_df(df)
