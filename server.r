@@ -988,11 +988,11 @@ s <- shinyServer(function(input, output, session){
     
     h_networkProxy <- visNetworkProxy("visnetworktimeline")
     
-    observeEvent(input$traceBackNode, {
-      output$h_traceback <- reactive({
-        
-      })
-    })
+    # observeEvent(input$traceBackNode, {
+    #   output$h_traceback <- reactive({
+    #     
+    #   })
+    # })
     
      observeEvent(input$showDesc_h, {
        # loginfo('input$showDesc_h triggered')
@@ -1703,15 +1703,22 @@ s <- shinyServer(function(input, output, session){
 
     })
     
-    admin.profiles <- reactive({
-      browser()
-      logging::loginfo(paste('rendering admin.profiles', Sys.time()))
+    admin.profiles <- function()
+    {
       tmp.profiles <- df_nodes.copy
       tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
                                      tmp.profiles$endyear)
-      tmp.profiles
-      #  
-    })
+      tmp.profiles %>% arrange(label) %>% filter(label != "")
+    }
+    
+    # admin.profiles <- reactive({
+    #   browser()
+    #   logging::loginfo(paste('rendering admin.profiles', Sys.time()))
+    #   tmp.profiles <- df_nodes.copy
+    #   tmp.profiles$activeC <- ifelse(tmp.profiles$active==1, "Active", 
+    #                                  tmp.profiles$endyear)
+    #   tmp.profiles
+    # })
     
     observeEvent(input$hide_profile, {
       # I just assigned profile_name for brevity...
