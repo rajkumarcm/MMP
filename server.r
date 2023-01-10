@@ -848,7 +848,7 @@ s <- shinyServer(function(input, output, session){
           text=~sprintf('%s, %s',geo.nodes$hq_city, geo.nodes$hq_province), 
           color=I("red"),
           #size = ~cnt, 
-          hoverinfo = "text", alpha = 0.5) 
+          hoverinfo = "text", alpha = 0.5, size=2) 
         
         # fig <- fig %>% add_segments(
         #   data = group_by(flights, id),
@@ -876,34 +876,45 @@ s <- shinyServer(function(input, output, session){
         
         # Color the edges---------------------------------------------------------
         
-        # geo.unique_edges$count <- 0
-        # for(i in 1:nrow(geo.unique_edges))
-        # {
-        #   #  
-        #   m1_m2 <- geo.unique_edges[i, c('g1_addr', 'g2_addr')]
-        #   count1 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g1_addr &
-        #                                      geo.nonunique_edges$g2_addr==m1_m2$g2_addr,])
-        #   count2 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g2_addr &
-        #                                      geo.nonunique_edges$g2_addr==m1_m2$g1_addr,])
-        #   count <- count1 + count2
-        #   
-        #   geo.unique_edges[geo.unique_edges$g1_addr==m1_m2$g1_addr & 
-        #                    geo.unique_edges$g2_addr==m1_m2$g2_addr, 'count'] <- count
-        # }
-        # 
-        # tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
-        # count_binned <- cut(geo.unique_edges$count, 7)
-        # geo.unique_edges$color <- tmp.colorPalette[as.numeric(count_binned)]
-        # 
-        # for(mn_idx in 1:nrow(geo.unique_edges))
-        # {
-        #   coord1 <- geo.unique_edges[mn_idx, c('g1_longitude', 'g1_latitude')]
-        #   coord2 <- geo.unique_edges[mn_idx, c('g2_longitude', 'g2_latitude')]
-        #   color <- geo.unique_edges[mn_idx, 'color']
-        #   #  
-        #   intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
-        #   lines(intEdges, col=color, lwd=2)
-        # }
+        geo.unique_edges$count <- 0
+        for(i in 1:nrow(geo.unique_edges))
+        {
+          #
+          m1_m2 <- geo.unique_edges[i, c('g1_addr', 'g2_addr')]
+          count1 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g1_addr &
+                                             geo.nonunique_edges$g2_addr==m1_m2$g2_addr,])
+          count2 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g2_addr &
+                                             geo.nonunique_edges$g2_addr==m1_m2$g1_addr,])
+          count <- count1 + count2
+
+          geo.unique_edges[geo.unique_edges$g1_addr==m1_m2$g1_addr &
+                           geo.unique_edges$g2_addr==m1_m2$g2_addr, 'count'] <- count
+        }
+
+        tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
+        count_binned <- cut(geo.unique_edges$count, 7)
+        geo.unique_edges$color <- tmp.colorPalette[as.numeric(count_binned)]
+
+        for(mn_idx in 1:nrow(geo.unique_edges))
+        {
+          coord1 <- geo.unique_edges[mn_idx, c('g1_longitude', 'g1_latitude')]
+          coord2 <- geo.unique_edges[mn_idx, c('g2_longitude', 'g2_latitude')]
+          color <- geo.unique_edges[mn_idx, 'color']
+          tmp.geo.coords <- data.frame(start_lon=coord1$g1_longitude,
+                                       end_lon=coord2$g2_longitude,
+                                       start_lat=coord1$g1_latitude,
+                                       end_lat=coord2$g2_latitude)
+          #
+          # intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
+          # browser()
+          # lines(intEdges, col=color, lwd=2)
+          fig <- fig %>% add_segments(
+                                data = tmp.geo.coords,
+                                x = ~start_lon, xend = ~end_lon,
+                                y = ~start_lat, yend = ~end_lat,
+                                alpha = 0.3, size = I(1.3), hoverinfo = "none",
+                                color=I("red")) 
+        }
         
         if(input$g_map_name == "All")
         {
