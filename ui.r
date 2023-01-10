@@ -301,7 +301,7 @@ u <- shinyUI(fluidPage(
                                      selectInput(inputId='g_map_name', label='Map Name:',
                                                  choices=maps,
                                                   selected=maps[1]),
-                                     plotOutput("geoMap", height="810px", width="1411px"),
+                                     plotlyOutput("geoMap", height="810px", width="1411px"),
                                      style = "background-color: #f0f0f0;"),
 
                             tabPanel(title="Statistics", value="vz_stats",

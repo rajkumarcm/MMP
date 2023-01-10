@@ -6,6 +6,9 @@ library('ggplot2')
 library('gridExtra')
 library('tidyverse')
 library('shinyjs')
+library('plotly')
+mapboxToken <- "pk.eyJ1IjoicmFqa3VtYXJjbSIsImEiOiJjbGNwbzQyemUxZWwxM3ZwNjZjbHRwZ2p1In0.mPzEpkV2_MDdNK0QLvJ_WQ"   # You need your own token
+Sys.setenv("MAPBOX_TOKEN" = mapboxToken) # for Orca
 
 source('handle_data.R', local=T)
 source('filter_medges_all.R', local=T)
@@ -792,7 +795,7 @@ s <- shinyServer(function(input, output, session){
         return(data.frame(),)
       
     })
-    output$geoMap <- renderPlot({
+    output$geoMap <- renderPlotly({
       tmp.result <- nodes_geo()
       geo.nodes <- tmp.result[[1]]
       geo.maps <- tmp.result[[2]]
@@ -814,71 +817,93 @@ s <- shinyServer(function(input, output, session){
         
         #  
         
-        if(input$g_map_name=='All')
-        {
-          lat_range[1] <- lat_range[1]-50 # Minimum on negative axis
-          lat_range[2] <- lat_range[2]+50 # Maximum on positive axis
-          lon_range[1] <- lon_range[1]-50 # Minimum on negative axis
-          lon_range[2] <- lon_range[2]+50 # Maximum on positive axis
-          maps::map(database="world", 
-                    border="gray10", fill=T, #bg='black', 
-                    col="#DADADA",
-                    xlim=lon_range, ylim=lat_range
-                    )  
-        }
-        else
-        {
-          lat_range[1] <- lat_range[1]-10 # Minimum on negative axis
-          lat_range[2] <- lat_range[2]+10 # Maximum on positive axis
-          lon_range[1] <- lon_range[1]-10 # Minimum on negative axis
-          lon_range[2] <- lon_range[2]+10 # Maximum on positive axis
-          maps::map(database="world", 
-                    border="gray10", fill=T, #bg='black', 
-                    col="#DADADA",
-                    xlim=lon_range, ylim=lat_range
-                    )
-        }
+        # if(input$g_map_name=='All')
+        # {
+        #   lat_range[1] <- lat_range[1]-50 # Minimum on negative axis
+        #   lat_range[2] <- lat_range[2]+50 # Maximum on positive axis
+        #   lon_range[1] <- lon_range[1]-50 # Minimum on negative axis
+        #   lon_range[2] <- lon_range[2]+50 # Maximum on positive axis
+        #   maps::map(database="world", 
+        #             border="gray10", fill=T, #bg='black', 
+        #             col="#DADADA",
+        #             xlim=lon_range, ylim=lat_range
+        #             )  
+        # }
+        # else
+        # {
+        #   lat_range[1] <- lat_range[1]-10 # Minimum on negative axis
+        #   lat_range[2] <- lat_range[2]+10 # Maximum on positive axis
+        #   lon_range[1] <- lon_range[1]-10 # Minimum on negative axis
+        #   lon_range[2] <- lon_range[2]+10 # Maximum on positive axis
+        #   maps::map(database="world", 
+        #             border="gray10", fill=T, #bg='black', 
+        #             col="#DADADA",
+        #             xlim=lon_range, ylim=lat_range
+        #             )
+        # }
         
-        #  
-        points(x=geo.nodes$longitude, y=geo.nodes$latitude, pch=19, 
-               col=geo.nodes$color, cex=2)
-        # text(x=geo.nodes$longitude, y=(geo.nodes$latitude)-0.8, 
-        #       label=sprintf('%s, %s',geo.nodes$hq_city, geo.nodes$hq_province),
-        #       cex=1.36, col='#FF0000')
+        fig <- plot_mapbox(mode = 'scattermapbox')
+        fig <- fig %>% add_markers(
+          data = geo.nodes, x = ~longitude, y = ~latitude,
+          text=~sprintf('%s, %s',geo.nodes$hq_city, geo.nodes$hq_province), 
+          color=I("red"),
+          #size = ~cnt, 
+          hoverinfo = "text", alpha = 0.5) 
+        
+        # fig <- fig %>% add_segments(
+        #   data = group_by(flights, id),
+        #   x = ~start_lon, xend = ~end_lon,
+        #   y = ~start_lat, yend = ~end_lat,
+        #   alpha = 0.3, size = I(1), hoverinfo = "none",
+        #   color=I("red")) 
+        
+        fig <- fig %>% layout(
+          plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
+          mapbox = list(style = 'dark',
+                        zoom = 1.5,
+                        center = list(lat = median(geo.nodes$lat),
+                                      lon = median(geo.nodes$long))),
+          margin = list(l = 0, r = 0,
+                        b = 0, t = 0,
+                        pad = 0),
+          showlegend=FALSE) 
+        fig <- fig %>% config(mapboxAccessToken = Sys.getenv("MAPBOX_TOKEN"))
+        
+ 
         
         tmp.edges <- geo.nonunique_edges # non unique edges so we can get the count of
         # connections between two hq countries
         
         # Color the edges---------------------------------------------------------
         
-        geo.unique_edges$count <- 0
-        for(i in 1:nrow(geo.unique_edges))
-        {
-          #  
-          m1_m2 <- geo.unique_edges[i, c('g1_addr', 'g2_addr')]
-          count1 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g1_addr &
-                                             geo.nonunique_edges$g2_addr==m1_m2$g2_addr,])
-          count2 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g2_addr &
-                                             geo.nonunique_edges$g2_addr==m1_m2$g1_addr,])
-          count <- count1 + count2
-          
-          geo.unique_edges[geo.unique_edges$g1_addr==m1_m2$g1_addr & 
-                           geo.unique_edges$g2_addr==m1_m2$g2_addr, 'count'] <- count
-        }
-        
-        tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
-        count_binned <- cut(geo.unique_edges$count, 7)
-        geo.unique_edges$color <- tmp.colorPalette[as.numeric(count_binned)]
-        
-        for(mn_idx in 1:nrow(geo.unique_edges))
-        {
-          coord1 <- geo.unique_edges[mn_idx, c('g1_longitude', 'g1_latitude')]
-          coord2 <- geo.unique_edges[mn_idx, c('g2_longitude', 'g2_latitude')]
-          color <- geo.unique_edges[mn_idx, 'color']
-          #  
-          intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
-          lines(intEdges, col=color, lwd=2)
-        }
+        # geo.unique_edges$count <- 0
+        # for(i in 1:nrow(geo.unique_edges))
+        # {
+        #   #  
+        #   m1_m2 <- geo.unique_edges[i, c('g1_addr', 'g2_addr')]
+        #   count1 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g1_addr &
+        #                                      geo.nonunique_edges$g2_addr==m1_m2$g2_addr,])
+        #   count2 <- nrow(geo.nonunique_edges[geo.nonunique_edges$g1_addr==m1_m2$g2_addr &
+        #                                      geo.nonunique_edges$g2_addr==m1_m2$g1_addr,])
+        #   count <- count1 + count2
+        #   
+        #   geo.unique_edges[geo.unique_edges$g1_addr==m1_m2$g1_addr & 
+        #                    geo.unique_edges$g2_addr==m1_m2$g2_addr, 'count'] <- count
+        # }
+        # 
+        # tmp.colorPalette <- colorRampPalette(c('orange', 'red'))(7)
+        # count_binned <- cut(geo.unique_edges$count, 7)
+        # geo.unique_edges$color <- tmp.colorPalette[as.numeric(count_binned)]
+        # 
+        # for(mn_idx in 1:nrow(geo.unique_edges))
+        # {
+        #   coord1 <- geo.unique_edges[mn_idx, c('g1_longitude', 'g1_latitude')]
+        #   coord2 <- geo.unique_edges[mn_idx, c('g2_longitude', 'g2_latitude')]
+        #   color <- geo.unique_edges[mn_idx, 'color']
+        #   #  
+        #   intEdges <- gcIntermediate(coord1, coord2, n=1000, addStartEnd=T)
+        #   lines(intEdges, col=color, lwd=2)
+        # }
         
         if(input$g_map_name == "All")
         {
@@ -891,6 +916,7 @@ s <- shinyServer(function(input, output, session){
           updateSelectInput(session=session, inputId="g_map_name", label="Map Name:",
                             choices=c("All", geo.maps))
         }
+        fig
       }
       
     })
