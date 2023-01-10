@@ -1736,7 +1736,7 @@ s <- shinyServer(function(input, output, session){
     
     
     observeEvent(input$delete_profile, {
-      
+      browser()
       # Get the original index in the df_nodes corresponding to the deleted profile
       # in order to remove the row from the table
       profile_name <- input$delete_profile
@@ -1769,7 +1769,7 @@ s <- shinyServer(function(input, output, session){
       #  
       if(ep_changes_made==T)
       {
-        # browser()
+        browser()
         # Delete profiles section-----------------------------------------------
  
         # Restoring column names so that when we reload the file
@@ -1794,6 +1794,10 @@ s <- shinyServer(function(input, output, session){
         {
           indices <- which(tmp.df_nodes$group_name %in% d.profile_names)
           tmp.df_nodes <- tmp.df_nodes[-indices,]
+          
+          # Update profile_names after deletion
+          indices <- which(profile_names %in% d.profile_names)
+          profile_names <<- profile_names[-indices]
         }
         
         # Save hidden profile names changes-------------------------------------
@@ -2100,11 +2104,32 @@ s <- shinyServer(function(input, output, session){
         #reflect on the new information, if new profiles involved.
         #"""""
         browser()
-        new.profiles <- df_nodes[df_nodes$label %in% c(group1_name, group2_name),
-                                 c('id', 'label', 'level', 'active',
-                                   'URL', 'endyear')]
+        new.profiles <- NA
+        if(nrow(df_nodes.copy[df_nodes.copy$label==group1_name,])==0)
+        {
+          new.profiles <- df_nodes[df_nodes$label == group1_name,
+                                   c('id', 'label', 'level', 'active',
+                                     'URL', 'endyear')]
+        }
         
-        df_nodes.copy <<- rbind(df_nodes.copy, new.profiles)
+        if(nrow(df_nodes.copy[df_nodes.copy$label==group2_name,])==0)
+        {
+          tmp.new_profile <- df_nodes[df_nodes$label == group2_name,
+                                        c('id', 'label', 'level', 'active',
+                                          'URL', 'endyear')]
+          if(all(is.na(tmp.new_profile)))
+          {
+            new.profiles <- tmp.new_profile
+          }
+          else
+            new.profiles <- rbind(new.profiles, tmp.new_profile)
+        }
+        
+        
+        tmp.df_nodes.copy <- rbind(df_nodes.copy, new.profiles)
+        df_nodes.copy <<- tmp.df_nodes.copy %>% arrange(label) %>% 
+                          filter(label != "")
+        
         #----------------------------------------------------------------------
     
         
