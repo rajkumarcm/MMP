@@ -816,13 +816,15 @@ s <- shinyServer(function(input, output, session){
         
         if(input$g_map_name=='All')
         {
-          lat_range[1] <- lat_range[1]-15 # Minimum on negative axis
-          lat_range[2] <- lat_range[2]+15 # Maximum on positive axis
-          lon_range[1] <- lon_range[1]-36 # Minimum on negative axis
-          lon_range[2] <- lon_range[2]+36 # Maximum on positive axis
+          lat_range[1] <- lat_range[1]-50 # Minimum on negative axis
+          lat_range[2] <- lat_range[2]+50 # Maximum on positive axis
+          lon_range[1] <- lon_range[1]-50 # Minimum on negative axis
+          lon_range[2] <- lon_range[2]+50 # Maximum on positive axis
           maps::map(database="world", 
-                    border="gray10", fill=T, bg='black', col="grey20",
-                    xlim=lon_range, ylim=lat_range)  
+                    border="gray10", fill=T, #bg='black', 
+                    col="#DADADA",
+                    xlim=lon_range, ylim=lat_range
+                    )  
         }
         else
         {
@@ -831,7 +833,8 @@ s <- shinyServer(function(input, output, session){
           lon_range[1] <- lon_range[1]-10 # Minimum on negative axis
           lon_range[2] <- lon_range[2]+10 # Maximum on positive axis
           maps::map(database="world", 
-                    border="gray10", fill=T, bg='black', col="grey20",
+                    border="gray10", fill=T, #bg='black', 
+                    col="#DADADA",
                     xlim=lon_range, ylim=lat_range
                     )
         }
@@ -839,9 +842,9 @@ s <- shinyServer(function(input, output, session){
         #  
         points(x=geo.nodes$longitude, y=geo.nodes$latitude, pch=19, 
                col=geo.nodes$color, cex=2)
-        text(x=geo.nodes$longitude, y=(geo.nodes$latitude)-0.8, 
-              label=sprintf('%s, %s',geo.nodes$hq_city, geo.nodes$hq_province),
-              cex=1, col='white')
+        # text(x=geo.nodes$longitude, y=(geo.nodes$latitude)-0.8, 
+        #       label=sprintf('%s, %s',geo.nodes$hq_city, geo.nodes$hq_province),
+        #       cex=1.36, col='#FF0000')
         
         tmp.edges <- geo.nonunique_edges # non unique edges so we can get the count of
         # connections between two hq countries
@@ -1381,7 +1384,7 @@ s <- shinyServer(function(input, output, session){
       }
       else if(input$admin_tbsp == "admin_ep1")
       {
-        browser()
+        # browser()
         output$ep_profiles <- renderPrint({
           profiles <- admin.profiles()
           html.table <- "<table class='admin_table' id='edit_profiles'>
