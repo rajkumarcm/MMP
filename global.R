@@ -14,6 +14,9 @@ library(fuzzyjoin)
 library(leaflet)
 library(tidyverse)
 library(rlang)
+library(plotly)
+mapboxToken <- "pk.eyJ1IjoicmFqa3VtYXJjbSIsImEiOiJjbGNwbzQyemUxZWwxM3ZwNjZjbHRwZ2p1In0.mPzEpkV2_MDdNK0QLvJ_WQ"   # You need your own token
+Sys.setenv("MAPBOX_TOKEN" = mapboxToken) # for Orca
 # source('preproces_global.R', local=F)
 source('handle_data.R', local=T)
 map_idx <- 2

@@ -6,9 +6,6 @@ library('ggplot2')
 library('gridExtra')
 library('tidyverse')
 library('shinyjs')
-library('plotly')
-mapboxToken <- "pk.eyJ1IjoicmFqa3VtYXJjbSIsImEiOiJjbGNwbzQyemUxZWwxM3ZwNjZjbHRwZ2p1In0.mPzEpkV2_MDdNK0QLvJ_WQ"   # You need your own token
-Sys.setenv("MAPBOX_TOKEN" = mapboxToken) # for Orca
 
 source('handle_data.R', local=T)
 source('filter_medges_all.R', local=T)
