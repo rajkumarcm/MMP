@@ -765,7 +765,10 @@ div.outerBorder {
   width:50%; 
 }
 
-
+.mandatory
+{
+  color:red;
+}
 
 
 

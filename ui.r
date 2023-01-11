@@ -414,92 +414,92 @@ u <- shinyUI(fluidPage(
                              <div id="new_prof_container" class="admin_new_container">
                                 <table>
                                 <tr>
-                                 <td><h4>Name</h4></td>
+                                 <td><label>Name<span class="mandatory">*</span></label></td>
                                  <td><input type="text" id="new_prof_name" class="emfield_input_small "/></td>
                                 </tr>
                                 <tr>
-                                 <td><h4>URL</h4></td>
+                                 <td><label>URL<span class="mandatory">*</span></label></td>
                                  <td><input type="text" id="new_prof_url" class="emfield_input_small "/></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Description</h4></td>
+                                  <td><label>Description</label></td>
                                   <td><textarea id="new_prof_desc" class="emfield_input_small" style="width:500px;" maxlength="500"></textarea></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Year founded</h4></td>
+                                  <td><label>Year founded<span class="mandatory">*</span></label></td>
                                   <td><input type="number" id="new_prof_sy"  name="new_prof_sy" class="emfield_input_small" min="1700" /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Year dissolved</h4></td>
+                                  <td><label>Year dissolved<span class="mandatory"></span></label></td>
                                   <td><input type="number" id="new_prof_ey" class="emfield_input_small" min="0" max="2022"  /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Active</h4></td>
+                                  <td><label>Active<span class="mandatory"></span></label></td>
                                   <td><input type="checkbox" id="new_prof_active" style="margin-left:100px;" /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Complete</h4></td>
+                                  <td><label>Complete</label></td>
                                   <td><input type="checbox" id="new_prof_complete" class="emfield_input_small" /></td>
                                 </tr>
 
                                 <tr>
-                                  <td><h4>First attack</h4></td>
+                                  <td><label>First attack<span class="mandatory">*</span></label></td>
                                   <td>
                                     <input type="number" id="new_prof_fatt" min="1700" max="2022" class="emfield_input_small" />
                                   </td>
                                 </tr>
                                 </tr>
                                 <tr>
-                                  <td><h4>Last attack</h4></td>
+                                  <td><label>Last attack</label></td>
                                   <td>
                                     <input type="number" id="new_prof_latt" min="1700" max="2022" class="emfield_input_small" />
                                   </td>
                                 </tr>
                                 </tr>
                                 <tr>
-                                  <td><h4>Last updated</h4></td>
+                                  <td><label>Last updated<span class="mandatory">*</span></label></td>
                                   <td>
                                     <input type="number" id="new_prof_lupdated" min="1700" max="2022" class="emfield_input_small" />
                                   </td>
                                 </tr>
                                 <tr>
-                                  <td><h4>HQ City</h4></td>
+                                  <td><label>HQ City<span class="mandatory">*</span></label></td>
                                   <td><input type="text" id="new_prof_city" class="emfield_input_small" /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>HQ Country</h4></td>
+                                  <td><label>HQ Country<span class="mandatory">*</span></label></td>
                                   <td><input type="text" id="new_prof_country" class="emfield_input_small"  /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>HQ Province</h4></td>
+                                  <td><label>HQ Province<span class="mandatory">*</span></label></td>
                                   <td><input type="text" id="new_prof_province" class="emfield_input_small" /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Initial member size</h4></td>
+                                  <td><label>Initial member size<span class="mandatory">*</span></label></td>
                                   <td><input type="number" id="new_prof_ims" min="0" class="emfield_input_small" /></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Initial size year</h4></td>
+                                  <td><label>Initial size year</label></td>
                                   <td><input id="new_prof_isy" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Min size members</h4></td>
+                                  <td><label>Min size members</label></td>
                                   <td><input id="new_prof_msm" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Max size members</h4></td>
+                                  <td><label>Max size members<span class="mandatory">*</span></label></td>
                                   <td><input id="new_prof_max_sm" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Min size year</h4></td>
+                                  <td><label>Min size year</label></td>
                                   <td><input id="new_prof_msy" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Max size year</h4></td>
+                                  <td><label>Max size year</label></td>
                                   <td><input id="new_prof_max_sy" type="number" min="0" class="emfield_input_small"/></td>
                                 </tr>
                                 <tr>
-                                  <td><h4>Sponsor types</h4></td>
+                                  <td><label>Designated types</label></td>
                                   <td>'),
                              checkboxGroupInput(inputId='new_prof_spons_types', label='',
                                                 choices=c('US', 'UN', 'State',

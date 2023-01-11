@@ -1490,6 +1490,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$newProf_schanges, {
+      browser()
       #  
       warnings <- c()
       end_year <- as.integer(input$newProf_schanges['ey'][[1]])
@@ -1585,9 +1586,13 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Last updated cannot be before the start of the group')
       }
-      if(last_attack < start_year)
+      
+      if(!is.na(last_attack))
       {
-        warnings <- c(warnings, 'Last attack cannot be before the start of the group')
+        if(last_attack < start_year)
+        {
+          warnings <- c(warnings, 'Last attack cannot be before the start of the group')
+        }
       }
       
       us_sponsored = 0
@@ -1805,7 +1810,6 @@ s <- shinyServer(function(input, output, session){
       #  
       if(ep_changes_made==T)
       {
-        browser()
         # Delete profiles section-----------------------------------------------
  
         # Restoring column names so that when we reload the file
@@ -1894,7 +1898,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$newRel_schanges, {
-      # browser()
+      browser()
       newRel_schanges <- input$newRel_schanges
       
       group1_name <- input$new_rel_fgn
@@ -1918,14 +1922,14 @@ s <- shinyServer(function(input, output, session){
       {
         warnings <- c(warnings, 'Reverse relationship already exists')
       }
-      # browser()
+      
+      map_warnings <- F
       if("Other" %in% map_names)
       {
         # loginfo('Trace multiple maps behavior')
         # browser()
         new_mn <- str_squish(input$new_mn)
         new_mn <- str_split(new_mn, ",")[[1]]
-        map_warnings <- F
         for(i in 1:length(new_mn))
         {
           # browser()
@@ -1935,7 +1939,7 @@ s <- shinyServer(function(input, output, session){
             map_warnings <- T
             break
           }
-          else if(tolower(new_mn[i]) %in% tolower(df_nodes$map_name))
+          else if(tolower(new_mn[i]) %in% tolower(unique(df_nodes$map_name)))
           {
             warnings <- c(warnings, 'New map name already exists')
             map_warnings <- T
@@ -2023,7 +2027,7 @@ s <- shinyServer(function(input, output, session){
       }
       else
       {
-        if(!is.na(map_warnings))
+        if(map_warnings==F & "Other" %in% map_names)
         {
           maps <<- unique(c(maps, new_mn))
         }
@@ -2153,7 +2157,7 @@ s <- shinyServer(function(input, output, session){
           tmp.new_profile <- df_nodes[df_nodes$label == group2_name,
                                         c('id', 'label', 'level', 'active',
                                           'URL', 'endyear')]
-          if(all(is.na(tmp.new_profile)))
+          if(all(is.na(new.profiles)))
           {
             new.profiles <- tmp.new_profile
           }
@@ -2161,17 +2165,21 @@ s <- shinyServer(function(input, output, session){
             new.profiles <- rbind(new.profiles, tmp.new_profile)
         }
         
+        if(!(all(is.na(new.profiles))))
+        {
+          tmp.df_nodes.copy <- rbind(df_nodes.copy, new.profiles) 
+          df_nodes.copy <<- tmp.df_nodes.copy %>% arrange(label) %>% 
+            filter(label != "")
+          reactive_df_node(tmp.df_nodes)
+        }
         
-        tmp.df_nodes.copy <- rbind(df_nodes.copy, new.profiles)
-        df_nodes.copy <<- tmp.df_nodes.copy %>% arrange(label) %>% 
-                          filter(label != "")
         
         #----------------------------------------------------------------------
     
         
         
         #  
-        reactive_df_node(tmp.df_nodes)
+        
         triggered_df(df)
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
       }
