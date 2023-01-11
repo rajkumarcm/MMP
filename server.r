@@ -984,9 +984,8 @@ s <- shinyServer(function(input, output, session){
       width_idx <- which(cnames=='width')
       tmp.edges <- tmp.edges[, -width_idx]
       
-      # debug_var <- dfs()[[1]] # DELETE AFTER INSPECTION...
-      #  
       tmp.nodes <- dfs()[[1]]
+      browser()
       tmp.nodes <- tmp.nodes %>% inner_join(df_nodes[, c('label', 'old_description')])
       tmp.nodes <- set_border_color(tmp.nodes)
       visNetwork(tmp.nodes, tmp.edges) %>%

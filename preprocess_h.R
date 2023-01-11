@@ -256,21 +256,23 @@ preprocess_hdata <- function(edges, old_nodes)
 set_border_color <- function(nodes)
 {
   unique.labels <- unique(nodes[nodes$clone==T, 'label'])
-  
-  require(RColorBrewer)
-  colorPalette <- brewer.pal(length(unique.labels), 'Paired')
-  # detach(RColorBrewer, unload=T)
-  
   nodes$color.border <- 'black'
-  nodes$borderWidth <- 3
-  for(i in 1:length(unique.labels))
+    
+  if(length(unique.labels) > 0)
   {
-    label <- unique.labels[i]
-    color <- colorPalette[i]
-    nodes[nodes$label == label, 'color.border'] <- color
+    require(RColorBrewer)
+    colorPalette <- brewer.pal(length(unique.labels), 'Paired')
+    # detach(RColorBrewer, unload=T)
+    
+    nodes$borderWidth <- 3
+    for(i in 1:length(unique.labels))
+    {
+      label <- unique.labels[i]
+      color <- colorPalette[i]
+      nodes[nodes$label == label, 'color.border'] <- color
+    }
   }
   nodes
-  
 }
 
 
