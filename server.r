@@ -937,7 +937,6 @@ s <- shinyServer(function(input, output, session){
       
       h_edges <- h.df[h.df$map_name==input$h_map_name & 
                     (h.df$status=='Splinters' | h.df$status=='Mergers'), ]
-      browser()
       #  
       nodes_mn <- unique(c(h_edges$from, h_edges$to))
       nodes_mn <- data.frame(id=nodes_mn) %>% 
@@ -1615,7 +1614,6 @@ s <- shinyServer(function(input, output, session){
         other_designated = 1
       }
       
-      browser()
       if(length(warnings) > 0)
       {
         session$sendCustomMessage('showWarnings', 'new_prof_warnings_container')
@@ -1896,7 +1894,7 @@ s <- shinyServer(function(input, output, session){
     })
     
     observeEvent(input$newRel_schanges, {
-      browser()
+      
       newRel_schanges <- input$newRel_schanges
       
       group1_name <- input$new_rel_fgn
@@ -2136,7 +2134,7 @@ s <- shinyServer(function(input, output, session){
         #Append information onto df_nodes.copy so that edit profiles can
         #reflect on the new information, if new profiles involved.
         #"""""
-        browser()
+        
         new.profiles <- NA
         if(nrow(df_nodes.copy[df_nodes.copy$label==group1_name,])==0)
         {

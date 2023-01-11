@@ -411,7 +411,6 @@ u <- shinyUI(fluidPage(
                              
                              HTML('</br></br>'),
                              HTML('
-                             <button id="fill_debug" onclick="debug_newProf()">Fill for debugging</button>
                              <div id="new_prof_container" class="admin_new_container">
                                 <table>
                                 <tr>
