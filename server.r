@@ -2124,6 +2124,9 @@ s <- shinyServer(function(input, output, session){
         
         df <<- rbind(df, tmp.df2[, colnames(df)])
         
+        # Also write changes onto the hierarchical version of df
+        h.df <<- rbind(h.df, tmp.df2[, colnames(df)])
+        
         tmp.df_nodes <- load_nodes_data()
         nodes <- generate_node_properties(df)
         tmp.df_nodes <- tmp.df_nodes %>% inner_join(nodes, by='id', keep=F)
