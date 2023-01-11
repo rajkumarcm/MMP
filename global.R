@@ -30,10 +30,23 @@ map_idx <- 2
 # Load and preprocess data--------------------------
 df <- load_edges_data()
 df <- preprocess_df(df)
+
+# Have a copy for hierarchical
+h.df <- df
+
 df <- remove_edges_rd(df)
+
+# For Hierarchical
+h.df <- remove_edges_sy(df)
+
 df <- remove_edges_ry(df)
 df <- make_undirected(df)
+
+# For Hierarchical
+h.df <- make_undirected(h.df)
+
 df$width <- 9
+h.df$width <- 9
 
 generate_node_properties <- function(df)
 {

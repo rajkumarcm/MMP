@@ -144,13 +144,14 @@ u <- shinyUI(fluidPage(
                                                div(id="animate_opts", 
                                                    div(id="animateChkbox",
                                                      checkboxInput(inputId='animate_spatial',
-                                                                   label='Animate') 
+                                                                   label='Show changes over time') 
                                                    ),
                                                    div(id="animateBtnDiv",
                                                    
                                                    #primary button    
                                                    actionButton(inputId="animateBtn", 
-                                                                label="Play/Pause"),
+                                                                label="Animate",
+                                                                icon=icon("play-circle")),
                                                    
                                                    )
                                                ),

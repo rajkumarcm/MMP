@@ -304,12 +304,7 @@ remove_edges_ry <- function(df, undirected=T)
               df$map_name == edge$map_name & 
               df$primary == edge$primary, 'link_id']
     
-    # loginfo(tmp)
-    # browser()
-    if(116 %in% tmp)
-    {
-      # browser()
-    }
+
     tmp_forward_df <- get_row_lyear(tmp, c())
     if(nrow(tmp_forward_df) > 1)
     {
@@ -374,6 +369,46 @@ remove_edges_ry <- function(df, undirected=T)
   new_df <- data.frame(new_df)
   colnames(new_df) <- colnames(df)
   new_df
+}
+
+remove_edges_sy <- function(df)
+{
+  unique.edges <- unique(df[, c('group1_name', 'group2_name', 'map_name', 
+                                'year', 'primary')])
+  new.df <- df
+  for(i in 1:nrow(unique.edges))
+  {
+    edge <- unique.edges[i,]
+    years <- df[df$group1_name==edge$group1_name &
+                df$group2_name==edge$group2_name &
+                df$map_name==edge$map_name & 
+                df$year==edge$year & 
+                df$primary==edge$primary, 'year']
+    repeated_year <- years[duplicated(years)]
+    if(length(repeated_year) > 0)
+    {
+      for(j in 1:length(repeated_year))
+      {
+        duplicate.year <- repeated_year[1]
+        # When the year is repeated, then remove that particular edge
+        indices <- which(df$group1_name==edge$group1_name &
+                           df$group2_name==edge$group2_name &
+                           df$map_name==edge$map_name & 
+                           df$year==duplicate.year & 
+                           df$primary==edge$primary)
+        
+        # Remove edges with same year - but not everything. Leave one
+        # The if condition ensures that when there are two edges with 
+        # same status and year then retain one, and have the other removed.
+        if(length(indices) > 1)
+        {
+          indices <- indices[-1]
+          new.df <- new.df[-indices,]
+        }
+      }
+    }
+  }
+  new.df
 }
 
 make_undirected <- function(df)
@@ -445,11 +480,10 @@ clean_size_members <- function(x)
 }
 
 # For debugging--------------------------
-# df <- load_data()
-# browser()
-# df <- preprocess(df)
-# browser()
+# df <- load_edges_data()
+# df <- preprocess_df(df)
 # df <- remove_edges_rd(df)
+# df <- remove_edges_sy(df)
 # df <- remove_edges_ry(df)
 # df <- make_undirected(df)
 # # df <- data.frame(from=c(0,1,1,1,2,7), to=c(1, 2, 4, 8, 1, 1))

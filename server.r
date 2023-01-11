@@ -935,8 +935,9 @@ s <- shinyServer(function(input, output, session){
     
     dfs <- reactive({
       
-      h_edges <- df[df$map_name==input$h_map_name & (df$status=='Splinters' | 
-                                                     df$status=='Mergers'), ]
+      h_edges <- h.df[h.df$map_name==input$h_map_name & 
+                    (h.df$status=='Splinters' | h.df$status=='Mergers'), ]
+      browser()
       #  
       nodes_mn <- unique(c(h_edges$from, h_edges$to))
       nodes_mn <- data.frame(id=nodes_mn) %>% 
@@ -985,7 +986,6 @@ s <- shinyServer(function(input, output, session){
       tmp.edges <- tmp.edges[, -width_idx]
       
       tmp.nodes <- dfs()[[1]]
-      browser()
       tmp.nodes <- tmp.nodes %>% inner_join(df_nodes[, c('label', 'old_description')])
       tmp.nodes <- set_border_color(tmp.nodes)
       visNetwork(tmp.nodes, tmp.edges) %>%
@@ -998,7 +998,7 @@ s <- shinyServer(function(input, output, session){
                                                        position: {x:650, y:450},
                                                        });
                                           
-                                         }"),#,
+                                         }"),
  
                   ) %>%
         visEvents(zoom = "function(properties){
@@ -1024,14 +1024,8 @@ s <- shinyServer(function(input, output, session){
     
     h_networkProxy <- visNetworkProxy("visnetworktimeline")
     
-    # observeEvent(input$traceBackNode, {
-    #   output$h_traceback <- reactive({
-    #     
-    #   })
-    # })
     
      observeEvent(input$showDesc_h, {
-       # loginfo('input$showDesc_h triggered')
        link_id <- input$showDesc_h[[2]]
        tmp <- dfs()[[2]]
        description <- tmp[tmp$link_id==link_id, 'description']
@@ -1067,7 +1061,7 @@ s <- shinyServer(function(input, output, session){
               <circle cx='20' cy='50' r='10' fill='#97C2FC' />
               <text x='60px' y='50' class='legend_label'>Original Node</text>
               <circle cx='220' cy='50' r='10' fill='#FB7E81' />
-              <text x='255px' y='50' class='legend_label'>Clone Node</text>"
+              <text x='255px' y='50' class='legend_label'>Ongoing Node</text>"
         # svg_content <- paste(svg_content1, svg_content2)
         svg_content <- svg_content2
         HTML(
@@ -1484,13 +1478,15 @@ s <- shinyServer(function(input, output, session){
       }
       else if(input$vz_tbsp == "vz_hierarchical")
       {
-        updateSelectInput(session, 'h_map_name', choices=maps[2:length(maps)],
-                          selected=maps[2])
+        valid_maps <- unique(h.df[h.df$status=='Splinters' |
+                                  h.df$status=='Mergers',
+                             'map_name'])
+        updateSelectInput(session, 'h_map_name', choices=valid_maps,
+                          selected=valid_maps[1])
       }
     })
     
     observeEvent(input$newProf_schanges, {
-      browser()
       #  
       warnings <- c()
       end_year <- as.integer(input$newProf_schanges['ey'][[1]])
@@ -1619,7 +1615,7 @@ s <- shinyServer(function(input, output, session){
         other_designated = 1
       }
       
-      #  
+      browser()
       if(length(warnings) > 0)
       {
         session$sendCustomMessage('showWarnings', 'new_prof_warnings_container')
@@ -1630,9 +1626,15 @@ s <- shinyServer(function(input, output, session){
         output$new_prof_warnings <- renderText({})
         session$sendCustomMessage('hideWarnings', 'new_prof_warnings_container')
         
+        # Get the file with the latest timestamp
+        latest_fname <- get_latest_file('data/groups/', 'groups')
+        original.df_nodes <- read.csv(paste0('data/groups/',latest_fname), 
+                                      header=T,)
+        
         #  
         # Before writing the changes, check for duplicates in the df_nodes
-        new.group_id <- (max(df_nodes$id)+1)
+        new.group_id <- (max(original.df_nodes$group_id)+1)
+        
         node_record <- data.frame(group_id=new.group_id, group_name=name, 
                                   start_year=start_year, end_year=end_year,
                                   active=active, complete=complete,
@@ -1660,10 +1662,7 @@ s <- shinyServer(function(input, output, session){
                                   Notes=comments
                                   )
         
-        # Get the file with the latest timestamp
-        latest_fname <- get_latest_file('data/groups/', 'groups')
-        original.df_nodes <- read.csv(paste0('data/groups/',latest_fname), 
-                                      header=T,)
+       
         
         # Append new information onto the existing dataframe
         #  
@@ -1777,7 +1776,6 @@ s <- shinyServer(function(input, output, session){
     
     
     observeEvent(input$delete_profile, {
-      browser()
       # Get the original index in the df_nodes corresponding to the deleted profile
       # in order to remove the row from the table
       profile_name <- input$delete_profile
@@ -1909,7 +1907,7 @@ s <- shinyServer(function(input, output, session){
       description <- newRel_schanges[['desc']]
       year <- as.integer(newRel_schanges[['year']])
       multiple <- 0
-      #  
+      
       warnings <- c()
       if(group1_name == group2_name)
       {
@@ -1926,13 +1924,10 @@ s <- shinyServer(function(input, output, session){
       map_warnings <- F
       if("Other" %in% map_names)
       {
-        # loginfo('Trace multiple maps behavior')
-        # browser()
         new_mn <- str_squish(input$new_mn)
         new_mn <- str_split(new_mn, ",")[[1]]
         for(i in 1:length(new_mn))
         {
-          # browser()
           if(nchar(new_mn[i]) < 3)
           {
             warnings <- c(warnings, 'New map name cannot be empty')
@@ -1960,8 +1955,7 @@ s <- shinyServer(function(input, output, session){
       {
         loginfo(paste('line number 1880: Map names: ', map_names))
       }
-      map_names <- map_names[map_names != "Other"]
-      # browser()
+      
       
       group1_syear <- unique(df_nodes.full[df_nodes.full$label==group1_name, 'level'])
       group2_syear <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'level'])
@@ -1969,7 +1963,7 @@ s <- shinyServer(function(input, output, session){
       group2_eyear <- unique(df_nodes.full[df_nodes.full$label==group2_name, 'endyear'])
       min_year <- min(c(group1_syear, group2_syear))
       max_year <- 0
-      #  
+      
       if(group1_eyear == 0 & group2_eyear == 0)
       {
         max_year <- -1
@@ -1987,7 +1981,6 @@ s <- shinyServer(function(input, output, session){
         max_year <- max(c(group1_eyear, group2_eyear))
       }
       
-      #  
       if(max_year != -1)
       {
         if(year < min_year | year > max_year)
@@ -2003,9 +1996,6 @@ s <- shinyServer(function(input, output, session){
         }
       }
 
-      #  
-      
-      # Check for duplicates
       for(i in 1:length(map_names))
       {
         map_name <- map_names[i]
@@ -2029,6 +2019,7 @@ s <- shinyServer(function(input, output, session){
       {
         if(map_warnings==F & "Other" %in% map_names)
         {
+          map_names <- map_names[map_names != "Other"]
           maps <<- unique(c(maps, new_mn))
         }
         output$new_rel_warnings <- renderText({})
@@ -2050,7 +2041,7 @@ s <- shinyServer(function(input, output, session){
                                group2_name=group2_name, year=year,
                                multiple=multiple, map_name=map_name,
                                primary=primary)
-          # browser()
+
           if(anyNA(tmp.df2, recursive=T))
           {
             tmp.df2 <- record
@@ -2129,9 +2120,8 @@ s <- shinyServer(function(input, output, session){
         
         r.fname <- paste0(paste0("relationships", date_time), ".csv")
         write.csv(tmp.df, file=paste0('data/relationships/', r.fname), row.names=F)
-        # session$sendCustomMessage('refresh_page', '')
-        #  
-        #  
+        
+        
         df <<- rbind(df, tmp.df2[, colnames(df)])
         
         tmp.df_nodes <- load_nodes_data()
@@ -2173,13 +2163,8 @@ s <- shinyServer(function(input, output, session){
           reactive_df_node(tmp.df_nodes)
         }
         
-        
         #----------------------------------------------------------------------
-    
-        
-        
-        #  
-        
+
         triggered_df(df)
         session$sendCustomMessage('sendAlert', 'New edge has been successfully added')
       }
