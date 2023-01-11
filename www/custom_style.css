@@ -290,7 +290,7 @@ div:fullscreen
 #year_ruler
 {
   height:950px;
-  width:195px;
+  width:100px;
   overflow-y:clip;
   position:relative;
 }

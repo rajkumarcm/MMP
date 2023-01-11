@@ -254,7 +254,7 @@ u <- shinyUI(fluidPage(
                                              uiOutput("year_ruler_sub")),
                                          
                                          visNetworkOutput("visnetworktimeline", 
-                                                          width="2477px",
+                                                          width="1300px",
                                                           height="1000px"),
                                        ),
                                      

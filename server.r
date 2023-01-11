@@ -1048,7 +1048,7 @@ s <- shinyServer(function(input, output, session){
               }
             </style>
             </br>
-            <svg viewBox='0 0 130 3000' xmlns='http://www.w3.org/2000/svg'>",
+            <svg viewBox='0 0 90 3000' xmlns='http://www.w3.org/2000/svg'>",
                paste0(svg_content, "</svg>"))
       )
     })

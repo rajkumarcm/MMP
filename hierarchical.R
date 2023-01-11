@@ -599,9 +599,9 @@ get_h_legend <- function(levels)
     next_y <- levels[i+1, 'y']
     edge_y <- NA
     if(i == 1)
-      edge_y <- prev_y + ((next_y - prev_y)/2) + 40 # 20 = offset
+      edge_y <- prev_y + ((next_y - prev_y)/2) + 5 # 20 = offset
     else
-      edge_y <- prev_y + ((next_y - prev_y)/2) + 70 # 20 = offset
+      edge_y <- prev_y + ((next_y - prev_y)/2) + 10 # 20 = offset
     row <- data.frame(y=edge_y, year=levels[i+1, 'year'])
     
     if(is.null(new_levels))
@@ -621,8 +621,8 @@ get_h_legend <- function(levels)
     year <- levels[i, 'year']
     y <- levels[i, 'y']
     label <- as.character(year)
-    line <- sprintf("<line x1='0' y1='%dpx' x2='40px' y2='%dpx' stroke='black' stroke-width='3px' />", y, y)
-    text <- sprintf("<text x='50px' y='%dpx' class='legend_label'>%s</text>", y, label)
+    line <- sprintf("<line x1='0' y1='%dpx' x2='30px' y2='%dpx' stroke='black' stroke-width='3px' />", y, y)
+    text <- sprintf("<text x='40px' y='%dpx' class='legend_label'>%s</text>", y, label)
     sub_html <- paste0(line, text)
     html_content <- paste(html_content, sub_html)
   }
