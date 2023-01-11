@@ -1872,6 +1872,17 @@ s <- shinyServer(function(input, output, session){
         {
           df <<- df[-indices,]
         }
+        
+        # Delete edges related to the discarded profile in hierarchical version of df
+        h.indices <- which(h.df$group1_name %in% d.profile_names |
+                           h.df$group2_name %in% d.profile_names)
+        
+        if(length(h.indices) > 0)
+        {
+          h.df <<- h.df[-indices,]
+        }
+        
+        
         d.profile_names <<- NULL
         
         # Re-assign....
